@@ -1,26 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Select Class</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(135deg,#0f172a,#1e3a8a);
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+color:white;
+}
+
+.container{
+width:90%;
+max-width:700px;
+}
+
+.card{
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(10px);
+padding:25px;
+border-radius:20px;
+margin:20px 0;
+text-align:center;
+box-shadow:0 0 25px rgba(0,0,0,.3);
+}
+
+h1{
+text-align:center;
+margin-bottom:30px;
+}
+
+.btn{
+display:inline-block;
+background:#fbbf24;
+color:black;
+padding:14px 30px;
+border-radius:10px;
+text-decoration:none;
+font-weight:bold;
+font-size:18px;
+}
+
+.btn:hover{
+background:#f59e0b;
+}
+</style>
 </head>
 
-<body style="font-family:Arial;padding:20px">
+<body>
+
+<div class="container">
 
 <h1>🏆 Select Your Class</h1>
 
-<div style="background:#f5f5f5;padding:20px;border-radius:10px;margin-bottom:20px">
-<h2>Class 11</h2>
-<a href="class11-test.html">
-<button>Start Class 11 Test</button>
-</a>
+<div class="card">
+<h2>📘 Class 11</h2>
+<p>Chapter-wise Physical Education Tests</p>
+<a href="class11-test.html" class="btn">Start Class 11 Test</a>
 </div>
 
-<div style="background:#f5f5f5;padding:20px;border-radius:10px">
-<h2>Class 12</h2>
-<a href="class12-test.html">
-<button>Start Class 12 Test</button>
-</a>
+<div class="card">
+<h2>📗 Class 12</h2>
+<p>Chapter-wise Physical Education Tests</p>
+<a href="class12-test.html" class="btn">Start Class 12 Test</a>
+</div>
+
 </div>
 
 </body>
