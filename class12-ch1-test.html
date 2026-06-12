@@ -1,1 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 12 Chapter 1 Test</title>
 
+<style>
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(135deg,#0a0f2c,#1e3a8a,#2563eb);
+padding:20px;
+color:white;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+}
+
+.card{
+background:white;
+color:black;
+padding:20px;
+border-radius:20px;
+margin-bottom:20px;
+box-shadow:0 10px 25px rgba(0,0,0,.25);
+}
+
+h1{
+text-align:center;
+margin-bottom:20px;
+}
+
+.question{
+margin-bottom:20px;
+}
+
+.question p{
+font-weight:bold;
+}
+
+label{
+display:block;
+margin:6px 0;
+}
+
+button{
+width:100%;
+padding:15px;
+background:#2563eb;
+color:white;
+border:none;
+border-radius:10px;
+font-size:18px;
+font-weight:bold;
+cursor:pointer;
+}
+
+#result{
+display:none;
+background:white;
+color:black;
+padding:25px;
+border-radius:20px;
+margin-top:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>📘 Chapter 1 - Management of Sporting Events</h1>
+
+<div class="card">
+<p><b>Name:</b> <span id="studentName"></span></p>
+<p><b>School:</b> <span id="schoolName"></span></p>
+<p><b>Class:</b> <span id="studentClass"></span></p>
+</div>
+
+<div class="card">
+
+<div class="question">
+<p>1. Intramural competitions are conducted within?</p>
+<label><input type="radio" name="q1" value="1"> School</label>
+<label><input type="radio" name="q1" value="0"> State</label>
+<label><input type="radio" name="q1" value="0"> Country</label>
+</div>
+
+<div class="question">
+<p>2. Knock-out tournament is also called?</p>
+<label><input type="radio" name="q2" value="1"> Elimination Tournament</label>
+<label><input type="radio" name="q2" value="0"> League Tournament</label>
+<label><input type="radio" name="q2" value="0"> Round Robin</label>
+</div>
+
+<div class="question">
+<p>3. League tournament is known as?</p>
+<label><input type="radio" name="q3" value="1"> Round Robin</label>
+<label><input type="radio" name="q3" value="0"> Knock-out</label>
+<label><input type="radio" name="q3" value="0"> Challenge</label>
+</div>
+
+<div class="question">
+<p>4. Seeding is done to?</p>
+<label><input type="radio" name="q4" value="1"> Avoid strong teams meeting early</label>
+<label><input type="radio" name="q4" value="0"> Increase expenses</label>
+<label><input type="radio" name="q4" value="0"> Delay matches</label>
+</div>
+
+<div class="question">
+<p>5. Finance Committee prepares?</p>
+<label><input type="radio" name="q5" value="1"> Budget</label>
+<label><input type="radio" name="q5" value="0"> Fixtures</label>
+<label><input type="radio" name="q5" value="0"> Ground</label>
+</div>
+
+<div class="question">
+<p>6. Bye is given when?</p>
+<label><input type="radio" name="q6" value="1"> Teams are not power of 2</label>
+<label><input type="radio" name="q6" value="0"> Final Match</label>
+<label><input type="radio" name="q6" value="0"> League Match</label>
+</div>
+
+<div class="question">
+<p>7. Publicity Committee is responsible for?</p>
+<label><input type="radio" name="q7" value="1"> Promotion</label>
+<label><input type="radio" name="q7" value="0"> Budget</label>
+<label><input type="radio" name="q7" value="0"> Medical Help</label>
+</div>
+
+<div class="question">
+<p>8. Technical Committee handles?</p>
+<label><input type="radio" name="q8" value="1"> Rules and Fixtures</label>
+<label><input type="radio" name="q8" value="0"> Food</label>
+<label><input type="radio" name="q8" value="0"> Transport</label>
+</div>
+
+<div class="question">
+<p>9. Medical Committee provides?</p>
+<label><input type="radio" name="q9" value="1"> First Aid</label>
+<label><input type="radio" name="q9" value="0"> Fixtures</label>
+<label><input type="radio" name="q9" value="0"> Budget</label>
+</div>
+
+<div class="question">
+<p>10. Reception Committee welcomes?</p>
+<label><input type="radio" name="q10" value="1"> Guests</label>
+<label><input type="radio" name="q10" value="0"> Audience</label>
+<label><input type="radio" name="q10" value="0"> Media</label>
+</div>
+
+<div class="question">
+<p>11. League tournament takes?</p>
+<label><input type="radio" name="q11" value="1"> More Time</label>
+<label><input type="radio" name="q11" value="0"> Less Time</label>
+<label><input type="radio" name="q11" value="0"> No Time</label>
+</div>
+
+<div class="question">
+<p>12. Knock-out tournament is?</p>
+<label><input type="radio" name="q12" value="1"> Economical</label>
+<label><input type="radio" name="q12" value="0"> Costly</label>
+<label><input type="radio" name="q12" value="0"> Slow</label>
+</div>
+
+<div class="question">
+<p>13. Fixtures are prepared by?</p>
+<label><input type="radio" name="q13" value="1"> Organizing Committee</label>
+<label><input type="radio" name="q13" value="0"> Players</label>
+<label><input type="radio" name="q13" value="0"> Audience</label>
+</div>
+
+<div class="question">
+<p>14. Number of matches in knock-out?</p>
+<label><input type="radio" name="q14" value="1"> N-1</label>
+<label><input type="radio" name="q14" value="0"> N+1</label>
+<label><input type="radio" name="q14" value="0"> N×2</label>
+</div>
+
+<div class="question">
+<p>15. Main objective of intramurals?</p>
+<label><input type="radio" name="q15" value="1"> Participation</label>
+<label><input type="radio" name="q15" value="0"> Profit</label>
+<label><input type="radio" name="q15" value="0"> Advertisement</label>
+</div>
+
+<div class="question">
+<p>16. Refreshment Committee manages?</p>
+<label><input type="radio" name="q16" value="1"> Food & Water</label>
+<label><input type="radio" name="q16" value="0"> Fixtures</label>
+<label><input type="radio" name="q16" value="0"> Budget</label>
+</div>
+
+<div class="question">
+<p>17. Extramural competition means?</p>
+<label><input type="radio" name="q17" value="1"> Between Institutions</label>
+<label><input type="radio" name="q17" value="0"> Within School</label>
+<label><input type="radio" name="q17" value="0"> Friendly Match</label>
+</div>
+
+<div class="question">
+<p>18. Tournament planning is done before?</p>
+<label><input type="radio" name="q18" value="1"> Competition</label>
+<label><input type="radio" name="q18" value="0"> Result</label>
+<label><input type="radio" name="q18" value="0"> Prize Distribution</label>
+</div>
+
+<div class="question">
+<p>19. Budget is prepared by?</p>
+<label><input type="radio" name="q19" value="1"> Finance Committee</label>
+<label><input type="radio" name="q19" value="0"> Medical Committee</label>
+<label><input type="radio" name="q19" value="0"> Reception Committee</label>
+</div>
+
+<div class="question">
+<p>20. Prize distribution is done during?</p>
+<label><input type="radio" name="q20" value="1"> Closing Ceremony</label>
+<label><input type="radio" name="q20" value="0"> Opening Ceremony</label>
+<label><input type="radio" name="q20" value="0"> Registration</label>
+</div>
+
+<button onclick="showResult()">Submit Test</button>
+
+</div>
+
+<div id="result"></div>
+
+</div>
+
+<script>
+
+document.getElementById("studentName").innerText=localStorage.getItem("studentName")||"Student";
+document.getElementById("schoolName").innerText=localStorage.getItem("schoolName")||"-";
+document.getElementById("studentClass").innerText=localStorage.getItem("studentClass")||"-";
+
+function showResult(){
+
+let score=0;
+
+document.querySelectorAll('input[type="radio"]:checked').forEach(ans=>{
+score += Number(ans.value);
+});
+
+let total=20;
+let wrong=total-score;
+let percentage=(score/total)*100;
+
+let grade="C";
+if(percentage>=90) grade="A+";
+else if(percentage>=75) grade="A";
+else if(percentage>=60) grade="B";
+
+let status=percentage>=50 ? "PASS ✅" : "FAIL ❌";
+
+document.getElementById("result").style.display="block";
+
+document.getElementById("result").innerHTML=
+"<h2>🏆 Performance Report</h2>"+
+"<p><b>Name:</b> "+localStorage.getItem('studentName')+"</p>"+
+"<p><b>School:</b> "+localStorage.getItem('schoolName')+"</p>"+
+"<p><b>Class:</b> "+localStorage.getItem('studentClass')+"</p>"+
+"<p><b>Correct Answers:</b> "+score+"</p>"+
+"<p><b>Wrong Answers:</b> "+wrong+"</p>"+
+"<p><b>Score:</b> "+score+"/20</p>"+
+"<p><b>Percentage:</b> "+percentage.toFixed(2)+"%</p>"+
+"<p><b>Grade:</b> "+grade+"</p>"+
+"<p><b>Status:</b> "+status+"</p>";
+}
+</script>
+
+</body>
+</html>
