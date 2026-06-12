@@ -2,61 +2,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Online Test</title>
+<title>Online Test Series</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<body style="font-family:Arial;padding:20px">
+<body style="font-family:Arial;padding:20px;background:#f5f7fb">
 
-<h1>🏆 Physical Education Online Test</h1>
+<h1>🏆 Online Test Series</h1>
 
-<input type="text" id="name" placeholder="Student Name"><br><br>
-
-<input type="text" id="school" placeholder="School Name"><br><br>
-
-<button onclick="startTest()">Start Test</button>
-
-<div id="testArea" style="display:none">
-
-<h3>Q1. Yoga kis se sambandhit hai?</h3>
-
-<input type="radio" name="q1" value="1"> Health<br>
-<input type="radio" name="q1" value="0"> Cricket<br>
-<input type="radio" name="q1" value="0"> Hockey<br>
-
-<br>
-
-<button onclick="submitTest()">Submit</button>
-
+<div style="background:white;padding:15px;margin:10px 0;border-radius:10px;">
+<h3>📘 Class 11 Tests</h3>
+<a href="class11-test.html">Open Tests</a>
 </div>
 
-<div id="result"></div>
+<div style="background:white;padding:15px;margin:10px 0;border-radius:10px;">
+<h3>📗 Class 12 Tests</h3>
+<a href="class12-test.html">Open Tests</a>
+</div>
 
-<script>
-
-function startTest(){
-document.getElementById("testArea").style.display="block";
-}
-
-function submitTest(){
-
-let score=0;
-
-let q1=document.querySelector('input[name="q1"]:checked');
-
-if(q1 && q1.value=="1"){
-score++;
-}
-
-let percent=(score/1)*100;
-
-document.getElementById("result").innerHTML=
-"<h2>Score: "+score+"/1</h2>"+
-"<h2>Percentage: "+percent+"%</h2>";
-
-}
-
-</script>
+<p>
+<a href="index.html">⬅ Back to Home</a>
+</p>
 
 </body>
 </html>
