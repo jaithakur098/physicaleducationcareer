@@ -1,3 +1,4 @@
+const questions = [
 {
 question:"1. Intramural competitions are conducted within?",
 options:["School","District","State","Country"],
