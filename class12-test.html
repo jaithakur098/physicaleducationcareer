@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Class 12 Physical Education Tests</title>
-
 <style>
 *{
 margin:0;
@@ -12,97 +11,93 @@ padding:0;
 box-sizing:border-box;
 font-family:Arial,sans-serif;
 }
-
 body{
-background:linear-gradient(135deg,#0f172a,#1e293b);
+background:linear-gradient(135deg,#0a0f2c,#1e3a8a,#2563eb);
+background-size:400% 400%;
+animation:bgmove 10s ease infinite;
 padding:20px;
 min-height:100vh;
 }
-
+@keyframes bgmove{
+0%{background-position:0% 50%;}
+50%{background-position:100% 50%;}
+100%{background-position:0% 50%;}
+}
 .container{
-max-width:800px;
+max-width:850px;
 margin:auto;
 }
-
 .title{
 text-align:center;
 color:white;
-font-size:40px;
+font-size:42px;
 font-weight:bold;
 margin-bottom:30px;
+text-shadow:0 0 20px rgba(255,255,255,0.6);
 }
-
 .card{
-background:white;
-border-radius:20px;
-padding:25px;
-margin-bottom:20px;
-box-shadow:0 10px 25px rgba(0,0,0,0.25);
+background:linear-gradient(135deg,#ffffff,#f1f5f9);
+border:2px solid #60a5fa;
+border-radius:25px;
+padding:30px;
+margin-bottom:25px;
+box-shadow:0 15px 35px rgba(0,0,0,0.25);
+transition:0.3s;
 }
-
+.card:hover{
+transform:translateY(-5px);
+}
 .card h2{
-font-size:30px;
+font-size:38px;
+color:#0f172a;
 margin-bottom:10px;
-color:#111827;
 }
-
 .card p{
-color:#6b7280;
+font-size:22px;
+color:#475569;
 margin-bottom:20px;
 }
-
 .btn{
 display:inline-block;
-background:#2563eb;
-color:white;
+padding:15px 35px;
+border-radius:12px;
 text-decoration:none;
-padding:12px 25px;
-border-radius:10px;
+font-size:22px;
 font-weight:bold;
+color:white;
+background:linear-gradient(135deg,#2563eb,#06b6d4);
+box-shadow:0 8px 20px rgba(37,99,235,0.4);
 }
-
-.btn:hover{
-background:#1d4ed8;
-}
-
 .back{
 display:block;
 text-align:center;
-margin-top:25px;
+margin-top:30px;
+font-size:24px;
 color:white;
-font-size:18px;
 text-decoration:none;
+font-weight:bold;
 }
 </style>
 </head>
-
 <body>
-
 <div class="container">
-
 <h1 class="title">📘 Class 12 Physical Education Tests</h1>
-
 <div class="card">
 <h2>Chapter 1</h2>
 <p>Management of Sporting Events</p>
 <a href="class12-ch1-test.html" class="btn">Start Test</a>
 </div>
-
 <div class="card">
 <h2>Chapter 2</h2>
 <p>Children and Women in Sports</p>
 <a href="class12-ch2-test.html" class="btn">Start Test</a>
 </div>
-
 <div class="card">
 <h2>Chapter 3</h2>
 <p>Yoga as Preventive Measure</p>
 <a href="#" class="btn">Coming Soon</a>
 </div>
-
 <a href="class-selection.html" class="back">⬅ Back to Class Selection</a>
-
 </div>
-
 </body>
 </html>
