@@ -1,29 +1,134 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Student Details</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Physical Education Online Test</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#0f172a,#1e3a8a);
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.container{
+max-width:650px;
+width:100%;
+background:white;
+border-radius:25px;
+overflow:hidden;
+box-shadow:0 15px 40px rgba(0,0,0,0.3);
+}
+
+.hero-img{
+width:100%;
+height:320px;
+object-fit:cover;
+display:block;
+}
+
+.content{
+padding:30px;
+text-align:center;
+}
+
+h1{
+font-size:38px;
+color:#0f172a;
+margin-bottom:15px;
+}
+
+.teacher{
+font-size:24px;
+font-weight:bold;
+color:#2563eb;
+margin-bottom:20px;
+}
+
+.desc{
+font-size:18px;
+line-height:1.8;
+color:#444;
+margin-bottom:30px;
+}
+
+.btn{
+display:inline-block;
+background:#2563eb;
+color:white;
+text-decoration:none;
+padding:15px 35px;
+border-radius:12px;
+font-size:20px;
+font-weight:bold;
+transition:0.3s;
+}
+
+.btn:hover{
+background:#1d4ed8;
+}
+
+.badge{
+display:inline-block;
+background:#f59e0b;
+color:white;
+padding:8px 18px;
+border-radius:50px;
+font-weight:bold;
+margin-bottom:15px;
+}
+</style>
+
 </head>
+<body>
 
-<body style="font-family:Arial;padding:20px">
+<div class="container">
 
-<h1>🏆 Physical Education Online Test</h1>
+<img src="jai-thakur.png" class="hero-img">
 
-<input type="text" placeholder="Student Name"><br><br>
+<div class="content">
 
-<input type="text" placeholder="School Name"><br><br>
+<div class="badge">
+🏆 OFFICIAL TEST PORTAL
+</div>
 
-<select>
-<option>Select Class</option>
-<option>Class 11</option>
-<option>Class 12</option>
-</select>
+<h1>Physical Education Online Test</h1>
 
-<br><br>
+<div class="teacher">
+Jai Thakur
+</div>
 
-<a href="class-selection.html">
-<button>Start Test</button>
+<p class="desc">
+Welcome to the Official Physical Education Test Portal.
+
+Students are requested to complete their details carefully before starting the examination.
+
+This platform provides chapter-wise MCQ tests for Class 11 and Class 12 Physical Education.
+
+Your score and performance will be displayed immediately after submission.
+
+Best of Luck!
+</p>
+
+<a href="student-details.html" class="btn">
+Proceed To Test →
 </a>
+
+</div>
+
+</div>
 
 </body>
 </html>
