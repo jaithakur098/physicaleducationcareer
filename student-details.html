@@ -1,47 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Student Details</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
+<body>
 
-<body style="font-family:Arial;text-align:center;padding:30px;background:#f5f7fa;">
+<h1>Student Details</h1>
 
-<h1>🎓 Student Details</h1>
+<input type="text" id="name" placeholder="Student Name"><br><br>
 
-<input type="text" id="name" placeholder="Student Name" style="width:90%;padding:12px;margin:10px;"><br>
+<input type="text" id="school" placeholder="School Name"><br><br>
 
-<input type="text" id="school" placeholder="School Name" style="width:90%;padding:12px;margin:10px;"><br>
-
-<select id="class" style="width:90%;padding:12px;margin:10px;">
+<select id="cls">
 <option value="">Select Class</option>
 <option value="11">Class 11</option>
 <option value="12">Class 12</option>
-</select><br>
+</select>
 
-<button onclick="startTest()" style="padding:15px 30px;background:#2563eb;color:white;border:none;border-radius:10px;">
-Start Test
-</button>
+<br><br>
+
+<button onclick="goNext()">Start Test</button>
 
 <script>
-function startTest(){
+function goNext(){
 
-let name=document.getElementById("name").value;
-let school=document.getElementById("school").value;
-let cls=document.getElementById("class").value;
+let cls = document.getElementById("cls").value;
 
-if(name=="" || school=="" || cls==""){
-alert("Please fill all details.");
+if(cls==""){
+alert("Please select class");
 return;
 }
 
 if(cls=="11"){
 window.location.href="class11-test.html";
 }
-else{
+
+if(cls=="12"){
 window.location.href="class12-test.html";
 }
+
 }
 </script>
 
