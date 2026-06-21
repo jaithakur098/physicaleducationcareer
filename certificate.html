@@ -2,200 +2,141 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yoga Certificate</title>
-
+<title>Certificate</title>
 <style>
-
 body{
 margin:0;
-padding:20px;
-background:#f4f6fa;
+padding:10px;
+background:#f2f4f8;
 font-family:Arial,sans-serif;
 }
-
 .certificate{
-max-width:1000px;
+max-width:900px;
 margin:auto;
 background:white;
-padding:40px;
-border:10px solid #d4af37;
-border-radius:25px;
+padding:20px;
+border:8px solid #d4af37;
+border-radius:20px;
 text-align:center;
 position:relative;
 overflow:hidden;
-box-shadow:0 0 30px rgba(0,0,0,.15);
 }
-
-.certificate::before{
+.certificate:before{
 content:"";
 position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-width:500px;
-height:500px;
+width:350px;
+height:350px;
 background:url('ultimate-logo.PNG') center center no-repeat;
 background-size:contain;
-opacity:.08;
-z-index:0;
+opacity:.06;
 }
-
 .certificate *{
 position:relative;
 z-index:1;
 }
-
 .logo{
-font-size:28px;
+font-size:24px;
 font-weight:bold;
 color:#0d47a1;
 }
-
 .title{
-font-size:52px;
+font-size:34px;
 font-weight:bold;
 color:#d4af37;
-margin-top:15px;
+margin:10px 0;
 }
-
 .subtitle{
-font-size:26px;
-color:#444;
-margin-top:10px;
+font-size:20px;
+margin-bottom:15px;
 }
-
 .student{
-font-size:48px;
+font-size:32px;
 font-weight:bold;
 color:#0d47a1;
-margin:30px 0;
-text-transform:uppercase;
-border-bottom:3px solid #d4af37;
-display:inline-block;
-padding:10px 40px;
+margin:15px 0;
 }
-
 .info{
-font-size:22px;
-line-height:1.8;
-color:#333;
+font-size:18px;
+line-height:1.6;
 }
-
 .sign{
 display:flex;
 justify-content:space-between;
-margin-top:60px;
+margin-top:25px;
 }
-
 .line{
-width:180px;
-border-top:3px solid #000;
-margin:auto;
-margin-bottom:10px;
+border-top:2px solid #000;
+width:150px;
+margin:auto auto 8px;
 }
-
 .btn{
 display:inline-block;
-margin-top:40px;
-padding:18px 35px;
+margin-top:20px;
+padding:12px 25px;
 background:#28a745;
 color:white;
 text-decoration:none;
-border-radius:12px;
-font-size:22px;
+border-radius:10px;
 font-weight:bold;
 }
-
 @media print{
-.btn{
-display:none;
+.btn{display:none;}
+body{zoom:80%;background:white;}
 }
-body{
-padding:0;
-background:white;
-}
-}
-
 </style>
 </head>
-
 <body>
-
 <div class="certificate">
-
 <div class="logo">
 🏆 TEAM ULTIMATE TAEKWONDO ACADEMY
 </div>
-
 <div class="title">
 CERTIFICATE OF ACHIEVEMENT
 </div>
-
 <div class="subtitle">
 International Yoga Day Quiz 2026
 </div>
-
-<p class="info">
-This certificate is proudly presented to
-</p>
-
+<p class="info">This certificate is proudly awarded to</p>
 <div class="student" id="studentName">
 Student Name
 </div>
-
 <div class="info">
-Father Name: <b id="fatherName"></b><br>
-Class: <b id="className"></b><br>
-Academy: <b id="academyName"></b>
+Father Name: <b id="fatherName">-</b><br>
+Class: <b id="className">-</b><br>
+Academy: <b id="academyName">-</b>
 </div>
-
-<br><br>
-
+<br>
 <div class="info">
-For successfully participating and achieving excellent performance in the Team Ultimate Yoga Quiz 2026.
+For successful participation in the International Yoga Day Quiz 2026.
 </div>
-
 <div class="sign">
-
 <div>
 <div class="line"></div>
 <b>Jai Thakur</b><br>
-Director<br>
-Ultimate Taekwondo Academy<br>
-<span style="color:#777;font-size:14px;">
-Digitally Signed
-</span>
+Digitally Signed<br>
+Director
 </div>
-
 <div>
 <div class="line"></div>
-<b>21 June 2026</b><br>
-Date
+21 June 2026
 </div>
-
 </div>
-
 <a href="#" onclick="window.print()" class="btn">
 📥 Download / Print Certificate
 </a>
-
 </div>
-
 <script>
-
-document.getElementById("studentName").innerHTML=
+document.getElementById("studentName").innerHTML =
 localStorage.getItem("studentName") || "Student Name";
-
-document.getElementById("fatherName").innerHTML=
+document.getElementById("fatherName").innerHTML =
 localStorage.getItem("fatherName") || "-";
-
-document.getElementById("className").innerHTML=
+document.getElementById("className").innerHTML =
 localStorage.getItem("className") || "-";
-
-document.getElementById("academyName").innerHTML=
+document.getElementById("academyName").innerHTML =
 localStorage.getItem("academyName") || "-";
-
 </script>
-
 </body>
 </html>
