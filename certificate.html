@@ -2,13 +2,13 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Achievement Certificate</title>
+<title>Yoga Certificate</title>
 
 <style>
 body{
 margin:0;
 padding:20px;
-background:#f0f3f8;
+background:#f4f6fa;
 font-family:Arial,sans-serif;
 }
 
@@ -24,7 +24,7 @@ box-shadow:0 0 30px rgba(0,0,0,.2);
 }
 
 .logo{
-font-size:26px;
+font-size:32px;
 font-weight:bold;
 color:#0d47a1;
 }
@@ -38,41 +38,29 @@ margin-top:20px;
 
 .subtitle{
 font-size:28px;
-color:#444;
 margin-top:10px;
+color:#444;
 }
 
 .student{
 font-size:42px;
 font-weight:bold;
 color:#0d47a1;
-margin:35px 0;
+margin:25px 0;
 border-bottom:3px solid #d4af37;
 display:inline-block;
 padding:10px 30px;
 }
 
-.text{
+.info{
 font-size:22px;
-line-height:1.7;
-color:#333;
-}
-
-.badge{
-background:#0d47a1;
-color:white;
-padding:15px 25px;
-border-radius:50px;
-display:inline-block;
-margin:20px 0;
-font-size:20px;
+line-height:1.8;
 }
 
 .sign{
 display:flex;
 justify-content:space-between;
 margin-top:60px;
-text-align:center;
 }
 
 .sign div{
@@ -86,13 +74,13 @@ margin-bottom:10px;
 
 .btn{
 display:inline-block;
-margin-top:40px;
+margin-top:30px;
 background:#28a745;
 color:white;
-padding:15px 30px;
-font-size:22px;
+padding:15px 25px;
+border-radius:10px;
 text-decoration:none;
-border-radius:12px;
+font-size:22px;
 }
 
 @media print{
@@ -111,36 +99,34 @@ background:white;
 <div class="certificate">
 
 <div class="logo">
-🏆 TEAM ULTIMATE YOGA QUIZ 2026
+🏆 TEAM ULTIMATE TAEKWONDO ACADEMY
 </div>
 
 <div class="title">
-CERTIFICATE OF ACHIEVEMENT
+CERTIFICATE OF PARTICIPATION
 </div>
 
 <div class="subtitle">
 International Yoga Day Quiz 2026
 </div>
 
-<div class="badge">
-⭐ Outstanding Performance ⭐
-</div>
-
-<p class="text">
+<p class="info">
 This certificate is proudly presented to
 </p>
 
-<div class="student">
-STUDENT NAME
+<div class="student" id="studentName">
+Student Name
 </div>
 
-<p class="text">
-For successfully participating and achieving excellent performance in the
-Team Ultimate Yoga Quiz 2026.
-</p>
+<div class="info">
+Father Name: <b id="fatherName">-</b><br>
+Class: <b id="className">-</b><br>
+Academy: <b id="academyName">-</b>
+</div>
 
-<p class="text">
-Demonstrating knowledge, dedication and enthusiasm towards Yoga and Healthy Living.
+<p class="info">
+For successfully participating in the
+International Yoga Day Quiz 2026.
 </p>
 
 <div class="sign">
@@ -148,14 +134,12 @@ Demonstrating knowledge, dedication and enthusiasm towards Yoga and Healthy Livi
 <div>
 <div class="line"></div>
 <b>Jai Thakur</b><br>
-Director<br>
-Ultimate Taekwondo Academy
+Director
 </div>
 
 <div>
 <div class="line"></div>
-<b>Date</b><br>
-21 June 2026
+<b>21 June 2026</b>
 </div>
 
 </div>
@@ -165,6 +149,20 @@ Ultimate Taekwondo Academy
 </a>
 
 </div>
+
+<script>
+document.getElementById("studentName").innerHTML =
+localStorage.getItem("studentName") || "Student";
+
+document.getElementById("fatherName").innerHTML =
+localStorage.getItem("fatherName") || "-";
+
+document.getElementById("className").innerHTML =
+localStorage.getItem("className") || "-";
+
+document.getElementById("academyName").innerHTML =
+localStorage.getItem("academyName") || "-";
+</script>
 
 </body>
 </html>
