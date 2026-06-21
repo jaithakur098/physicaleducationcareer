@@ -22,14 +22,14 @@ box-shadow:0 10px 30px rgba(0,0,0,.15);
 
 h1{
 text-align:center;
-font-size:42px;
+font-size:40px;
 color:#0d47a1;
 }
 
 .subtitle{
 text-align:center;
 color:#666;
-font-size:20px;
+font-size:18px;
 margin-bottom:20px;
 }
 
@@ -39,7 +39,7 @@ color:white;
 padding:15px;
 border-radius:12px;
 text-align:center;
-font-size:20px;
+font-size:18px;
 margin-bottom:20px;
 }
 
@@ -62,20 +62,19 @@ border-left:5px solid #0d47a1;
 }
 
 .question p{
-font-size:22px;
+font-size:20px;
 font-weight:bold;
 }
 
-.question label{
+label{
 display:block;
 padding:8px 0;
-font-size:18px;
 }
 
 button{
 width:100%;
 padding:18px;
-font-size:22px;
+font-size:20px;
 font-weight:bold;
 background:#0d47a1;
 color:white;
@@ -87,10 +86,10 @@ margin-top:25px;
 #result{
 display:none;
 margin-top:25px;
-padding:25px;
+padding:20px;
+background:#e8f5e9;
 border-radius:15px;
 text-align:center;
-background:#e8f5e9;
 }
 
 .cbtn{
@@ -100,7 +99,7 @@ color:white;
 padding:15px 25px;
 border-radius:10px;
 text-decoration:none;
-font-size:20px;
+font-size:18px;
 margin-top:15px;
 }
 </style>
@@ -110,20 +109,20 @@ margin-top:15px;
 
 <div class="container">
 
-<h1>🏆 TEAM ULTIMATE YOGA QUIZ 2026</h1>
+<h1>🧘 TEAM ULTIMATE YOGA QUIZ 2026</h1>
 
 <div class="subtitle">
 Participate • Learn • Get Certificate
 </div>
 
 <div class="notice">
-📜 Score 80%+ and Download Achievement Certificate
+📜 Score 80%+ = Achievement Certificate
 </div>
 
 <input type="text" id="name" placeholder="Student Name">
-<input type="text" placeholder="Father Name">
-<input type="text" placeholder="Class">
-<input type="text" placeholder="Academy Name">
+<input type="text" id="father" placeholder="Father Name">
+<input type="text" id="class" placeholder="Class">
+<input type="text" id="academy" placeholder="Academy Name">
 
 <div class="question">
 <p>1. International Yoga Day kab manaya jata hai?</p>
@@ -147,52 +146,52 @@ Participate • Learn • Get Certificate
 </div>
 
 <div class="question">
-<p>4. Yoga ka janm kis desh me hua?</p>
-<label><input type="radio" name="q4" value="1"> India</label>
-<label><input type="radio" name="q4" value="0"> China</label>
-<label><input type="radio" name="q4" value="0"> Japan</label>
+<p>4. International Yoga Day pehli baar kab manaya gaya?</p>
+<label><input type="radio" name="q4" value="1"> 2015</label>
+<label><input type="radio" name="q4" value="0"> 2010</label>
+<label><input type="radio" name="q4" value="0"> 2020</label>
 </div>
 
 <div class="question">
-<p>5. International Yoga Day pehli baar kab manaya gaya?</p>
-<label><input type="radio" name="q5" value="1"> 2015</label>
-<label><input type="radio" name="q5" value="0"> 2010</label>
-<label><input type="radio" name="q5" value="0"> 2020</label>
+<p>5. Pranayam kis se sambandhit hai?</p>
+<label><input type="radio" name="q5" value="1"> Breathing</label>
+<label><input type="radio" name="q5" value="0"> Running</label>
+<label><input type="radio" name="q5" value="0"> Swimming</label>
 </div>
 
 <div class="question">
-<p>6. Yoga se kya sudharta hai?</p>
-<label><input type="radio" name="q6" value="1"> Physical & Mental Health</label>
-<label><input type="radio" name="q6" value="0"> Height only</label>
-<label><input type="radio" name="q6" value="0"> Weight only</label>
+<p>6. Tadasana ko kya kaha jata hai?</p>
+<label><input type="radio" name="q6" value="1"> Mountain Pose</label>
+<label><input type="radio" name="q6" value="0"> Tree Pose</label>
+<label><input type="radio" name="q6" value="0"> Cobra Pose</label>
 </div>
 
 <div class="question">
-<p>7. Pranayam kis se sambandhit hai?</p>
-<label><input type="radio" name="q7" value="1"> Breathing</label>
-<label><input type="radio" name="q7" value="0"> Running</label>
-<label><input type="radio" name="q7" value="0"> Swimming</label>
+<p>7. Yoga ka mukhya uddeshya kya hai?</p>
+<label><input type="radio" name="q7" value="1"> Body-Mind Balance</label>
+<label><input type="radio" name="q7" value="0"> Entertainment</label>
+<label><input type="radio" name="q7" value="0"> Competition</label>
 </div>
 
 <div class="question">
-<p>8. Tadasana ko kya kaha jata hai?</p>
-<label><input type="radio" name="q8" value="1"> Mountain Pose</label>
-<label><input type="radio" name="q8" value="0"> Tree Pose</label>
-<label><input type="radio" name="q8" value="0"> Cobra Pose</label>
+<p>8. Yoga Day kis sanstha dwara manyata prapt hai?</p>
+<label><input type="radio" name="q8" value="1"> United Nations</label>
+<label><input type="radio" name="q8" value="0"> FIFA</label>
+<label><input type="radio" name="q8" value="0"> ICC</label>
 </div>
 
 <div class="question">
-<p>9. Yoga ka mukhya uddeshya kya hai?</p>
-<label><input type="radio" name="q9" value="1"> Body-Mind Balance</label>
-<label><input type="radio" name="q9" value="0"> Entertainment</label>
-<label><input type="radio" name="q9" value="0"> Competition</label>
+<p>9. Yoga se kya sudharta hai?</p>
+<label><input type="radio" name="q9" value="1"> Physical & Mental Health</label>
+<label><input type="radio" name="q9" value="0"> Height Only</label>
+<label><input type="radio" name="q9" value="0"> Weight Only</label>
 </div>
 
 <div class="question">
-<p>10. Yoga Day kis sanstha dwara manyata prapt hai?</p>
-<label><input type="radio" name="q10" value="1"> United Nations</label>
-<label><input type="radio" name="q10" value="0"> FIFA</label>
-<label><input type="radio" name="q10" value="0"> ICC</label>
+<p>10. Yoga ka janm kis desh me hua?</p>
+<label><input type="radio" name="q10" value="1"> India</label>
+<label><input type="radio" name="q10" value="0"> China</label>
+<label><input type="radio" name="q10" value="0"> Japan</label>
 </div>
 
 <button onclick="checkQuiz()">Submit Quiz</button>
@@ -204,40 +203,31 @@ Participate • Learn • Get Certificate
 <script>
 function checkQuiz(){
 
+localStorage.setItem("studentName",document.getElementById("name").value);
+localStorage.setItem("fatherName",document.getElementById("father").value);
+localStorage.setItem("className",document.getElementById("class").value);
+localStorage.setItem("academyName",document.getElementById("academy").value);
+
 let score=0;
 
 for(let i=1;i<=10;i++){
 let ans=document.querySelector('input[name="q'+i+'"]:checked');
 if(ans){
-score += parseInt(ans.value);
+score+=parseInt(ans.value);
 }
 }
 
 let percent=(score/10)*100;
 
 if(percent>=80){
-
 document.getElementById("result").innerHTML=
-"<h2>🏆 Achievement Certificate Unlocked!</h2>"+
-"<p>Score: "+score+"/10 ("+percent+"%)</p>"+
-'<a class="cbtn" href="certificate.html">Download Achievement Certificate</a>';
-
+"<h2>🏆 Achievement Certificate Unlocked!</h2><p>Score: "+score+"/10</p><a class='cbtn' href='certificate.html'>Download Achievement Certificate</a>";
 }else{
-
 document.getElementById("result").innerHTML=
-"<h2>📜 Participation Certificate</h2>"+
-"<p>Score: "+score+"/10 ("+percent+"%)</p>"+
-'<a class="cbtn" href="certificate.html">Download Participation Certificate</a>';
-
+"<h2>📜 Participation Certificate</h2><p>Score: "+score+"/10</p><a class='cbtn' href='certificate.html'>Download Participation Certificate</a>";
 }
 
 document.getElementById("result").style.display="block";
-
-window.scrollTo({
-top:document.body.scrollHeight,
-behavior:"smooth"
-});
-
 }
 </script>
 
