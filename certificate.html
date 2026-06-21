@@ -21,17 +21,15 @@ text-align:center;
 position:relative;
 overflow:hidden;
 }
-.certificate:before{
-content:"";
+.watermark{
 position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-width:350px;
-height:350px;
-background:url('ultimate-logo.PNG') center center no-repeat;
-background-size:contain;
-opacity:.06;
+width:420px;
+opacity:0.08;
+z-index:0;
+pointer-events:none;
 }
 .certificate *{
 position:relative;
@@ -84,12 +82,19 @@ font-weight:bold;
 }
 @media print{
 .btn{display:none;}
-body{zoom:80%;background:white;}
+body{
+background:white;
+padding:0;
+}
+.certificate{
+border:6px solid #d4af37;
+}
 }
 </style>
 </head>
 <body>
 <div class="certificate">
+<img src="ultimate-logo.PNG" class="watermark">
 <div class="logo">
 🏆 TEAM ULTIMATE TAEKWONDO ACADEMY
 </div>
@@ -99,7 +104,9 @@ CERTIFICATE OF ACHIEVEMENT
 <div class="subtitle">
 International Yoga Day Quiz 2026
 </div>
-<p class="info">This certificate is proudly awarded to</p>
+<p class="info">
+This certificate is proudly awarded to
+</p>
 <div class="student" id="studentName">
 Student Name
 </div>
