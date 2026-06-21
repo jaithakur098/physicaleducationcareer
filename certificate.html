@@ -5,14 +5,15 @@
 <title>Certificate</title>
 
 <style>
+
 @page{
 size:A4 landscape;
-margin:10mm;
+margin:8mm;
 }
 
 body{
 margin:0;
-padding:15px;
+padding:10px;
 background:#f2f4f8;
 font-family:Arial,sans-serif;
 }
@@ -23,11 +24,11 @@ margin:auto;
 background:#fff;
 border:8px solid #d4af37;
 border-radius:20px;
-padding:25px;
+padding:30px;
 text-align:center;
 position:relative;
 overflow:hidden;
-page-break-inside:avoid;
+box-sizing:border-box;
 }
 
 .watermark{
@@ -35,67 +36,66 @@ position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-width:420px;
-opacity:.06;
+width:500px;
+opacity:0.05;
 z-index:0;
 pointer-events:none;
 }
 
-.certificate *{
+.content{
 position:relative;
 z-index:1;
 }
 
 .logo{
-font-size:22px;
+font-size:24px;
 font-weight:bold;
 color:#0d47a1;
 margin-bottom:10px;
 }
 
 .title{
-font-size:42px;
+font-size:52px;
 font-weight:bold;
 color:#d4af37;
 margin:10px 0;
 }
 
 .subtitle{
-font-size:22px;
-margin-bottom:15px;
+font-size:24px;
+margin-bottom:20px;
 }
 
 .student{
-font-size:38px;
+font-size:44px;
 font-weight:bold;
 color:#0d47a1;
-margin:15px 0;
+margin:20px 0;
 }
 
 .info{
-font-size:20px;
-line-height:1.6;
+font-size:22px;
+line-height:1.8;
 }
 
 .sign{
 display:flex;
 justify-content:space-between;
-align-items:flex-end;
-margin-top:25px;
+margin-top:40px;
 }
 
 .line{
-border-top:2px solid #000;
 width:180px;
-margin:auto auto 8px;
+border-top:2px solid #000;
+margin:auto auto 10px;
 }
 
 .btn{
 display:inline-block;
-margin-top:20px;
-padding:14px 28px;
+margin-top:25px;
+padding:15px 30px;
 background:#28a745;
-color:#fff;
+color:white;
 text-decoration:none;
 border-radius:10px;
 font-size:20px;
@@ -106,7 +106,7 @@ font-weight:bold;
 
 body{
 padding:0;
-background:#fff;
+background:white;
 }
 
 .btn{
@@ -114,11 +114,12 @@ display:none;
 }
 
 .certificate{
-border:8px solid #d4af37;
 margin:0;
-max-width:100%;
+border:8px solid #d4af37;
 }
+
 }
+
 </style>
 </head>
 
@@ -127,6 +128,8 @@ max-width:100%;
 <div class="certificate">
 
 <img src="ultimate-logo.PNG" class="watermark">
+
+<div class="content">
 
 <div class="logo">
 🏆 TEAM ULTIMATE TAEKWONDO ACADEMY
@@ -140,9 +143,9 @@ CERTIFICATE OF ACHIEVEMENT
 International Yoga Day Quiz 2026
 </div>
 
-<p class="info">
+<div class="info">
 This certificate is proudly awarded to
-</p>
+</div>
 
 <div class="student" id="studentName">
 Student Name
@@ -176,13 +179,16 @@ Director
 
 </div>
 
-<a href="#" onclick="window.print()" class="btn">
+<a href="#" onclick="window.print();return false;" class="btn">
 📥 Download / Print Certificate
 </a>
 
 </div>
 
+</div>
+
 <script>
+
 document.getElementById("studentName").innerHTML =
 localStorage.getItem("studentName") || "Student Name";
 
@@ -194,6 +200,7 @@ localStorage.getItem("className") || "-";
 
 document.getElementById("academyName").innerHTML =
 localStorage.getItem("academyName") || "-";
+
 </script>
 
 </body>
