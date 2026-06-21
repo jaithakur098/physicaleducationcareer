@@ -8,52 +8,60 @@
 body{
 margin:0;
 padding:20px;
-background:#f4f6fa;
+background:#f2f4f8;
 font-family:Arial,sans-serif;
 }
 
 .certificate{
-max-width:1000px;
+max-width:1100px;
 margin:auto;
 background:white;
 padding:40px;
-border:12px solid #d4af37;
+border:10px solid #d4af37;
 border-radius:25px;
 text-align:center;
-box-shadow:0 0 30px rgba(0,0,0,.2);
+box-sizing:border-box;
 }
 
 .logo{
-font-size:32px;
+font-size:28px;
 font-weight:bold;
 color:#0d47a1;
+margin-bottom:15px;
 }
 
 .title{
-font-size:50px;
+font-size:52px;
 font-weight:bold;
 color:#d4af37;
-margin-top:20px;
+margin:10px 0;
 }
 
 .subtitle{
-font-size:28px;
-margin-top:10px;
+font-size:26px;
 color:#444;
+margin-bottom:25px;
+}
+
+.info{
+font-size:24px;
+line-height:1.7;
+color:#333;
 }
 
 .student{
-font-size:42px;
+font-size:48px;
 font-weight:bold;
 color:#0d47a1;
 margin:25px 0;
 border-bottom:3px solid #d4af37;
 display:inline-block;
-padding:10px 30px;
+padding:0 25px 10px;
 }
 
-.info{
+.details{
 font-size:22px;
+margin-top:15px;
 line-height:1.8;
 }
 
@@ -63,32 +71,39 @@ justify-content:space-between;
 margin-top:60px;
 }
 
-.sign div{
+.signbox{
 width:40%;
+font-size:22px;
 }
 
 .line{
-border-top:2px solid #000;
+border-top:3px solid #000;
 margin-bottom:10px;
 }
 
 .btn{
 display:inline-block;
-margin-top:30px;
+margin-top:40px;
+padding:18px 40px;
 background:#28a745;
 color:white;
-padding:15px 25px;
-border-radius:10px;
+font-size:24px;
 text-decoration:none;
-font-size:22px;
+border-radius:12px;
 }
 
 @media print{
 .btn{
 display:none;
 }
+
 body{
 background:white;
+padding:0;
+}
+
+.certificate{
+border:8px solid #d4af37;
 }
 }
 </style>
@@ -103,43 +118,46 @@ background:white;
 </div>
 
 <div class="title">
-CERTIFICATE OF PARTICIPATION
+CERTIFICATE OF ACHIEVEMENT
 </div>
 
 <div class="subtitle">
 International Yoga Day Quiz 2026
 </div>
 
-<p class="info">
+<div class="info">
 This certificate is proudly presented to
-</p>
+</div>
 
 <div class="student" id="studentName">
 Student Name
 </div>
 
-<div class="info">
+<div class="details">
 Father Name: <b id="fatherName">-</b><br>
 Class: <b id="className">-</b><br>
 Academy: <b id="academyName">-</b>
 </div>
 
-<p class="info">
-For successfully participating in the
-International Yoga Day Quiz 2026.
-</p>
+<div class="info" style="margin-top:30px;">
+For successfully participating and demonstrating
+excellent knowledge in the International Yoga Day Quiz 2026.
+</div>
 
 <div class="sign">
 
-<div>
+<div class="signbox">
 <div class="line"></div>
 <b>Jai Thakur</b><br>
-Director
+Digitally Signed<br>
+Director<br>
+Ultimate Taekwondo Academy
 </div>
 
-<div>
+<div class="signbox">
 <div class="line"></div>
-<b>21 June 2026</b>
+<b>21 June 2026</b><br>
+Date
 </div>
 
 </div>
@@ -151,16 +169,16 @@ Director
 </div>
 
 <script>
-document.getElementById("studentName").innerHTML =
-localStorage.getItem("studentName") || "Student";
+document.getElementById("studentName").innerHTML=
+localStorage.getItem("studentName") || "Student Name";
 
-document.getElementById("fatherName").innerHTML =
+document.getElementById("fatherName").innerHTML=
 localStorage.getItem("fatherName") || "-";
 
-document.getElementById("className").innerHTML =
+document.getElementById("className").innerHTML=
 localStorage.getItem("className") || "-";
 
-document.getElementById("academyName").innerHTML =
+document.getElementById("academyName").innerHTML=
 localStorage.getItem("academyName") || "-";
 </script>
 
