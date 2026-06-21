@@ -29,8 +29,14 @@ margin-top:20px;
 
 <div class="container">
 
-<h1>🧘 Yoga Day Quiz 2026</h1>
+<h1>🏆 TEAM ULTIMATE YOGA QUIZ 2026</h1>
 
+<p style="text-align:center;color:#666;font-size:18px;">
+Participate • Learn • Get Certificate
+  </p>
+<div style="background:#0d47a1;color:white;padding:15px;border-radius:12px;text-align:center;margin:20px 0;">
+📜 Score 80%+ and Download Participation Certificate
+</div>
 <input type="text" placeholder="Student Name">
 <input type="text" placeholder="Father Name">
 <input type="text" placeholder="Class">
@@ -52,10 +58,24 @@ margin-top:20px;
 
 <br>
 
-<button>
+<button type="button">
 Submit Quiz
 </button>
+<div id="result" style="display:none;margin-top:20px;text-align:center;">
+<h2>🎉 Congratulations!</h2>
+<p>You have successfully completed the Yoga Day Quiz.</p>
+<a href="certificate.html"
+style="background:#28a745;color:white;padding:15px 25px;border-radius:10px;text-decoration:none;font-size:20px;">
+🏆 Download Certificate
+</a>
+</div>
 
+<script>
+document.querySelector("button").onclick=function(){
+document.getElementById("result").style.display="block";
+window.scrollTo(0,document.body.scrollHeight);
+}
+</script>
 </div>
 
 </body>
