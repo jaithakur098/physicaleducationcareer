@@ -1,29 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Team Ultimate Yoga Quiz 2026</title>
 
 <style>
 body{
 font-family:Arial,sans-serif;
-background:#f4f6f9;
+background:#eef2f7;
 padding:20px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+background:#fff;
+padding:30px;
+border-radius:20px;
+box-shadow:0 10px 30px rgba(0,0,0,.15);
 }
 
 h1{
 text-align:center;
 font-size:42px;
 color:#0d47a1;
-margin-bottom:10px;
 }
 
 .subtitle{
 text-align:center;
 color:#666;
-font-size:18px;
+font-size:20px;
 margin-bottom:20px;
 }
 
@@ -34,17 +40,7 @@ padding:15px;
 border-radius:12px;
 text-align:center;
 font-size:20px;
-font-weight:bold;
-margin-bottom:25px;
-}
-
-.container{
-max-width:900px;
-margin:auto;
-background:#fff;
-padding:30px;
-border-radius:20px;
-box-shadow:0 10px 30px rgba(0,0,0,.15);
+margin-bottom:20px;
 }
 
 input[type=text]{
@@ -61,7 +57,7 @@ box-sizing:border-box;
 background:#f8f9fa;
 padding:20px;
 border-radius:15px;
-margin-top:25px;
+margin-top:20px;
 border-left:5px solid #0d47a1;
 }
 
@@ -70,10 +66,10 @@ font-size:22px;
 font-weight:bold;
 }
 
-label{
+.question label{
 display:block;
-margin:12px 0;
-font-size:20px;
+padding:8px 0;
+font-size:18px;
 }
 
 button{
@@ -85,20 +81,19 @@ background:#0d47a1;
 color:white;
 border:none;
 border-radius:12px;
-cursor:pointer;
 margin-top:25px;
 }
 
 #result{
 display:none;
-text-align:center;
 margin-top:25px;
-padding:20px;
+padding:25px;
+border-radius:15px;
+text-align:center;
 background:#e8f5e9;
-border-radius:12px;
 }
 
-.certificate-btn{
+.cbtn{
 display:inline-block;
 background:#28a745;
 color:white;
@@ -106,7 +101,6 @@ padding:15px 25px;
 border-radius:10px;
 text-decoration:none;
 font-size:20px;
-font-weight:bold;
 margin-top:15px;
 }
 </style>
@@ -118,60 +112,132 @@ margin-top:15px;
 
 <h1>🏆 TEAM ULTIMATE YOGA QUIZ 2026</h1>
 
-<p class="subtitle">
+<div class="subtitle">
 Participate • Learn • Get Certificate
-</p>
-
-<div class="notice">
-📜 Score 80%+ and Download Participation Certificate
 </div>
 
-<input type="text" placeholder="Student Name">
+<div class="notice">
+📜 Score 80%+ and Download Achievement Certificate
+</div>
 
+<input type="text" id="name" placeholder="Student Name">
 <input type="text" placeholder="Father Name">
-
 <input type="text" placeholder="Class">
-
 <input type="text" placeholder="Academy Name">
 
 <div class="question">
 <p>1. International Yoga Day kab manaya jata hai?</p>
-
-<label><input type="radio" name="q1"> 21 June</label>
-<label><input type="radio" name="q1"> 15 August</label>
-<label><input type="radio" name="q1"> 26 January</label>
+<label><input type="radio" name="q1" value="1"> 21 June</label>
+<label><input type="radio" name="q1" value="0"> 15 August</label>
+<label><input type="radio" name="q1" value="0"> 26 January</label>
 </div>
 
 <div class="question">
 <p>2. Yoga kis desh me utpann hua?</p>
-
-<label><input type="radio" name="q2"> India</label>
-<label><input type="radio" name="q2"> China</label>
-<label><input type="radio" name="q2"> Japan</label>
+<label><input type="radio" name="q2" value="1"> India</label>
+<label><input type="radio" name="q2" value="0"> China</label>
+<label><input type="radio" name="q2" value="0"> Japan</label>
 </div>
 
-<button type="button" onclick="showResult()">
-Submit Quiz
-</button>
-
-<div id="result">
-<h2>🎉 Congratulations!</h2>
-
-<p>
-You have successfully completed the Team Ultimate Yoga Quiz 2026.
-</p>
-
-<a href="#" class="certificate-btn">
-🏆 Download Certificate
-</a>
+<div class="question">
+<p>3. Surya Namaskar me kitne steps hote hain?</p>
+<label><input type="radio" name="q3" value="0"> 8</label>
+<label><input type="radio" name="q3" value="0"> 10</label>
+<label><input type="radio" name="q3" value="1"> 12</label>
 </div>
+
+<div class="question">
+<p>4. Yoga ka janm kis desh me hua?</p>
+<label><input type="radio" name="q4" value="1"> India</label>
+<label><input type="radio" name="q4" value="0"> China</label>
+<label><input type="radio" name="q4" value="0"> Japan</label>
+</div>
+
+<div class="question">
+<p>5. International Yoga Day pehli baar kab manaya gaya?</p>
+<label><input type="radio" name="q5" value="1"> 2015</label>
+<label><input type="radio" name="q5" value="0"> 2010</label>
+<label><input type="radio" name="q5" value="0"> 2020</label>
+</div>
+
+<div class="question">
+<p>6. Yoga se kya sudharta hai?</p>
+<label><input type="radio" name="q6" value="1"> Physical & Mental Health</label>
+<label><input type="radio" name="q6" value="0"> Height only</label>
+<label><input type="radio" name="q6" value="0"> Weight only</label>
+</div>
+
+<div class="question">
+<p>7. Pranayam kis se sambandhit hai?</p>
+<label><input type="radio" name="q7" value="1"> Breathing</label>
+<label><input type="radio" name="q7" value="0"> Running</label>
+<label><input type="radio" name="q7" value="0"> Swimming</label>
+</div>
+
+<div class="question">
+<p>8. Tadasana ko kya kaha jata hai?</p>
+<label><input type="radio" name="q8" value="1"> Mountain Pose</label>
+<label><input type="radio" name="q8" value="0"> Tree Pose</label>
+<label><input type="radio" name="q8" value="0"> Cobra Pose</label>
+</div>
+
+<div class="question">
+<p>9. Yoga ka mukhya uddeshya kya hai?</p>
+<label><input type="radio" name="q9" value="1"> Body-Mind Balance</label>
+<label><input type="radio" name="q9" value="0"> Entertainment</label>
+<label><input type="radio" name="q9" value="0"> Competition</label>
+</div>
+
+<div class="question">
+<p>10. Yoga Day kis sanstha dwara manyata prapt hai?</p>
+<label><input type="radio" name="q10" value="1"> United Nations</label>
+<label><input type="radio" name="q10" value="0"> FIFA</label>
+<label><input type="radio" name="q10" value="0"> ICC</label>
+</div>
+
+<button onclick="checkQuiz()">Submit Quiz</button>
+
+<div id="result"></div>
 
 </div>
 
 <script>
-function showResult(){
+function checkQuiz(){
+
+let score=0;
+
+for(let i=1;i<=10;i++){
+let ans=document.querySelector('input[name="q'+i+'"]:checked');
+if(ans){
+score += parseInt(ans.value);
+}
+}
+
+let percent=(score/10)*100;
+
+if(percent>=80){
+
+document.getElementById("result").innerHTML=
+"<h2>🏆 Achievement Certificate Unlocked!</h2>"+
+"<p>Score: "+score+"/10 ("+percent+"%)</p>"+
+'<a class="cbtn" href="certificate.html">Download Achievement Certificate</a>';
+
+}else{
+
+document.getElementById("result").innerHTML=
+"<h2>📜 Participation Certificate</h2>"+
+"<p>Score: "+score+"/10 ("+percent+"%)</p>"+
+'<a class="cbtn" href="certificate.html">Download Participation Certificate</a>';
+
+}
+
 document.getElementById("result").style.display="block";
-window.scrollTo(0,document.body.scrollHeight);
+
+window.scrollTo({
+top:document.body.scrollHeight,
+behavior:"smooth"
+});
+
 }
 </script>
 
