@@ -102,7 +102,7 @@ font-weight:700;
 Find the best Government and Private Universities offering D.P.Ed., B.P.Ed., M.P.Ed. and Ph.D. programmes. Compare eligibility, fees, approvals, hostel facilities and admission process—all in one place.
 </p>
 <div class="search-box">
-<input type="text" placeholder="Search University or State...">
+<input type="text" id="searchBox" placeholder="🔍 Search University or State...">
 </div>
 </section>
 <div class="container">
@@ -525,5 +525,26 @@ India's Trusted Platform for D.P.Ed., B.P.Ed., M.P.Ed. & Ph.D. Admission Guidanc
 © 2026 Physical Education Career | All Rights Reserved
 </p>
 </footer>
+  <script>
+const search=document.getElementById("searchBox");
+
+if(search){
+
+search.addEventListener("keyup",function(){
+
+const value=this.value.toLowerCase();
+
+document.querySelectorAll(".state-card").forEach(card=>{
+
+const text=card.innerText.toLowerCase();
+
+card.style.display=text.includes(value)?"block":"none";
+
+});
+
+});
+
+}
+</script>
 </body>
 </html>
