@@ -1,76 +1,152 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-<url>
-<loc>https://physicaleducationcareer.in/</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/about.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/about.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/contact.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/contact.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/privacy-policy.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/privacy-policy.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/disclaimer.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/terms.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class11-unit1.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/disclaimer.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class11-unit2.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/top-universities.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class11-unit3.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/rajasthan-universities.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class12-unit1.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/madhav-university.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class12-unit2.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/jjt-university.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class12-unit3.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/kurukshetra-university.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class12-unit4.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/lnipe.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class12-unit5.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/admissions.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class12-unit6.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/cbse.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class12-unit7.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/downloads.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class12-unit8.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/pet-career.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class12-unit9.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/govt-pti.html</loc>
+  </url>
 
-<url>
-<loc>https://physicaleducationcareer.in/class12-unit10.html</loc>
-</url>
+  <url>
+    <loc>https://physicaleducationcareer.in/old-pyq.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/success-stories.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/test.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/dped.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/bpes.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/bped.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/phd.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class11-unit1.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class11-unit2.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class11-unit3.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class12-unit1.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class12-unit2.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class12-unit3.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class12-unit4.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class12-unit5.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class12-unit6.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class12-unit7.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class12-unit8.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class12-unit9.html</loc>
+  </url>
+
+  <url>
+    <loc>https://physicaleducationcareer.in/class12-unit10.html</loc>
+  </url>
 
 </urlset>
