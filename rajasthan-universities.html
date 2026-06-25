@@ -8,11 +8,15 @@
 
 <title>Rajasthan Physical Education Universities 2026 | B.P.Ed, M.P.Ed, D.P.Ed Colleges</title>
 
-<meta name="description" content="Complete list of Rajasthan Government and Private Physical Education Universities offering D.P.Ed., B.P.Ed., B.P.E.S., M.P.Ed. and Ph.D. Compare fees, eligibility, approvals, placements and admission process.">
+<meta name="description" content="Complete list of Rajasthan Government and Private Physical Education Universities offering B.P.Ed., M.P.Ed., D.P.Ed., B.P.E.S. and Ph.D. admissions with eligibility, fees, recognition and admission guidance.">
 
-<meta name="keywords" content="Rajasthan BPEd Colleges, Rajasthan MPEd Colleges, Rajasthan DPEd Colleges, Physical Education Universities Rajasthan, UGC Approved Colleges Rajasthan, NCTE Approved Colleges">
+<meta name="keywords" content="Rajasthan BPED Colleges, Rajasthan MPED Colleges, Physical Education Universities Rajasthan, BPED Admission Rajasthan">
 
 <meta name="author" content="Jai Thakur">
+
+<meta name="robots" content="index,follow">
+
+<link rel="canonical" href="https://physicaleducationcareer.in/rajasthan-universities.html">
 
 <link rel="stylesheet" href="style.css">
 
@@ -27,6 +31,10 @@ box-sizing:border-box;
 font-family:'Poppins',sans-serif;
 }
 
+html{
+scroll-behavior:smooth;
+}
+
 body{
 background:#f4f7fb;
 color:#222;
@@ -34,197 +42,134 @@ line-height:1.7;
 }
 
 .hero{
-
 background:linear-gradient(135deg,#001b5e,#003b99);
-
 padding:90px 20px;
-
 text-align:center;
-
-color:white;
-
+color:#fff;
 }
 
 .hero h1{
-
 font-size:48px;
-
 font-weight:800;
-
 margin-bottom:20px;
-
 }
 
 .hero p{
-
 max-width:900px;
-
 margin:auto;
-
 font-size:18px;
-
 opacity:.95;
-
 }
 
 .hero-btn{
-
 display:inline-block;
-
 margin-top:35px;
-
 padding:15px 45px;
-
 background:#ffc107;
-
 color:#000;
-
 font-weight:700;
-
-border-radius:8px;
-
 text-decoration:none;
-
+border-radius:8px;
 transition:.3s;
-
 }
 
 .hero-btn:hover{
-
-background:white;
-
+background:#fff;
+transform:translateY(-3px);
 }
 
 .container{
-
 width:95%;
-
 max-width:1350px;
-
 margin:auto;
-
-padding:70px 0;
-
+padding:60px 0;
 }
 
 .search-box{
-
-background:white;
-
+background:#fff;
 padding:25px;
-
-border-radius:15px;
-
-box-shadow:0 10px 30px rgba(0,0,0,.08);
-
 margin-top:-40px;
-
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
 position:relative;
-
-z-index:10;
-
+z-index:99;
 }
 
 .search-box input{
-
 width:100%;
-
 padding:18px;
-
 font-size:18px;
-
 border:2px solid #ddd;
-
 border-radius:8px;
-
 outline:none;
-
 }
 
 .section-title{
-
 text-align:center;
-
 font-size:38px;
-
 font-weight:800;
-
-color:#002b6b;
-
-margin-top:60px;
-
-margin-bottom:20px;
-
+color:#003b99;
+margin:50px 0 20px;
 }
 
 .section-desc{
-
 max-width:1000px;
-
 margin:auto;
-
 text-align:center;
-
 font-size:18px;
-
 color:#555;
-
-line-height:32px;
-
-margin-bottom:50px;
-
+margin-bottom:40px;
 }
 
 .info-box{
-
-background:white;
-
+background:#fff;
 padding:35px;
-
 border-radius:15px;
-
 box-shadow:0 10px 30px rgba(0,0,0,.08);
+margin-bottom:35px;
+}
 
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+table th{
+background:#003b99;
+color:#fff;
+padding:15px;
+}
+
+table td{
+padding:15px;
+border:1px solid #ddd;
+}
+
+.badge{
+background:#e8f5e9;
+padding:5px 10px;
+border-radius:20px;
+font-size:14px;
+font-weight:600;
+}
+
+.state-card{
 margin-top:40px;
-
-}
-
-.info-box h2{
-
-color:#003b99;
-
-margin-bottom:20px;
-
-}
-
-.info-box p{
-
-margin-bottom:18px;
-
-font-size:17px;
-
-}
-
-.highlight{
-
-color:#003b99;
-
-font-weight:700;
-
 }
 
 @media(max-width:768px){
 
 .hero h1{
-
-font-size:32px;
-
+font-size:30px;
 }
 
 .section-title{
-
 font-size:28px;
+}
 
+table{
+font-size:14px;
 }
 
 }
@@ -241,26 +186,28 @@ font-size:28px;
 
 <p>
 
-Explore all Government and Private Universities of Rajasthan offering D.P.Ed., B.P.Ed., B.P.E.S., M.P.Ed. and Ph.D. in Physical Education with complete admission guidance, eligibility, fees, recognition and placement details.
+Explore Government & Private Universities offering B.P.Ed., M.P.Ed., D.P.Ed., B.P.E.S. and Ph.D. with complete admission guidance, eligibility, fee structure and recognition details.
 
 </p>
 
 <a href="#universities" class="hero-btn">
-
 Explore Universities
-
 </a>
 
 </section>
 
-<div class="container" id="universities">
+<div class="container">
+
+<div id="universities"></div>
 
 <div class="search-box">
 
-<input type="text" placeholder="Search University Name...">
+<input
+type="text"
+id="searchInput"
+placeholder="Search University Name...">
 
 </div>
-
 <h2 class="section-title">
 
 Best Physical Education Universities in Rajasthan
@@ -269,7 +216,7 @@ Best Physical Education Universities in Rajasthan
 
 <p class="section-desc">
 
-This page provides complete information about every Physical Education University in Rajasthan. Students can compare eligibility, admission process, annual fee, hostel charges, approvals, placement opportunities, scholarships and official recognition before applying.
+Compare Government and Private Universities offering B.P.Ed., M.P.Ed., D.P.Ed., B.P.E.S. and Ph.D. programmes in Rajasthan with admission guidance, approvals and eligibility details.
 
 </p>
 
@@ -277,24 +224,31 @@ This page provides complete information about every Physical Education Universit
 
 <h2>Why Choose Rajasthan for Physical Education?</h2>
 
-<p>Rajasthan has become one of India's fastest growing destinations for Physical Education courses. Every year thousands of students take admission in <span class="highlight">D.P.Ed., B.P.Ed., B.P.E.S., M.P.Ed. and Ph.D.</span> programmes across Government and Private Universities.</p>
+<p>
 
-<p>Many universities are recognised by <b>UGC</b>, approved by <b>NCTE</b>, accredited by <b>NAAC</b> and follow NEP 2020 guidelines. Students also get sports infrastructure, experienced faculty, research opportunities and placement support.</p>
+Rajasthan has become one of India's leading destinations for Physical Education programmes. Every year thousands of students take admission in B.P.Ed., M.P.Ed., D.P.Ed., B.P.E.S. and Ph.D. courses.
 
-<p>The list below includes Government Universities first, followed by Private Universities with complete fee structure, approvals, admission process and important information.</p>
+</p>
+
+<p>
+
+Students should always verify current recognition, approvals, fee structure and eligibility from the respective university before taking admission.
+
+</p>
 
 </div>
 
-<section id="universities">
-  <div class="state-card">
+<div class="state-card">
 
-<h3>🏛 Government Universities of Rajasthan</h3>
+<h2 style="color:#003b99;margin-bottom:25px;">
 
-<p style="margin-bottom:25px;">
-The following Government Universities are among the most trusted institutions in Rajasthan offering Physical Education programmes through their departments or affiliated colleges. Before taking admission, students should always verify current course availability, recognition and affiliation from the university and NCTE.  [oai_citation:0‡NCTE](https://web.ncte.gov.in/page-regional-committee-institution-lists/30/rajasthan?utm_source=chatgpt.com)
-</p>
+🏛 Government Universities of Rajasthan
 
-<table>
+</h2>
+
+<table id="universityTable">
+
+<thead>
 
 <tr>
 
@@ -306,19 +260,23 @@ The following Government Universities are among the most trusted institutions in
 
 <th>Recognition</th>
 
-<th>Approx Fee / Year</th>
+<th>Fee / Year</th>
 
 </tr>
 
+</thead>
+
+<tbody>
+
 <tr>
 
-<td>University of Rajasthan (UNIRAJ)</td>
+<td>University of Rajasthan</td>
 
 <td>Jaipur</td>
 
 <td>B.P.Ed., M.P.Ed., Ph.D.</td>
 
-<td><span class="badge">UGC • NCTE • NAAC</span></td>
+<td><span class="badge">UGC • NCTE</span></td>
 
 <td>₹8,000 – ₹15,000</td>
 
@@ -326,7 +284,7 @@ The following Government Universities are among the most trusted institutions in
 
 <tr>
 
-<td>Mohanlal Sukhadia University (MLSU)</td>
+<td>Mohanlal Sukhadia University</td>
 
 <td>Udaipur</td>
 
@@ -340,13 +298,13 @@ The following Government Universities are among the most trusted institutions in
 
 <tr>
 
-<td>Maharshi Dayanand Saraswati University (MDSU)</td>
+<td>Maharshi Dayanand Saraswati University</td>
 
 <td>Ajmer</td>
 
 <td>B.P.Ed.</td>
 
-<td><span class="badge">UGC • NCTE</span></td>
+<td><span class="badge">UGC</span></td>
 
 <td>₹10,000 – ₹20,000</td>
 
@@ -390,7 +348,7 @@ The following Government Universities are among the most trusted institutions in
 
 <td><span class="badge">UGC</span></td>
 
-<td>₹12,000 – ₹20,000</td>
+<td>₹10,000 – ₹18,000</td>
 
 </tr>
 
@@ -422,234 +380,455 @@ The following Government Universities are among the most trusted institutions in
 
 </tr>
 
+</tbody>
+
 </table>
-
-</div>
-
-<div class="info-box">
-
-<h2>Recognition & Approvals</h2>
-
-<p>Before taking admission in any Physical Education programme, every student should verify the university and college approvals.</p>
-
-<ul style="padding-left:25px;line-height:35px;">
-
-<li>✅ University Grants Commission (UGC)</li>
-
-<li>✅ National Council for Teacher Education (NCTE)</li>
-
-<li>✅ NAAC Accreditation</li>
-
-<li>✅ AIU Membership (where applicable)</li>
-
-<li>✅ State Government Recognition</li>
-
-<li>✅ Affiliation Status</li>
-
-<li>✅ Valid B.P.Ed. / M.P.Ed. Recognition Order</li>
-
-</ul>
-
-<p style="margin-top:20px;">
-NCTE maintains the official list of recognised institutions offering B.P.Ed., D.P.Ed. and M.P.Ed. programmes. Students should verify recognition before admission.  [oai_citation:1‡NCTE](https://web.ncte.gov.in/page-regional-committee-institution-lists/30/rajasthan?utm_source=chatgpt.com)
-</p>
 
 </div>
 <div class="state-card">
-<h3>🏢 Private Universities of Rajasthan</h3>
-<p style="margin-bottom:25px;">
-Rajasthan has several private universities that offer Physical Education programmes either directly or through affiliated colleges. Students should always verify current course availability, fee structure and recognition from the university's official admission portal before applying.
-</p>
-<table>
+
+<h2 style="color:#003b99;margin:50px 0 25px;">
+
+🏢 Private Universities of Rajasthan
+
+</h2>
+
+<table id="privateTable">
+
+<thead>
+
 <tr>
+
 <th>University</th>
+
 <th>City</th>
+
 <th>Courses</th>
+
 <th>Recognition</th>
+
 <th>Details</th>
+
 </tr>
+
+</thead>
+
+<tbody>
+
 <tr>
+
 <td>Madhav University</td>
+
 <td>Sirohi</td>
+
 <td>B.P.Ed., M.P.Ed., Ph.D.</td>
-<td><span class="badge">UGC • NCTE (where applicable)</span></td>
+
+<td><span class="badge">UGC</span></td>
+
 <td><a href="madhav-university.html">View Details</a></td>
+
 </tr>
+
 <tr>
+
 <td>Mewar University</td>
+
 <td>Chittorgarh</td>
+
 <td>B.P.Ed., M.P.Ed.</td>
+
 <td><span class="badge">UGC</span></td>
+
 <td><a href="mewar-university.html">View Details</a></td>
+
 </tr>
+
 <tr>
+
 <td>JJT University</td>
+
 <td>Jhunjhunu</td>
+
 <td>B.P.Ed., M.P.Ed.</td>
+
 <td><span class="badge">UGC</span></td>
+
 <td><a href="jjt-university.html">View Details</a></td>
+
 </tr>
+
 <tr>
-<td>NIMS University</td>
-<td>Jaipur</td>
-<td>B.P.Ed., M.P.Ed.</td>
-<td><span class="badge">UGC</span></td>
-<td><a href="nims-university.html">View Details</a></td>
-</tr>
-<tr>
+
 <td>OPJS University</td>
+
 <td>Churu</td>
+
 <td>B.P.Ed., M.P.Ed.</td>
+
 <td><span class="badge">UGC</span></td>
+
 <td><a href="opjs-university.html">View Details</a></td>
+
 </tr>
+
 <tr>
-<td>Singhania University</td>
-<td>Jhunjhunu</td>
-<td>B.P.Ed.</td>
+
+<td>NIMS University</td>
+
+<td>Jaipur</td>
+
+<td>B.P.Ed., M.P.Ed.</td>
+
 <td><span class="badge">UGC</span></td>
-<td><a href="singhania-university.html">View Details</a></td>
+
+<td><a href="nims-university.html">View Details</a></td>
+
 </tr>
+
 <tr>
+
 <td>Tantia University</td>
+
 <td>Sri Ganganagar</td>
+
 <td>B.P.Ed.</td>
+
 <td><span class="badge">UGC</span></td>
+
 <td><a href="tantia-university.html">View Details</a></td>
+
 </tr>
+
+<tr>
+
+<td>Singhania University</td>
+
+<td>Jhunjhunu</td>
+
+<td>B.P.Ed.</td>
+
+<td><span class="badge">UGC</span></td>
+
+<td><a href="singhania-university.html">View Details</a></td>
+
+</tr>
+
+<tr>
+
+<td>Lords University</td>
+
+<td>Alwar</td>
+
+<td>B.P.Ed.</td>
+
+<td><span class="badge">UGC</span></td>
+
+<td><a href="lords-university.html">View Details</a></td>
+
+</tr>
+
+</tbody>
+
 </table>
+
+</div>
+
+<div class="info-box">
+
+<h2>Admission Guidance</h2>
+
+<p>
+
+Students should verify the latest admission notification, eligibility, fee structure, hostel facility and recognition before taking admission in any university.
+
+</p>
+
+<ul style="padding-left:25px;line-height:34px;">
+
+<li>✔ Check UGC Recognition</li>
+
+<li>✔ Check NCTE Recognition (where applicable)</li>
+
+<li>✔ Verify Latest Fee Structure</li>
+
+<li>✔ Confirm Hostel Availability</li>
+
+<li>✔ Verify Scholarship Rules</li>
+
+<li>✔ Check Placement & Internship Support</li>
+
+<li>✔ Read Latest Admission Notification</li>
+
+</ul>
+
+</div>
+<tr>
+
+<td>Mewar University</td>
+
+<td>Chittorgarh</td>
+
+<td>B.P.Ed., M.P.Ed.</td>
+
+<td><span class="badge">UGC</span></td>
+
+<td><a href="mewar-university.html">View Details</a></td>
+
+</tr>
+
+<tr>
+
+<td>JJT University</td>
+
+<td>Jhunjhunu</td>
+
+<td>B.P.Ed., M.P.Ed.</td>
+
+<td><span class="badge">UGC</span></td>
+
+<td><a href="jjt-university.html">View Details</a></td>
+
+</tr>
+
+<tr>
+
+<td>OPJS University</td>
+
+<td>Churu</td>
+
+<td>B.P.Ed., M.P.Ed.</td>
+
+<td><span class="badge">UGC</span></td>
+
+<td><a href="opjs-university.html">View Details</a></td>
+
+</tr>
+
+<tr>
+
+<td>NIMS University</td>
+
+<td>Jaipur</td>
+
+<td>B.P.Ed., M.P.Ed.</td>
+
+<td><span class="badge">UGC</span></td>
+
+<td><a href="coming-soon.html">Coming Soon</a></td>
+
+</tr>
+
+<tr>
+
+<td>Tantia University</td>
+
+<td>Sri Ganganagar</td>
+
+<td>B.P.Ed.</td>
+
+<td><span class="badge">UGC</span></td>
+
+<td><a href="coming-soon.html">Coming Soon</a></td>
+
+</tr>
+
+<tr>
+
+<td>Singhania University</td>
+
+<td>Jhunjhunu</td>
+
+<td>B.P.Ed.</td>
+
+<td><span class="badge">UGC</span></td>
+
+<td><a href="coming-soon.html">Coming Soon</a></td>
+
+</tr>
+
+<tr>
+
+<td>Lords University</td>
+
+<td>Alwar</td>
+
+<td>B.P.Ed.</td>
+
+<td><span class="badge">UGC</span></td>
+
+<td><a href="coming-soon.html">Coming Soon</a></td>
+
+</tr>
+
+<tr>
+
+<td>Apex University</td>
+
+<td>Jaipur</td>
+
+<td>B.P.Ed.</td>
+
+<td><span class="badge">UGC</span></td>
+
+<td><a href="coming-soon.html">Coming Soon</a></td>
+
+</tr>
+
+<tr>
+
+<td>Bhupal Nobles University</td>
+
+<td>Udaipur</td>
+
+<td>B.P.Ed.</td>
+
+<td><span class="badge">UGC</span></td>
+
+<td><a href="coming-soon.html">Coming Soon</a></td>
+
+</tr>
+
+</table>
+
 </div>
 <div class="info-box">
-<h2>Important Admission Advice</h2>
-<p>
-Before taking admission, always verify:
-</p>
-<ul style="padding-left:25px;line-height:34px;">
-<li>✔ Current UGC recognition status</li>
-<li>✔ NCTE recognition for B.P.Ed./M.P.Ed. programme (where applicable)</li>
-<li>✔ Latest admission notification</li>
-<li>✔ Current fee structure</li>
-<li>✔ Hostel availability</li>
-<li>✔ Scholarship policy</li>
-<li>✔ Placement and internship support</li>
-<li>✔ Official prospectus</li>
-</ul>
+
+<h2>District-wise Physical Education Universities</h2>
+
+<table>
+
+<tr>
+<th>District</th>
+<th>Universities</th>
+</tr>
+
+<tr>
+<td>Jaipur</td>
+<td>University of Rajasthan, NIMS University, Apex University</td>
+</tr>
+
+<tr>
+<td>Jhunjhunu</td>
+<td>JJT University, Singhania University</td>
+</tr>
+
+<tr>
+<td>Churu</td>
+<td>OPJS University</td>
+</tr>
+
+<tr>
+<td>Chittorgarh</td>
+<td>Mewar University</td>
+</tr>
+
+<tr>
+<td>Sirohi</td>
+<td>Madhav University</td>
+</tr>
+
+<tr>
+<td>Sri Ganganagar</td>
+<td>Tantia University</td>
+</tr>
+
+<tr>
+<td>Alwar</td>
+<td>Lords University</td>
+</tr>
+
+</table>
+
 </div>
-District-wise Physical Education Colleges
 
-The following section helps students explore Physical Education institutions district-wise across Rajasthan.
+<div class="info-box">
 
-Jaipur
+<h2>Need Admission Guidance?</h2>
 
-* University of Rajasthan
-* NIMS University
-* Jaipur National University
-* Jagannath University
-* Nirwan University
-* Apex University
+<p>
 
-Udaipur
+Confused about choosing the right Physical Education University?
 
-* Mohanlal Sukhadia University
-* Bhupal Nobles University
-* Pacific College of Physical Education
-* Mewar University (Chittorgarh region)
+Get complete admission guidance for:
 
-Ajmer
+</p>
 
-* Maharshi Dayanand Saraswati University
-* Bhagwant University
-* Dayanand College
+<ul style="padding-left:25px;line-height:34px;">
 
-Jodhpur
+<li>✔ B.P.Ed.</li>
 
-* Jai Narain Vyas University
-* Maulana Azad University
+<li>✔ M.P.Ed.</li>
 
-Bikaner
+<li>✔ D.P.Ed.</li>
 
-* Maharaja Ganga Singh University
+<li>✔ B.P.E.S.</li>
 
-Jhunjhunu
+<li>✔ Ph.D.</li>
 
-* JJT University
-* Singhania University
+<li>✔ Documents Verification</li>
 
-Churu
+<li>✔ Counselling Support</li>
 
-* OPJS University
+<li>✔ Fee Guidance</li>
 
-Sri Ganganagar
+<li>✔ University Selection</li>
 
-* Tantia University
+</ul>
 
-Sikar
+<br>
 
-* Pandit Deendayal Upadhyaya Shekhawati University
+<a href="tel:+919828320688" class="hero-btn">
 
-⸻
+📞 Call : 9828320688
 
-Admission Eligibility
+</a>
 
-D.P.Ed.
+</div>
 
-* 10+2 Pass
-* Minimum marks as prescribed by the institution
-* Sports participation may be required by some institutions
+<footer style="background:#002b6b;color:white;text-align:center;padding:40px 20px;margin-top:60px;">
 
-B.P.Ed.
+<h3>PhysicalEducationCareer.in</h3>
 
-* Graduation from a recognized university
-* Eligibility criteria vary by university
-* Entrance test / merit may apply depending on the institution
+<p>
 
-M.P.Ed.
+Complete Admission Guidance Portal for Physical Education Courses in India
 
-* B.P.Ed. degree
-* University-specific admission rules
-* Entrance test/interview where applicable
+</p>
 
-Ph.D.
+<br>
 
-* M.P.Ed.
-* Entrance test / interview as per university regulations
+<p>
 
-⸻
+© 2026 PhysicalEducationCareer.in
 
-Documents Required
+</p>
 
-* 10th Marksheet
-* 12th Marksheet
-* Graduation Marksheet
-* B.P.Ed. Marksheet (for M.P.Ed.)
-* Transfer Certificate
-* Migration Certificate
-* Character Certificate
-* Aadhaar Card
-* Passport Photos
-* Sports Certificate (if applicable)
-* Category Certificate
-* EWS Certificate (if applicable)
-* Domicile Certificate (if applicable)
-* Medical Fitness Certificate
+</footer>
 
-⸻
+<script>
 
-Recognition Checklist
+const searchInput=document.getElementById("searchInput");
 
-Before taking admission always verify:
+searchInput.addEventListener("keyup",function(){
 
-✅ UGC Recognition
+let filter=this.value.toLowerCase();
 
-✅ NCTE Recognition for the specific B.P.Ed./M.P.Ed./D.P.Ed. programme where applicable
+let rows=document.querySelectorAll("table tr");
 
-✅ NAAC Accreditation
+rows.forEach(function(row,index){
 
-✅ AIU Membership (if applicable)
+if(index===0)return;
 
-✅ Rajasthan Government Recognition
+row.style.display=row.innerText.toLowerCase().includes(filter)?"":"none";
 
-✅ Official Admission Notification
+});
 
-Students can verify recognised teacher education institutions on the official NCTE portal. (web.ncte.gov.in)
-  
+});
+
+</script>
+
+</div>
+
+</body>
+
+</html>
