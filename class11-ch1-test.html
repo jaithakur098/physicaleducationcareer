@@ -995,62 +995,95 @@ async function submitTest(auto){
   if(state.submitted) return;
   state.submitted=true;
   clearInterval(state.timer);
-  try{ if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }catch(e){}
+  try{ if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(()=>{}); }catch(e){}
+  // ---- Calculate score locally (never depends on network) ----
   let correct=0;
   state.questions.forEach((q,i)=>{ if(state.answers[i]===q.correct) correct++; });
+  const attempted=state.answers.filter(a=>a!==-1).length;
   const wrong=state.answers.filter((a,i)=>a!==-1 && a!==state.questions[i].correct).length;
   const pct=Math.round((correct/TOTAL_Q)*100);
   const taken=Math.floor((Date.now()-state.startTs)/1000);
   const tStr=`${Math.floor(taken/60)}:${String(taken%60).padStart(2,"0")}`;
-  const status=pct>=PASS_PCT?"Pass":"Fail";
+  const result=pct>=PASS_PCT?"Pass":"Fail";
   state.pct = pct;
-  // Save to Firebase
-  let rank="--";
-  if(db){
-    try{
-      const ref = await addDoc(collection(db,COLLECTION),{
-        name:state.student.name,
-        mobile:state.student.mobile,
-        school:state.student.school,
-        class:state.student.class,
-        city:state.student.city||"",
-        score:correct, correct, wrong,
-        attempted:state.answers.filter(a=>a!==-1).length,
-        percentage:pct, timeTaken:taken,
-        status:"pending",
-        result:status,
-        autoSubmitted:!!auto,
-        tabWarnings:state.tabWarn,
-        createdAt:serverTimestamp()
-      });
-      state.lastDocId = ref.id;
-      // Rank among approved + this attempt
-      const q = query(collection(db,COLLECTION), where("status","==","approved"), orderBy("percentage","desc"), orderBy("timeTaken","asc"));
-      const snap = await getDocs(q);
-      let r=1;
-      snap.forEach(d=>{
-        const v=d.data();
-        if(v.percentage>pct || (v.percentage===pct && (v.timeTaken||0)<taken)) r++;
-      });
-      rank = r;
-    }catch(e){ console.warn("Save failed:",e); toast("Saved offline. Result not sent to leaderboard."); }
-  }
-  state.rank = rank;
-  // Fill UI
+  state.rank = "--";
+  // ---- Render result UI IMMEDIATELY (never wait on Firestore) ----
   $("#sTotal").textContent=TOTAL_Q;
   $("#sCorrect").textContent=correct;
   $("#sWrong").textContent=wrong;
   $("#sPct").textContent=pct+"%";
   $("#sTime").textContent=tStr;
-  $("#sRank").textContent=rank;
-  $("#sStatus").textContent=status;
+  $("#sRank").textContent="--";
+  $("#sStatus").textContent=result;
   $("#sName").textContent=state.student.name;
   const banner=$("#resBanner");
-  banner.classList.toggle("fail",status==="Fail");
-  $("#resStatus").textContent= status==="Pass"?"🎉 Congratulations!":"Keep Practicing";
+  banner.classList.toggle("fail",result==="Fail");
+  $("#resStatus").textContent= result==="Pass"?"🎉 Congratulations!":"Keep Practicing";
   $("#resMsg").textContent= auto?"Test auto-submitted (time over or rule violation).":"Your responses have been recorded.";
   $("#certBtn").style.display = pct>=CERT_PCT?"inline-flex":"none";
   show("screen-result");
+  // ---- Save to Firestore in the background ----
+  const payload = {
+    name:state.student.name,
+    mobile:state.student.mobile,
+    school:state.student.school,
+    class:state.student.class,
+    city:state.student.city||"",
+    score:correct,
+    correct:correct,
+    wrong:wrong,
+    attempted:attempted,
+    percentage:pct,
+    timeTaken:taken,
+    status:"approved",
+    result:result,
+    autoSubmitted:!!auto,
+    tabWarnings:state.tabWarn,
+    createdAt:serverTimestamp()
+  };
+  saveAndRank(payload, pct, taken).catch(err=>{
+    console.warn("Background save error:", err);
+  });
+}
+
+async function saveAndRank(payload, pct, taken){
+  if(!db){
+    $("#sRank").textContent="--";
+    toast("Offline mode: result not sent to leaderboard.");
+    return;
+  }
+  try{
+    const ref = await addDoc(collection(db,COLLECTION), payload);
+    state.lastDocId = ref.id;
+  }catch(e){
+    console.warn("Save failed:", e);
+    toast("Could not save result online. Please check your connection.");
+    return;
+  }
+  // ---- Compute rank: count approved entries strictly better than this one ----
+  try{
+    const q = query(
+      collection(db,COLLECTION),
+      where("status","==","approved"),
+      orderBy("percentage","desc"),
+      orderBy("timeTaken","asc")
+    );
+    const snap = await getDocs(q);
+    let r = 1;
+    snap.forEach(d=>{
+      if(d.id === state.lastDocId) return;
+      const v = d.data() || {};
+      const vp = Number(v.percentage)||0;
+      const vt = Number(v.timeTaken)||0;
+      if(vp > pct || (vp === pct && vt < taken)) r++;
+    });
+    state.rank = r;
+    $("#sRank").textContent = r;
+  }catch(e){
+    console.warn("Rank query failed:", e);
+    $("#sRank").textContent = "--";
+  }
+  // Refresh leaderboard after successful save
   loadLeaderboard();
 }
 /* ===== Review ===== */
