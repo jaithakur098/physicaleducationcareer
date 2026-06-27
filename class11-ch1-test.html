@@ -38,6 +38,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <style>
 :root{
   --navy:#0a1f44;
@@ -290,6 +293,41 @@ h1,h2,h3,.serif{font-family:'Playfair Display',serif}
   .q-wrap{padding:16px}
   .nav-row .btn{padding:11px 14px;font-size:13.5px;min-width:0}
 }
+/* ===== Admin Panel ===== */
+.admin-link{cursor:pointer;color:var(--gold-light);font-size:11px;opacity:.55;margin-left:6px}
+.admin-link:hover{opacity:1;text-decoration:underline}
+.adm-card{background:#fff;color:#0a1f44;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.adm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+.adm-stat{background:linear-gradient(135deg,#0a1f44,#163b7a);color:#fff;padding:14px;border-radius:12px;text-align:center}
+.adm-stat b{display:block;font-size:22px;font-family:'Playfair Display',serif;color:var(--gold-light)}
+.adm-stat span{font-size:11px;opacity:.85;letter-spacing:.5px;text-transform:uppercase}
+.adm-toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+.adm-toolbar input,.adm-toolbar select{padding:8px 10px;border:1px solid #d0d6e2;border-radius:8px;font:inherit;font-size:13px;min-width:130px;background:#fff;color:#0a1f44}
+.adm-toolbar .btn{padding:8px 12px;font-size:12px}
+.adm-table-wrap{overflow:auto;max-height:60vh;border:1px solid #e3e7ef;border-radius:10px}
+.adm-table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1100px}
+.adm-table th,.adm-table td{padding:8px 10px;border-bottom:1px solid #eef1f6;text-align:left;white-space:nowrap}
+.adm-table th{background:#f5f7fb;position:sticky;top:0;font-weight:600;color:#0a1f44;z-index:1}
+.adm-table tr:hover{background:#fafbfd}
+.adm-table .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
+.adm-pill-pass{background:#dcfce7;color:#166534}
+.adm-pill-fail{background:#fee2e2;color:#991b1b}
+.adm-pill-approved{background:#dbeafe;color:#1e40af}
+.adm-pill-pending{background:#fef3c7;color:#92400e}
+.adm-pill-rejected{background:#fce7f3;color:#9d174d}
+.adm-act{display:inline-flex;gap:4px;flex-wrap:wrap}
+.adm-act button{border:0;background:#eef2f9;color:#0a1f44;padding:4px 7px;border-radius:6px;font-size:11px;cursor:pointer}
+.adm-act button:hover{background:#dbe3f1}
+.adm-act .a-approve{background:#dcfce7;color:#166534}
+.adm-act .a-reject{background:#fee2e2;color:#991b1b}
+.adm-act .a-del{background:#fce7f3;color:#9d174d}
+.adm-login{max-width:340px;margin:30px auto}
+.adm-login input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #d0d6e2;margin-bottom:10px;font:inherit;font-size:14px}
+.adm-empty{padding:24px;text-align:center;color:#5b6b8a;font-size:13px}
+@media (max-width:600px){
+  .adm-table{font-size:11.5px}
+  .adm-toolbar input,.adm-toolbar select{min-width:0;flex:1 1 130px}
+}
 </style>
 </head>
 <body>
@@ -356,6 +394,7 @@ h1,h2,h3,.serif{font-family:'Playfair Display',serif}
     </div>
     <div class="foot">
       © <span id="yr"></span> <a href="https://physicaleducationcareer.in" target="_blank" rel="noopener">Physical Education Career</a> • Jai Thakur
+      <span class="admin-link" id="adminLink"><i class="fa-solid fa-lock"></i> Admin</span>
     </div>
   </section>
   <!-- ======= TEST SCREEN ======= -->
@@ -439,7 +478,7 @@ h1,h2,h3,.serif{font-family:'Playfair Display',serif}
       <strong style="color:#fff"><i class="fa-solid fa-award" style="color:var(--gold-light)"></i> Your Certificate</strong>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-ghost" id="backFromCert" type="button"><i class="fa-solid fa-arrow-left"></i> Back</button>
-        <button class="btn btn-gold" id="printCertBtn" type="button"><i class="fa-solid fa-print"></i> Print / Save PDF</button>
+        <button class="btn btn-gold" id="printCertBtn" type="button"><i class="fa-solid fa-file-arrow-down"></i> Download Certificate PDF</button>
       </div>
     </div>
     <div id="certificateArea">
@@ -456,6 +495,73 @@ h1,h2,h3,.serif{font-family:'Playfair Display',serif}
           <div class="sig">Date: <span id="cDate"></span></div>
           <div class="sig">Cert ID: <span id="cId">--</span></div>
           <div class="sig">Jai Thakur<br><small>Founder, PE Career</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- ======= ADMIN SCREEN ======= -->
+  <section id="screen-admin" class="screen">
+    <!-- Login -->
+    <div id="admLoginBox" class="adm-card adm-login">
+      <h3 style="margin-bottom:12px;text-align:center"><i class="fa-solid fa-user-shield"></i> Admin Login</h3>
+      <input id="admUser" type="text" placeholder="Username" autocomplete="off" />
+      <input id="admPass" type="password" placeholder="Password" autocomplete="off" />
+      <div style="display:flex;gap:8px;justify-content:space-between">
+        <button class="btn btn-ghost" id="admBackBtn" type="button"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="btn btn-blue" id="admLoginBtn" type="button"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+      </div>
+      <div class="err" id="admErr" style="text-align:center;margin-top:8px"></div>
+    </div>
+    <!-- Dashboard -->
+    <div id="admDashBox" style="display:none">
+      <div class="adm-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <h3 style="font-family:'Playfair Display',serif"><i class="fa-solid fa-gauge-high"></i> Admin Dashboard</h3>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-ghost" id="admRefreshBtn" type="button"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            <button class="btn btn-ghost" id="admLogoutBtn" type="button"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+          </div>
+        </div>
+        <div class="adm-grid">
+          <div class="adm-stat"><b id="stTotal">0</b><span>Total Attempts</span></div>
+          <div class="adm-stat"><b id="stPass">0</b><span>Passed</span></div>
+          <div class="adm-stat"><b id="stFail">0</b><span>Failed</span></div>
+          <div class="adm-stat"><b id="stAvg">0%</b><span>Average Score</span></div>
+          <div class="adm-stat"><b id="stCert">0</b><span>Certificates</span></div>
+        </div>
+      </div>
+      <div class="adm-card">
+        <div class="adm-toolbar">
+          <input id="fltSearch" type="text" placeholder="Search name / mobile / school" />
+          <select id="fltStatus">
+            <option value="">All Status</option>
+            <option value="approved">Approved</option>
+            <option value="pending">Pending</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <select id="fltResult">
+            <option value="">All Results</option>
+            <option value="Pass">Pass</option>
+            <option value="Fail">Fail</option>
+          </select>
+          <input id="fltPct" type="number" min="0" max="100" placeholder="Min %" style="max-width:90px" />
+          <input id="fltDate" type="date" />
+          <button class="btn btn-ghost" id="fltClear" type="button">Clear</button>
+          <span style="flex:1"></span>
+          <button class="btn btn-blue" id="expCsv" type="button"><i class="fa-solid fa-file-csv"></i> CSV</button>
+          <button class="btn btn-blue" id="expXlsx" type="button"><i class="fa-solid fa-file-excel"></i> Excel</button>
+          <button class="btn btn-gold" id="expPdf" type="button"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+        </div>
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Name</th><th>Mobile</th><th>School</th><th>Class</th>
+                <th>%</th><th>Score</th><th>Time</th><th>Rank</th><th>Result</th><th>Status</th><th>Date</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admRows"><tr><td colspan="13" class="adm-empty">Loading...</td></tr></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -1138,7 +1244,42 @@ $("#certBtn").addEventListener("click",()=>{
   show("screen-cert");
 });
 $("#backFromCert").addEventListener("click",()=>show("screen-result"));
-$("#printCertBtn").addEventListener("click",()=>window.print());
+$("#printCertBtn").addEventListener("click", downloadCertificatePDF);
+async function downloadCertificatePDF(){
+  const btn=$("#printCertBtn");
+  const origHtml=btn.innerHTML;
+  if(typeof html2canvas==="undefined" || !(window.jspdf && window.jspdf.jsPDF)){
+    toast("Certificate libraries still loading, please retry in a moment.");
+    return;
+  }
+  btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Preparing...';
+  try{
+    const node=document.getElementById("certificateArea");
+    const canvas=await html2canvas(node,{scale:2,backgroundColor:"#ffffff",useCORS:true,logging:false,windowWidth:node.scrollWidth});
+    const imgData=canvas.toDataURL("image/jpeg",0.95);
+    const { jsPDF } = window.jspdf;
+    const pdf=new jsPDF({orientation:"landscape",unit:"pt",format:"a4"});
+    const pw=pdf.internal.pageSize.getWidth();
+    const ph=pdf.internal.pageSize.getHeight();
+    const ratio=Math.min(pw/canvas.width, ph/canvas.height);
+    const w=canvas.width*ratio, h=canvas.height*ratio;
+    pdf.addImage(imgData,"JPEG",(pw-w)/2,(ph-h)/2,w,h);
+    const safeName=(state.student&&state.student.name?state.student.name:"Student").replace(/[^A-Za-z0-9_-]+/g,"_");
+    const filename=`${safeName}_Certificate.pdf`;
+    // iOS Safari friendly: open blob URL if save() blocked
+    try{
+      pdf.save(filename);
+    }catch(e){
+      const blobUrl=pdf.output("bloburl");
+      window.open(blobUrl,"_blank");
+    }
+  }catch(e){
+    console.warn("Certificate PDF error:",e);
+    toast("Could not generate PDF. Please try again.");
+  } finally {
+    btn.disabled=false; btn.innerHTML=origHtml;
+  }
+}
 /* ===== Leaderboard ===== */
 async function loadLeaderboard(){
   const box=$("#leaderboard");
@@ -1185,13 +1326,270 @@ async function loadLeaderboard(){
     box.innerHTML='<p style="opacity:.7;font-size:13px">Could not load leaderboard.</p>';
   }
 }
-/* ===== Admin (manual moderation hooks) ===== */
-window.approveResult = async (id)=>{ if(!db)return; await updateDoc(doc(db,COLLECTION,id),{status:"approved"}); };
-window.rejectResult  = async (id)=>{ if(!db)return; await updateDoc(doc(db,COLLECTION,id),{status:"rejected"}); };
-window.deleteResult  = async (id)=>{ if(!db)return; await deleteDoc(doc(db,COLLECTION,id)); };
+/* ===== Admin Panel ===== */
+const ADMIN_USER="admin", ADMIN_PASS="admin123";
+let admData=[], admFiltered=[];
+let admLoggedIn=false;
+
+function openAdmin(){
+  show("screen-admin");
+  if(admLoggedIn){ $("#admLoginBox").style.display="none"; $("#admDashBox").style.display="block"; admLoad(); }
+  else { $("#admLoginBox").style.display="block"; $("#admDashBox").style.display="none"; $("#admErr").textContent=""; }
+}
+$("#adminLink").addEventListener("click",openAdmin);
+window.addEventListener("hashchange",()=>{ if(location.hash==="#admin") openAdmin(); });
+if(location.hash==="#admin") setTimeout(openAdmin,50);
+
+$("#admBackBtn").addEventListener("click",()=>{ location.hash=""; show("screen-intro"); });
+$("#admLoginBtn").addEventListener("click",()=>{
+  const u=$("#admUser").value.trim(), p=$("#admPass").value;
+  if(u===ADMIN_USER && p===ADMIN_PASS){
+    admLoggedIn=true;
+    try{ sessionStorage.setItem("pec_admin","1"); }catch(e){}
+    $("#admPass").value=""; $("#admErr").textContent="";
+    $("#admLoginBox").style.display="none"; $("#admDashBox").style.display="block";
+    admLoad();
+  } else {
+    $("#admErr").textContent="Invalid username or password.";
+  }
+});
+$("#admLogoutBtn").addEventListener("click",()=>{
+  admLoggedIn=false;
+  try{ sessionStorage.removeItem("pec_admin"); }catch(e){}
+  $("#admLoginBox").style.display="block"; $("#admDashBox").style.display="none";
+  $("#admUser").value=""; $("#admPass").value="";
+});
+$("#admRefreshBtn").addEventListener("click",admLoad);
+try{ if(sessionStorage.getItem("pec_admin")==="1") admLoggedIn=true; }catch(e){}
+
+async function admLoad(){
+  const tbody=$("#admRows");
+  tbody.innerHTML='<tr><td colspan="13" class="adm-empty">Loading...</td></tr>';
+  if(!db){
+    tbody.innerHTML='<tr><td colspan="13" class="adm-empty">Database unavailable (offline mode).</td></tr>';
+    return;
+  }
+  try{
+    const snap=await getDocs(query(collection(db,COLLECTION),orderBy("createdAt","desc")));
+    admData=[];
+    snap.forEach(d=>{
+      const v=d.data()||{};
+      admData.push({id:d.id, ...v});
+    });
+    // Compute global ranks for approved entries by percentage desc, time asc
+    const approved=admData.filter(x=>x.status==="approved")
+      .slice().sort((a,b)=>((b.percentage||0)-(a.percentage||0))||((a.timeTaken||0)-(b.timeTaken||0)));
+    const rankMap={};
+    approved.forEach((x,i)=>rankMap[x.id]=i+1);
+    admData.forEach(x=>{ x._rank=rankMap[x.id]||"-"; });
+    admRenderStats();
+    admApplyFilters();
+  }catch(e){
+    console.warn("Admin load failed:",e);
+    tbody.innerHTML=`<tr><td colspan="13" class="adm-empty">Could not load data: ${escapeHtml(e.message||"error")}</td></tr>`;
+  }
+}
+
+function admRenderStats(){
+  const total=admData.length;
+  const passed=admData.filter(x=>x.result==="Pass").length;
+  const failed=admData.filter(x=>x.result==="Fail").length;
+  const avg=total?Math.round(admData.reduce((s,x)=>s+(Number(x.percentage)||0),0)/total):0;
+  const certs=admData.filter(x=>(Number(x.percentage)||0)>=CERT_PCT).length;
+  $("#stTotal").textContent=total;
+  $("#stPass").textContent=passed;
+  $("#stFail").textContent=failed;
+  $("#stAvg").textContent=avg+"%";
+  $("#stCert").textContent=certs;
+}
+
+["fltSearch","fltStatus","fltResult","fltPct","fltDate"].forEach(id=>{
+  document.getElementById(id).addEventListener("input",admApplyFilters);
+  document.getElementById(id).addEventListener("change",admApplyFilters);
+});
+$("#fltClear").addEventListener("click",()=>{
+  ["fltSearch","fltStatus","fltResult","fltPct","fltDate"].forEach(id=>document.getElementById(id).value="");
+  admApplyFilters();
+});
+
+function admDateStr(v){
+  try{
+    const d=v && v.toDate ? v.toDate() : (v?new Date(v):null);
+    if(!d || isNaN(d)) return "-";
+    return d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+  }catch(e){ return "-"; }
+}
+function admDateISO(v){
+  try{
+    const d=v && v.toDate ? v.toDate() : (v?new Date(v):null);
+    if(!d || isNaN(d)) return "";
+    return d.toISOString().slice(0,10);
+  }catch(e){ return ""; }
+}
+
+function admApplyFilters(){
+  const q=($("#fltSearch").value||"").trim().toLowerCase();
+  const st=$("#fltStatus").value, rs=$("#fltResult").value;
+  const minP=Number($("#fltPct").value)||0;
+  const dt=$("#fltDate").value;
+  admFiltered=admData.filter(x=>{
+    if(q){
+      const hay=`${x.name||""} ${x.mobile||""} ${x.school||""}`.toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    if(st && x.status!==st) return false;
+    if(rs && x.result!==rs) return false;
+    if(minP && (Number(x.percentage)||0)<minP) return false;
+    if(dt && admDateISO(x.createdAt)!==dt) return false;
+    return true;
+  });
+  admRenderTable();
+}
+
+function admRenderTable(){
+  const tbody=$("#admRows");
+  if(!admFiltered.length){
+    tbody.innerHTML='<tr><td colspan="13" class="adm-empty">No records match the filters.</td></tr>';
+    return;
+  }
+  tbody.innerHTML="";
+  admFiltered.forEach((x,i)=>{
+    const tt=Number(x.timeTaken)||0;
+    const tStr=`${Math.floor(tt/60)}:${String(tt%60).padStart(2,"0")}`;
+    const tr=document.createElement("tr");
+    const certBtn=(Number(x.percentage)||0)>=CERT_PCT
+      ? `<button data-act="cert" data-id="${x.id}" title="View Certificate"><i class="fa-solid fa-award"></i></button>
+         <button data-act="certdl" data-id="${x.id}" title="Download Certificate"><i class="fa-solid fa-file-arrow-down"></i></button>` : "";
+    tr.innerHTML=`
+      <td>${i+1}</td>
+      <td>${escapeHtml(x.name||"-")}</td>
+      <td>${escapeHtml(x.mobile||"-")}</td>
+      <td>${escapeHtml(x.school||"-")}</td>
+      <td>${escapeHtml(x.class||"-")}</td>
+      <td><b>${escapeHtml(String(x.percentage||0))}%</b></td>
+      <td>${escapeHtml(String(x.score||0))}/${TOTAL_Q}</td>
+      <td>${tStr}</td>
+      <td>${x._rank||"-"}</td>
+      <td><span class="pill ${x.result==="Pass"?"adm-pill-pass":"adm-pill-fail"}">${escapeHtml(x.result||"-")}</span></td>
+      <td><span class="pill adm-pill-${escapeHtml(x.status||"pending")}">${escapeHtml(x.status||"pending")}</span></td>
+      <td>${admDateStr(x.createdAt)}</td>
+      <td class="adm-act">
+        <button data-act="view" data-id="${x.id}" title="View Result"><i class="fa-solid fa-eye"></i></button>
+        ${certBtn}
+        <button class="a-approve" data-act="approve" data-id="${x.id}" title="Approve"><i class="fa-solid fa-check"></i></button>
+        <button class="a-reject"  data-act="reject"  data-id="${x.id}" title="Reject"><i class="fa-solid fa-ban"></i></button>
+        <button class="a-del"     data-act="delete"  data-id="${x.id}" title="Delete"><i class="fa-solid fa-trash"></i></button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll("button[data-act]").forEach(btn=>{
+    btn.addEventListener("click",()=>admAction(btn.dataset.act,btn.dataset.id));
+  });
+}
+
+async function admAction(act,id){
+  const row=admData.find(x=>x.id===id); if(!row) return;
+  try{
+    if(act==="view"){
+      await modal({title:"Result — "+(row.name||""),msg:`Score: ${row.score}/${TOTAL_Q}\nCorrect: ${row.correct}  Wrong: ${row.wrong}\nPercentage: ${row.percentage}%\nResult: ${row.result}\nTime: ${row.timeTaken||0}s\nMobile: ${row.mobile}\nSchool: ${row.school}\nClass: ${row.class}\nStatus: ${row.status}`});
+      return;
+    }
+    if(act==="cert" || act==="certdl"){
+      // Render certificate for this student temporarily, then download/view
+      state.student={name:row.name,mobile:row.mobile,school:row.school,class:row.class,city:row.city||""};
+      state.lastDocId=row.id;
+      state.pct=row.percentage;
+      $("#cName").textContent=row.name||"";
+      $("#cPct").textContent=(row.percentage||0)+"%";
+      $("#cCorrect").textContent=row.correct||0;
+      $("#cDate").textContent=admDateStr(row.createdAt);
+      $("#cId").textContent="PEC-"+(row.id||"").slice(-6).toUpperCase();
+      if(act==="cert"){ show("screen-cert"); }
+      else { show("screen-cert"); setTimeout(downloadCertificatePDF,250); }
+      return;
+    }
+    if(act==="approve"){ await updateDoc(doc(db,COLLECTION,id),{status:"approved"}); row.status="approved"; toast("Approved"); }
+    else if(act==="reject"){ await updateDoc(doc(db,COLLECTION,id),{status:"rejected"}); row.status="rejected"; toast("Rejected"); }
+    else if(act==="delete"){
+      const ok=await modal({title:"Delete Student?",msg:"This permanently removes the record.",ok:"Delete",cancel:"Cancel"});
+      if(!ok) return;
+      await deleteDoc(doc(db,COLLECTION,id));
+      admData=admData.filter(x=>x.id!==id);
+      toast("Deleted");
+    }
+    admRenderStats(); admApplyFilters();
+  }catch(e){
+    console.warn("Admin action failed:",e);
+    toast("Action failed: "+(e.message||"error"));
+  }
+}
+
+/* ===== Export ===== */
+function admExportRows(){
+  return admFiltered.map((x,i)=>({
+    "#":i+1, Name:x.name||"", Mobile:x.mobile||"", School:x.school||"", Class:x.class||"",
+    City:x.city||"", Score:x.score||0, Correct:x.correct||0, Wrong:x.wrong||0,
+    Attempted:x.attempted||0, Percentage:x.percentage||0, TimeTakenSec:x.timeTaken||0,
+    Rank:x._rank||"", Result:x.result||"", Status:x.status||"",
+    AutoSubmitted:x.autoSubmitted?"Yes":"No", TabWarnings:x.tabWarnings||0,
+    Date:admDateStr(x.createdAt)
+  }));
+}
+$("#expCsv").addEventListener("click",()=>{
+  const rows=admExportRows(); if(!rows.length){ toast("No data to export"); return; }
+  const headers=Object.keys(rows[0]);
+  const csv=[headers.join(","),...rows.map(r=>headers.map(h=>{
+    const v=String(r[h]==null?"":r[h]).replace(/"/g,'""');
+    return /[",\n]/.test(v)?`"${v}"`:v;
+  }).join(","))].join("\n");
+  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"});
+  admDownloadBlob(blob,`chapter1_results_${Date.now()}.csv`);
+});
+$("#expXlsx").addEventListener("click",()=>{
+  if(typeof XLSX==="undefined"){ toast("Excel library loading, retry..."); return; }
+  const rows=admExportRows(); if(!rows.length){ toast("No data to export"); return; }
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Results");
+  XLSX.writeFile(wb,`chapter1_results_${Date.now()}.xlsx`);
+});
+$("#expPdf").addEventListener("click",()=>{
+  if(!(window.jspdf && window.jspdf.jsPDF)){ toast("PDF library loading, retry..."); return; }
+  const rows=admExportRows(); if(!rows.length){ toast("No data to export"); return; }
+  const { jsPDF }=window.jspdf;
+  const pdf=new jsPDF({orientation:"landscape",unit:"pt",format:"a4"});
+  pdf.setFontSize(14); pdf.text("Chapter 1 Results — Admin Report",40,40);
+  pdf.setFontSize(9);
+  const cols=["#","Name","Mobile","School","Class","%","Score","Time","Rank","Result","Status","Date"];
+  const xs=[40,70,180,250,360,400,430,470,510,540,580,640];
+  let y=70;
+  pdf.setFont(undefined,"bold");
+  cols.forEach((c,i)=>pdf.text(String(c),xs[i],y));
+  pdf.setFont(undefined,"normal");
+  y+=14;
+  rows.forEach((r,i)=>{
+    if(y>560){ pdf.addPage(); y=40; }
+    const tt=Number(r.TimeTakenSec)||0;
+    const vals=[i+1, (r.Name||"").slice(0,18), r.Mobile, (r.School||"").slice(0,16), r.Class,
+      r.Percentage+"%", r.Score, `${Math.floor(tt/60)}:${String(tt%60).padStart(2,"0")}`,
+      r.Rank, r.Result, r.Status, r.Date];
+    vals.forEach((v,j)=>pdf.text(String(v==null?"":v),xs[j],y));
+    y+=13;
+  });
+  pdf.save(`chapter1_results_${Date.now()}.pdf`);
+});
+function admDownloadBlob(blob,filename){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },200);
+}
+
 /* ===== Init ===== */
 $("#yr").textContent=new Date().getFullYear();
 loadLeaderboard();
 </script>
+
 </body>
 </html>
