@@ -4132,7 +4132,6 @@ async function loadLeaderboard(){
   try{
     const q = query(
       collection(db,COLLECTION),
-      where("status","==","approved"),
       orderBy("percentage","desc"),
       orderBy("timeTaken","asc"),
       limit(10)
