@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Schedule Live Test — Admin</title>
+<link rel="icon" href="ultimate-logo.PNG"/>
+<style>
+  :root{--bg:#0b1020;--bg2:#0f1730;--card:rgba(255,255,255,.07);--stroke:rgba(255,255,255,.14);
+    --text:#eef2ff;--muted:#a6b0d0;--brand:#22d3ee;--brand2:#a78bfa;--radius:16px}
+  *{box-sizing:border-box}html,body{margin:0;color:var(--text);font-family:Inter,system-ui,sans-serif;
+    min-height:100vh;background:radial-gradient(900px 500px at 100% 0%,rgba(34,211,238,.22),transparent 60%),
+      linear-gradient(180deg,var(--bg),var(--bg2))}
+  .wrap{max-width:1100px;margin:0 auto;padding:22px}
+  .glass{background:var(--card);border:1px solid var(--stroke);border-radius:var(--radius);backdrop-filter:blur(18px)}
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .brand{display:flex;gap:10px;align-items:center;font-weight:800}
+  .brand img{height:36px;width:36px;border-radius:10px;object-fit:cover}
+  .btn{border:1px solid var(--stroke);background:var(--card);color:inherit;padding:10px 14px;
+    border-radius:12px;cursor:pointer;font-weight:600}
+  .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#0b1020;border:none}
+  .btn.danger{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#fca5a5}
+  .grid{display:grid;gap:14px;grid-template-columns:1.1fr .9fr}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{padding:18px}
+  label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:12px 0 4px}
+  input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);
+    background:rgba(255,255,255,.06);color:var(--text);font-size:14px}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--stroke)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .msg{margin-top:10px;font-size:13px}
+  .msg.err{color:#fca5a5}.msg.ok{color:#86efac}
+  .pill{display:inline-flex;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;
+    background:rgba(34,211,238,.14);color:var(--brand);border:1px solid rgba(34,211,238,.3)}
+  .empty{padding:16px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav">
+    <div class="brand"><img src="ultimate-logo.PNG" alt=""/><span>Live Test Scheduler</span></div>
+    <div class="row">
+      <a class="btn" href="admin.html">Admin</a>
+      <a class="btn" href="dashboard.html">Dashboard</a>
+    </div>
+  </div>
+  <div id="signin" class="glass card">
+    <b>Sign in required.</b> Please <a href="dashboard.html" style="color:var(--brand)">sign in</a> to schedule tests.
+  </div>
+  <div id="main" class="grid" style="display:none">
+    <div class="glass card">
+      <h3 style="margin:0 0 6px">Schedule New Live Test</h3>
+      <p style="color:var(--muted);margin:0 0 6px;font-size:13px">Students see a countdown on their dashboard and can only enter within the window.</p>
+      <label>Test Title</label>
+      <input id="fTitle" placeholder="e.g. Class 11 PE — Chapter 2 Live Test"/>
+      <div class="row">
+        <div style="flex:1;min-width:180px"><label>Class</label>
+          <select id="fClass"><option>Class 10</option><option selected>Class 11</option><option>Class 12</option></select></div>
+        <div style="flex:1;min-width:180px"><label>Chapter</label>
+          <input id="fChapter" placeholder="e.g. Chapter 2 — Olympism"/></div>
+      </div>
+      <label>Test URL (page students should be sent to)</label>
+      <input id="fUrl" placeholder="class11-ch2-test.html" value="class11-ch2-test.html"/>
+      <div class="row">
+        <div style="flex:1;min-width:180px"><label>Start Date & Time</label>
+          <input id="fStart" type="datetime-local"/></div>
+        <div style="flex:1;min-width:120px"><label>Duration (min)</label>
+          <input id="fDur" type="number" min="5" value="30"/></div>
+      </div>
+      <div style="margin-top:16px" class="row">
+        <button id="btnSave" class="btn primary">Schedule Test</button>
+        <button id="btnClear" class="btn">Reset</button>
+      </div>
+      <div id="msg" class="msg"></div>
+    </div>
+    <div class="glass card">
+      <h3 style="margin:0 0 6px">Scheduled Tests</h3>
+      <div id="tbl"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+</div>
+<script type="module">
+import { auth, db, onAuthStateChanged,
+  collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "./js/pec-firebase.js";
+const $=s=>document.querySelector(s);
+const msg=(t,ok=false)=>{ const m=$("#msg"); m.textContent=t; m.className="msg "+(ok?"ok":"err"); };
+onAuthStateChanged(auth, u=>{
+  if(!u){ $("#signin").style.display="block"; $("#main").style.display="none"; return; }
+  $("#signin").style.display="none"; $("#main").style.display="grid";
+  watch();
+});
+function watch(){
+  const q1=query(collection(db,"live_tests"), orderBy("startAt","desc"));
+  onSnapshot(q1, snap=>{
+    const rows=[]; snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+    if(!rows.length){ $("#tbl").innerHTML=`<div class="empty">No tests scheduled yet.</div>`; return; }
+    const now=Date.now();
+    $("#tbl").innerHTML = `<table><thead><tr>
+      <th>Title</th><th>When</th><th>Status</th><th></th></tr></thead><tbody>
+      ${rows.map(r=>{
+        const startMs=(r.startAt?.seconds||0)*1000;
+        const endMs=startMs+(r.durationMin||30)*60000;
+        const st=now<startMs?"Upcoming":now<endMs?"LIVE":"Ended";
+        return `<tr>
+          <td><b>${r.title||"—"}</b><div style="color:var(--muted);font-size:12px">${r.className||""} · ${r.chapter||""} · ${r.durationMin||30}m</div></td>
+          <td>${new Date(startMs).toLocaleString()}</td>
+          <td><span class="pill">${st}</span></td>
+          <td><button class="btn danger" data-id="${r.id}">Delete</button></td>
+        </tr>`;
+      }).join("")}</tbody></table>`;
+    $("#tbl").querySelectorAll("button.danger").forEach(b=>{
+      b.onclick=async()=>{ if(!confirm("Delete this scheduled test?")) return;
+        await deleteDoc(doc(db,"live_tests",b.dataset.id)); };
+    });
+  });
+}
+$("#btnClear").onclick=()=>{["fTitle","fChapter","fStart"].forEach(id=>$("#"+id).value="");};
+$("#btnSave").onclick=async()=>{
+  msg("");
+  const title=$("#fTitle").value.trim();
+  const className=$("#fClass").value;
+  const chapter=$("#fChapter").value.trim();
+  const testUrl=$("#fUrl").value.trim()||"class11-ch2-test.html";
+  const startStr=$("#fStart").value;
+  const durationMin=parseInt($("#fDur").value||"30",10);
+  if(!title||!startStr||!durationMin){ msg("Fill title, start time and duration."); return; }
+  const startAt=new Date(startStr);
+  if(isNaN(startAt.getTime())){ msg("Invalid start time."); return; }
+  try{
+    await addDoc(collection(db,"live_tests"),{
+      title, className, chapter, testUrl, durationMin,
+      startAt, createdAt: serverTimestamp(), createdBy: auth.currentUser?.uid||null
+    });
+    msg("Scheduled successfully.", true);
+    $("#btnClear").click();
+  }catch(e){ msg(e.message||"Could not schedule."); }
+};
+</script>
+</body>
+</html>
