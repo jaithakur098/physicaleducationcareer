@@ -91,14 +91,17 @@
 
     listClasses: async function () {
       var snap = await db.collection('classes').orderBy('order').get();
-      return snap.docs.map(function (d) { return d.data(); });
+      return snap.docs
+        .map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .filter(function (c) { return c.active !== false; });
     },
 
     listSubjects: async function (classId) {
       if (!classId) return [];
       var snap = await db.collection('subjects').where('classId', '==', classId).get();
       return snap.docs
-        .map(function (d) { return d.data(); })
+        .map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .filter(function (s) { return s.active !== false; })
         .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
     },
 
@@ -109,9 +112,116 @@
         .where('subjectId', '==', subjectId)
         .get();
       return snap.docs
-        .map(function (d) { return d.data(); })
+        .map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .filter(function (c) { return c.active !== false; })
         .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
     },
+
+    /* ---------- Master Data: full lists (include inactive) ---------- */
+    listAllClasses: async function () {
+      var snap = await db.collection('classes').get();
+      return snap.docs
+        .map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+    },
+    listAllSubjects: async function (classId) {
+      var q = db.collection('subjects');
+      if (classId) q = q.where('classId', '==', classId);
+      var snap = await q.get();
+      return snap.docs
+        .map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+    },
+    listAllChapters: async function (classId, subjectId) {
+      var q = db.collection('chapters');
+      if (classId) q = q.where('classId', '==', classId);
+      if (subjectId) q = q.where('subjectId', '==', subjectId);
+      var snap = await q.get();
+      return snap.docs
+        .map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+    },
+
+    /* ---------- Master Data: Classes CRUD ---------- */
+    saveClass: async function (data) {
+      var payload = {
+        label: data.label,
+        order: Number(data.order) || 0,
+        active: data.active !== false
+      };
+      if (data.id) {
+        await db.collection('classes').doc(data.id).set(payload, { merge: true });
+        return data.id;
+      }
+      var ref = await db.collection('classes').add(payload);
+      return ref.id;
+    },
+    updateClass: async function (id, data) {
+      var payload = {};
+      if (data.label !== undefined) payload.label = data.label;
+      if (data.order !== undefined) payload.order = Number(data.order) || 0;
+      if (data.active !== undefined) payload.active = !!data.active;
+      await db.collection('classes').doc(id).set(payload, { merge: true });
+    },
+    deleteClass: function (id) {
+      return db.collection('classes').doc(id).delete();
+    },
+
+    /* ---------- Master Data: Subjects CRUD ---------- */
+    saveSubject: async function (data) {
+      if (!data.classId) throw new Error('classId is required');
+      var payload = {
+        classId: data.classId,
+        label: data.label,
+        order: Number(data.order) || 0,
+        active: data.active !== false
+      };
+      if (data.id) {
+        await db.collection('subjects').doc(data.id).set(payload, { merge: true });
+        return data.id;
+      }
+      var ref = await db.collection('subjects').add(payload);
+      return ref.id;
+    },
+    updateSubject: async function (id, data) {
+      var payload = {};
+      ['classId','label'].forEach(function(k){ if (data[k] !== undefined) payload[k] = data[k]; });
+      if (data.order !== undefined) payload.order = Number(data.order) || 0;
+      if (data.active !== undefined) payload.active = !!data.active;
+      await db.collection('subjects').doc(id).set(payload, { merge: true });
+    },
+    deleteSubject: function (id) {
+      return db.collection('subjects').doc(id).delete();
+    },
+
+    /* ---------- Master Data: Chapters CRUD ---------- */
+    saveChapter: async function (data) {
+      if (!data.classId || !data.subjectId) throw new Error('classId and subjectId are required');
+      var payload = {
+        classId: data.classId,
+        subjectId: data.subjectId,
+        title: data.title,
+        order: Number(data.order) || 0,
+        active: data.active !== false
+      };
+      if (data.id) {
+        await db.collection('chapters').doc(data.id).set(payload, { merge: true });
+        return data.id;
+      }
+      var ref = await db.collection('chapters').add(payload);
+      return ref.id;
+    },
+    updateChapter: async function (id, data) {
+      var payload = {};
+      ['classId','subjectId','title'].forEach(function(k){ if (data[k] !== undefined) payload[k] = data[k]; });
+      if (data.order !== undefined) payload.order = Number(data.order) || 0;
+      if (data.active !== undefined) payload.active = !!data.active;
+      await db.collection('chapters').doc(id).set(payload, { merge: true });
+    },
+    deleteChapter: function (id) {
+      return db.collection('chapters').doc(id).delete();
+    },
+
 
     /* ---------- Questions ---------- */
     listQuestions: async function () {
