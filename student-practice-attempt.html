@@ -1,0 +1,135 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="student-styles.css">
+<link rel="icon" href="ultimate-logo.PNG"/>
+<title>Practice Test — PEEngine</title>
+<style>
+.timer{position:sticky;top:0;z-index:9;background:rgba(10,22,51,.85);backdrop-filter:blur(10px);
+  border:1px solid var(--glass-border);border-radius:12px;padding:12px 16px;
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.timer .clock{font-size:22px;font-weight:800;color:var(--gold-400)}
+.q{margin-bottom:14px}
+.opt{display:block;padding:12px 14px;border:1px solid var(--glass-border);border-radius:10px;margin-bottom:8px;cursor:pointer;background:rgba(10,22,51,.4)}
+.opt.sel{background:rgba(212,175,55,.15);border-color:var(--gold-400)}
+.qnum{color:var(--gold-400);font-weight:700;margin-right:6px}
+</style></head><body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-graduation-cap"></i></div><h1 id="tTitle">Loading…</h1></div>
+</header>
+<div class="timer">
+  <div><span class="meta">Time Left</span><div class="clock mono" id="clock">--:--</div></div>
+  <div><span class="meta">Answered</span><div class="mono" id="progress">0 / 0</div></div>
+  <button class="btn primary" id="submitBtn"><i class="fa-solid fa-paper-plane"></i> Submit</button>
+</div>
+<div id="msg"></div>
+<div id="qwrap" class="card"><p class="empty">Loading questions…</p></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/student-data.js"></script>
+<script src="config/practice-data.js"></script>
+<script>
+var params=new URLSearchParams(location.search);
+var testId=params.get('id');
+var test=null, qs=[], answers={}, endsAt=0, startedAt=0, timerId=null, submitted=false, uid=null, profile=null;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+
+Student.onChange(async function(u){
+  if(!u){ location.href='student-login.html'; return; }
+  uid=u.uid;
+  profile = await Student.getProfile(uid);
+  if(!testId){ document.getElementById('qwrap').innerHTML='<p class="empty">Missing test id.</p>'; return; }
+  test = await Practice.get(testId);
+  if(!test || test.isPublished===false){ document.getElementById('qwrap').innerHTML='<p class="empty">Practice test not available.</p>'; return; }
+  document.getElementById('tTitle').innerHTML='Practice: <span>'+esc(test.title||'Test')+'</span>';
+  qs = await Practice.getRandomQuestions(test);
+  if(!qs.length){ document.getElementById('qwrap').innerHTML='<p class="empty">No matching questions in the Question Bank for this test.</p>'; return; }
+  startedAt = Date.now();
+  var durMin = Number(test.durationMin)||10;
+  endsAt = startedAt + durMin*60*1000;
+  renderQuestions();
+  timerId = setInterval(tick, 500);
+  tick();
+});
+
+function renderQuestions(){
+  var html = qs.map(function(q, i){
+    var opts=['a','b','c','d'].map(function(k){
+      return '<label class="opt" data-i="'+i+'" data-k="'+k+'"><input type="radio" name="q'+i+'" value="'+k+'" style="margin-right:8px">'+esc(q[k]||'')+'</label>';
+    }).join('');
+    return '<div class="q card"><p><span class="qnum">Q'+(i+1)+'.</span>'+esc(q.question||'')+'</p>'+opts+'</div>';
+  }).join('');
+  document.getElementById('qwrap').innerHTML=html;
+  document.getElementById('progress').textContent='0 / '+qs.length;
+  document.querySelectorAll('.opt').forEach(function(el){
+    el.addEventListener('click', function(){
+      var i=+el.dataset.i, k=el.dataset.k;
+      answers[i]=k;
+      el.parentNode.querySelectorAll('.opt').forEach(function(o){o.classList.remove('sel');});
+      el.classList.add('sel');
+      el.querySelector('input').checked=true;
+      document.getElementById('progress').textContent=Object.keys(answers).length+' / '+qs.length;
+    });
+  });
+}
+
+function tick(){
+  var left = Math.max(0, endsAt - Date.now());
+  var m = Math.floor(left/60000), s = Math.floor((left%60000)/1000);
+  document.getElementById('clock').textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  if(left<=0 && !submitted){ submit(true); }
+}
+
+document.getElementById('submitBtn').addEventListener('click', function(){
+  if(confirm('Submit your practice test now?')) submit(false);
+});
+
+async function submit(auto){
+  if(submitted) return; submitted=true;
+  if(timerId) clearInterval(timerId);
+  var correct=0, wrong=0;
+  var mpq = Number(test.marksPerQuestion)||1;
+  var neg = Number(test.negativeMarks)||0;
+  var out=[];
+  qs.forEach(function(q,i){
+    var picked=answers[i]||null;
+    var isCorrect = picked && picked===q.correct;
+    if(picked){ if(isCorrect) correct++; else wrong++; }
+    out.push({qid:q.id, picked:picked, correct:q.correct, isCorrect:!!isCorrect});
+  });
+  var score = correct*mpq - wrong*neg;
+  var maxMarks = qs.length*mpq;
+  var pct = maxMarks>0 ? (score/maxMarks)*100 : 0;
+  var durationSec = Math.floor((Date.now()-startedAt)/1000);
+  var msg=document.getElementById('msg');
+  msg.innerHTML='<div class="msg ok">Submitting… please wait.</div>';
+  try{
+    var id = await Practice.submitAttempt({
+      studentId: uid,
+      studentName: (profile&&profile.name) || Student.currentUser().displayName || Student.currentUser().email,
+      studentEmail: Student.currentUser().email,
+      testId: testId,
+      testTitle: test.title || '',
+      classId: test.classId||'', subjectId: test.subjectId||'', chapterId: test.chapterId||'',
+      score: score, correct: correct, wrong: wrong,
+      total: qs.length, maxMarks: maxMarks,
+      percent: Number(pct.toFixed(2)),
+      durationSec: durationSec,
+      answers: out,
+      autoSubmitted: !!auto
+    });
+    location.href='student-practice-result.html?id='+id;
+  }catch(e){
+    msg.innerHTML='<div class="msg err">Submit failed: '+(e.message||e)+'</div>';
+    submitted=false;
+  }
+}
+window.addEventListener('beforeunload', function(e){
+  if(!submitted){ e.preventDefault(); e.returnValue=''; }
+});
+</script></body></html>

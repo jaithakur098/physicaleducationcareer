@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Practice Test Manager — Admin</title>
+<link rel="icon" href="ultimate-logo.PNG"/>
+<style>
+  :root{--bg:#0b1020;--bg2:#0f1730;--card:rgba(255,255,255,.07);--stroke:rgba(255,255,255,.14);
+    --text:#eef2ff;--muted:#a6b0d0;--brand:#22d3ee;--brand2:#a78bfa;--radius:16px}
+  *{box-sizing:border-box}html,body{margin:0;color:var(--text);font-family:Inter,system-ui,sans-serif;
+    min-height:100vh;background:radial-gradient(900px 500px at 100% 0%,rgba(167,139,250,.22),transparent 60%),
+      linear-gradient(180deg,var(--bg),var(--bg2))}
+  .wrap{max-width:1200px;margin:0 auto;padding:22px}
+  .glass{background:var(--card);border:1px solid var(--stroke);border-radius:var(--radius);backdrop-filter:blur(18px)}
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;gap:10px;align-items:center;font-weight:800}
+  .brand img{height:36px;width:36px;border-radius:10px;object-fit:cover}
+  .btn{border:1px solid var(--stroke);background:var(--card);color:inherit;padding:10px 14px;
+    border-radius:12px;cursor:pointer;font-weight:600;text-decoration:none;display:inline-block}
+  .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#0b1020;border:none}
+  .btn.danger{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#fca5a5}
+  .btn.small{padding:6px 10px;font-size:12px}
+  .grid{display:grid;gap:14px;grid-template-columns:1.1fr .9fr}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{padding:18px}
+  label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:12px 0 4px}
+  input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);
+    background:rgba(255,255,255,.06);color:var(--text);font-size:14px}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--stroke);vertical-align:top}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .msg{margin-top:10px;font-size:13px}
+  .msg.err{color:#fca5a5}.msg.ok{color:#86efac}
+  .pill{display:inline-flex;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;
+    background:rgba(34,211,238,.14);color:var(--brand);border:1px solid rgba(34,211,238,.3)}
+  .pill.off{background:rgba(148,163,184,.14);color:#cbd5e1;border-color:rgba(148,163,184,.3)}
+  .empty{padding:16px;color:var(--muted);text-align:center}
+  .hint{color:var(--muted);font-size:12px;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav">
+    <div class="brand"><img src="ultimate-logo.PNG" alt=""/><span>Practice Test Manager</span></div>
+    <div class="row">
+      <a class="btn" href="admin.html"><i></i> Admin Panel</a>
+      <a class="btn" href="live-test-admin.html">Live Tests</a>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="glass card">
+      <h3 id="formTitle" style="margin:0 0 6px">Create Practice Test</h3>
+      <p style="color:var(--muted);margin:0 0 6px;font-size:13px">
+        Questions are randomly picked from the Question Bank based on Class, Subject and Chapter.
+      </p>
+
+      <label>Test Title</label>
+      <input id="fTitle" placeholder="e.g. Class 11 PE — Chapter 2 Practice"/>
+
+      <div class="row">
+        <div style="flex:1;min-width:180px">
+          <label>Class</label>
+          <select id="fClass"><option value="">-- Select --</option></select>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <label>Subject</label>
+          <select id="fSubject"><option value="">-- Select --</option></select>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <label>Chapter</label>
+          <select id="fChapter"><option value="">-- Select --</option></select>
+        </div>
+      </div>
+      <div class="hint" id="poolHint">Available questions in this pool: —</div>
+
+      <div class="row">
+        <div style="flex:1;min-width:140px">
+          <label>Number of Questions</label>
+          <input id="fTotal" type="number" min="1" value="10"/>
+        </div>
+        <div style="flex:1;min-width:140px">
+          <label>Duration (min)</label>
+          <input id="fDur" type="number" min="1" value="15"/>
+        </div>
+        <div style="flex:1;min-width:140px">
+          <label>Marks / Question</label>
+          <input id="fMarks" type="number" min="0" step="0.25" value="1"/>
+        </div>
+        <div style="flex:1;min-width:140px">
+          <label>Negative Marking</label>
+          <input id="fNeg" type="number" min="0" step="0.25" value="0"/>
+        </div>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text)">
+        <input id="fPub" type="checkbox" checked style="width:auto"/> Published (visible to students)
+      </label>
+
+      <div style="margin-top:16px" class="row">
+        <button id="btnSave" class="btn primary">Save Practice Test</button>
+        <button id="btnClear" class="btn">Reset</button>
+      </div>
+      <div id="msg" class="msg"></div>
+      <input type="hidden" id="fId"/>
+    </div>
+
+    <div class="glass card">
+      <h3 style="margin:0 0 6px">Existing Practice Tests</h3>
+      <div id="tbl"><div class="empty">Loading…</div></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/practice-data.js"></script>
+<script>
+var $=function(s){return document.querySelector(s);};
+function msg(t,ok){ var m=$("#msg"); m.textContent=t||''; m.className='msg '+(ok?'ok':'err'); }
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+
+var classesCache=[], subjectsCache=[], chaptersCache=[];
+
+async function loadClasses(){
+  await AdminData.ensureSeed();
+  classesCache = await AdminData.listClasses();
+  var sel=$("#fClass");
+  sel.innerHTML='<option value="">-- Select Class --</option>' +
+    classesCache.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.label||c.id)+'</option>';}).join('');
+}
+async function loadSubjects(){
+  var cls=$("#fClass").value;
+  $("#fSubject").innerHTML='<option value="">-- Select Subject --</option>';
+  $("#fChapter").innerHTML='<option value="">-- Select Chapter --</option>';
+  if(!cls){ return; }
+  subjectsCache = await AdminData.listSubjects(cls);
+  $("#fSubject").innerHTML='<option value="">-- Select Subject --</option>' +
+    subjectsCache.map(function(s){return '<option value="'+esc(s.id)+'">'+esc(s.label||s.id)+'</option>';}).join('');
+}
+async function loadChapters(){
+  var cls=$("#fClass").value, sub=$("#fSubject").value;
+  $("#fChapter").innerHTML='<option value="">-- Select Chapter --</option>';
+  if(!cls||!sub){ return; }
+  chaptersCache = await AdminData.listChapters(cls, sub);
+  $("#fChapter").innerHTML='<option value="">-- All Chapters --</option>' +
+    chaptersCache.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.title||c.id)+'</option>';}).join('');
+}
+async function refreshPool(){
+  var cls=$("#fClass").value, sub=$("#fSubject").value, ch=$("#fChapter").value;
+  if(!cls){ $("#poolHint").textContent='Available questions in this pool: —'; return; }
+  try{
+    var n = await Practice.countAvailableQuestions(cls, sub, ch);
+    $("#poolHint").textContent = 'Available questions in this pool: '+n;
+  }catch(e){ $("#poolHint").textContent = 'Could not read question pool.'; }
+}
+
+$("#fClass").addEventListener('change', async function(){ await loadSubjects(); refreshPool(); });
+$("#fSubject").addEventListener('change', async function(){ await loadChapters(); refreshPool(); });
+$("#fChapter").addEventListener('change', refreshPool);
+
+$("#btnClear").addEventListener('click', function(){
+  ['fTitle','fId'].forEach(function(id){$("#"+id).value='';});
+  $("#fTotal").value=10; $("#fDur").value=15; $("#fMarks").value=1; $("#fNeg").value=0; $("#fPub").checked=true;
+  $("#fClass").value=''; loadSubjects(); refreshPool();
+  $("#formTitle").textContent='Create Practice Test';
+  msg('');
+});
+
+$("#btnSave").addEventListener('click', async function(){
+  msg('');
+  var data = {
+    id: $("#fId").value || null,
+    title: $("#fTitle").value.trim(),
+    classId: $("#fClass").value,
+    subjectId: $("#fSubject").value,
+    chapterId: $("#fChapter").value,
+    totalQuestions: $("#fTotal").value,
+    durationMin: $("#fDur").value,
+    marksPerQuestion: $("#fMarks").value,
+    negativeMarks: $("#fNeg").value,
+    isPublished: $("#fPub").checked
+  };
+  if(!data.title){ msg('Please enter a test title.'); return; }
+  if(!data.classId){ msg('Please select a class.'); return; }
+  try{
+    await Practice.save(data);
+    msg('Saved successfully.', true);
+    $("#btnClear").click();
+    loadList();
+  }catch(e){ msg(e.message||'Save failed.'); }
+});
+
+async function loadList(){
+  var rows = await Practice.listAll();
+  var tbl=$("#tbl");
+  if(!rows.length){ tbl.innerHTML='<div class="empty">No practice tests yet.</div>'; return; }
+  tbl.innerHTML='<table><thead><tr><th>Title</th><th>Scope</th><th>Q · Dur · Marks</th><th>Status</th><th></th></tr></thead><tbody>'+
+    rows.map(function(r){
+      return '<tr>'+
+        '<td><b>'+esc(r.title||'—')+'</b></td>'+
+        '<td class="hint">'+esc(r.classId||'-')+' · '+esc(r.subjectId||'-')+' · '+esc(r.chapterId||'all')+'</td>'+
+        '<td class="hint">'+ (r.totalQuestions||0) +' Q · '+ (r.durationMin||0) +'m · '+ (r.marksPerQuestion||1) +'/-' + (r.negativeMarks||0) +'</td>'+
+        '<td>'+(r.isPublished?'<span class="pill">Published</span>':'<span class="pill off">Draft</span>')+'</td>'+
+        '<td style="white-space:nowrap">'+
+          '<button class="btn small" data-act="edit" data-id="'+r.id+'">Edit</button> '+
+          '<button class="btn small" data-act="toggle" data-id="'+r.id+'" data-pub="'+(r.isPublished?'0':'1')+'">'+(r.isPublished?'Unpublish':'Publish')+'</button> '+
+          '<button class="btn small danger" data-act="del" data-id="'+r.id+'">Delete</button>'+
+        '</td>'+
+      '</tr>';
+    }).join('')+'</tbody></table>';
+
+  tbl.querySelectorAll('button[data-act]').forEach(function(b){
+    b.addEventListener('click', async function(){
+      var id=b.dataset.id, act=b.dataset.act;
+      if(act==='del'){
+        if(!confirm('Delete this practice test?')) return;
+        await Practice.remove(id); loadList(); return;
+      }
+      if(act==='toggle'){
+        await Practice.togglePublish(id, b.dataset.pub==='1'); loadList(); return;
+      }
+      if(act==='edit'){
+        var t = await Practice.get(id);
+        if(!t) return;
+        $("#fId").value=t.id;
+        $("#fTitle").value=t.title||'';
+        $("#fClass").value=t.classId||''; await loadSubjects();
+        $("#fSubject").value=t.subjectId||''; await loadChapters();
+        $("#fChapter").value=t.chapterId||'';
+        $("#fTotal").value=t.totalQuestions||10;
+        $("#fDur").value=t.durationMin||10;
+        $("#fMarks").value=t.marksPerQuestion||1;
+        $("#fNeg").value=t.negativeMarks||0;
+        $("#fPub").checked=t.isPublished!==false;
+        $("#formTitle").textContent='Edit Practice Test';
+        refreshPool();
+        window.scrollTo({top:0,behavior:'smooth'});
+      }
+    });
+  });
+}
+
+(async function init(){
+  try{ await loadClasses(); await loadList(); }
+  catch(e){ msg('Init failed: '+(e.message||e)); }
+})();
+</script>
+</body>
+</html>
