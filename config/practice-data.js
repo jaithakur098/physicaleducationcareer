@@ -31,6 +31,112 @@
     return arr;
   }
 
+  /* ---------- Robust matching helpers ----------------------------------------
+     Question Bank records were created by different flows over time — the
+     admin form, bulk CSV/JSON imports, and legacy seed scripts — so they may
+     use different field names OR different id formats. We normalise both the
+     selector value and the question value before comparing so a Practice Test
+     targeting "class12 / physical-education / chapter1" still matches
+     questions stored as any of:
+        cls / class / classId          -> "class12", "12", "class12__..."
+        subject / subjectId            -> "physical-education", "class12__physical-education"
+        chapter / chapterId / chapterKey -> "chapter1", "1", "class12__physical-education__chapter1"
+  ----------------------------------------------------------------------------*/
+  function norm(v){
+    if (v == null) return '';
+    return String(v).trim().toLowerCase();
+  }
+  // Produce equivalent forms for a given id/label so numeric and composite ids
+  // collapse to the same comparable set.
+  function variants(v){
+    var s = norm(v);
+    if (!s) return [];
+    var out = [s];
+    var seps = ['__', '/', '::', '|', ':'];
+    for (var i=0;i<seps.length;i++){
+      if (s.indexOf(seps[i]) !== -1){
+        var parts = s.split(seps[i]).filter(Boolean);
+        if (parts.length) {
+          out.push(parts[parts.length-1]);   // last segment  ("class12__physical-education__chapter1" -> "chapter1")
+          out.push(parts[0]);                // first segment
+        }
+      }
+    }
+    // "class12" <-> "12"
+    var mCls = s.match(/^class[\s_-]*(\d+)$/);
+    if (mCls) out.push(mCls[1]);
+    else if (/^\d+$/.test(s)) out.push('class' + s);
+    // "chapter1" <-> "1" <-> "ch1"
+    var mCh = s.match(/^(?:chapter|ch)[\s_-]*(\d+)$/);
+    if (mCh) { out.push(mCh[1]); out.push('chapter' + mCh[1]); out.push('ch' + mCh[1]); }
+    return out.filter(function(x,i,a){ return x && a.indexOf(x)===i; });
+  }
+  function anyEqual(aList, bList){
+    for (var i=0;i<aList.length;i++){
+      for (var j=0;j<bList.length;j++){
+        if (aList[i] === bList[j]) return true;
+      }
+    }
+    return false;
+  }
+  // Return the first defined / non-empty field among the given names.
+  function pick(q){
+    for (var i=1;i<arguments.length;i++){
+      var k = arguments[i];
+      if (q[k] !== undefined && q[k] !== null && q[k] !== '') return q[k];
+    }
+    return '';
+  }
+  function extractClass(q)   { return pick(q, 'cls', 'classId', 'class', 'className'); }
+  function extractSubject(q) { return pick(q, 'subject', 'subjectId', 'subjectKey'); }
+  function extractChapter(q) { return pick(q, 'chapter', 'chapterId', 'chapterKey', 'chapterNo'); }
+
+  function questionMatches(q, classId, subjectId, chapterId){
+    if (classId){
+      if (!anyEqual(variants(extractClass(q)), variants(classId)))
+        return { ok:false, reason:'class mismatch (question='+extractClass(q)+' vs test='+classId+')' };
+    }
+    if (subjectId){
+      if (!anyEqual(variants(extractSubject(q)), variants(subjectId)))
+        return { ok:false, reason:'subject mismatch (question='+extractSubject(q)+' vs test='+subjectId+')' };
+    }
+    if (chapterId){
+      if (!anyEqual(variants(extractChapter(q)), variants(chapterId)))
+        return { ok:false, reason:'chapter mismatch (question='+extractChapter(q)+' vs test='+chapterId+')' };
+    }
+    return { ok:true };
+  }
+
+  // Fetch the entire Question Bank without relying on createdAt.
+  // (AdminData.listQuestions uses orderBy('createdAt','desc') which silently
+  //  drops any legacy / bulk-imported question that has no createdAt field —
+  //  that alone caused "No questions available for this selection".)
+  async function fetchAllQuestions(){
+    var snap = await db.collection('questions').get();
+    return snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+  }
+
+  function filterWithDebug(all, classId, subjectId, chapterId, label){
+    var matched = [];
+    var rejected = [];
+    for (var i=0;i<all.length;i++){
+      var q = all[i];
+      var r = questionMatches(q, classId, subjectId, chapterId);
+      if (r.ok) matched.push(q);
+      else rejected.push({ id:q.id, reason:r.reason,
+                           cls:extractClass(q), subject:extractSubject(q), chapter:extractChapter(q) });
+    }
+    try {
+      console.groupCollapsed('[practice-data] '+(label||'filter')+' — '+matched.length+' / '+all.length+' matched');
+      console.log('selector', { classId:classId, subjectId:subjectId, chapterId:chapterId });
+      console.log('total questions fetched:', all.length);
+      console.log('matched questions:', matched.length, matched);
+      console.log('rejected questions:', rejected.length, rejected);
+      console.groupEnd();
+    } catch(_) {}
+    return matched;
+  }
+
   var Practice = {
     /* -------- Admin: CRUD -------- */
     listAll: async function () {
@@ -87,23 +193,28 @@
       );
     },
 
-    /* -------- Question bank sourcing -------- */
+    /* -------- Question bank sourcing (robust) -------- */
+    _matches: questionMatches,
+    _variants: variants,
+    _fetchAllQuestions: fetchAllQuestions,
+
     countAvailableQuestions: async function (classId, subjectId, chapterId) {
-      var q = db.collection('questions').where('cls','==',classId);
-      if (subjectId) q = q.where('subject','==',subjectId);
-      if (chapterId) q = q.where('chapter','==',chapterId);
-      var snap = await q.get();
-      return snap.size;
+      var all = await fetchAllQuestions();
+      var matched = filterWithDebug(all, classId, subjectId, chapterId, 'countAvailableQuestions');
+      return matched.length;
+    },
+    listAvailableQuestions: async function (classId, subjectId, chapterId) {
+      var all = await fetchAllQuestions();
+      return filterWithDebug(all, classId, subjectId, chapterId, 'listAvailableQuestions');
     },
     getRandomQuestions: async function (test) {
-      var q = db.collection('questions').where('cls','==',test.classId);
-      if (test.subjectId) q = q.where('subject','==',test.subjectId);
-      if (test.chapterId) q = q.where('chapter','==',test.chapterId);
-      var snap = await q.get();
-      var arr = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-      shuffle(arr);
-      var n = Number(test.totalQuestions) || arr.length;
-      return arr.slice(0, n);
+      var all = await fetchAllQuestions();
+      var matched = filterWithDebug(
+        all, test.classId, test.subjectId, test.chapterId, 'getRandomQuestions'
+      );
+      shuffle(matched);
+      var n = Number(test.totalQuestions) || matched.length;
+      return matched.slice(0, n);
     },
 
     /* -------- Attempts / Results / Leaderboard -------- */
@@ -130,7 +241,6 @@
     leaderboard: async function (testId, topN) {
       var snap = await db.collection('practice_attempts').where('testId','==',testId).get();
       var arr = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-      // Keep best attempt per student
       var best = {};
       arr.forEach(function(r){
         var uid = r.studentId || r.id;
