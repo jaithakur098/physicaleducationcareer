@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="student-styles.css">
+<link rel="icon" href="ultimate-logo.PNG"/>
+<title>Profile — PEEngine</title></head><body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-user"></i></div><h1>My <span>Profile</span></h1></div>
+  <nav class="nav">
+  <a class="btn ghost" href="student-dashboard.html">Dashboard</a>
+  <a class="btn ghost" href="student-live-tests.html">Live Tests</a>
+  <a class="btn ghost" href="student-my-results.html">My Results</a>
+  <a class="btn ghost" href="student-analytics.html">Analytics</a>
+  <a class="btn ghost" href="student-profile.html">Profile</a>
+  <button class="btn danger" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+</nav>
+</header>
+<div class="card" style="max-width:640px">
+  <div id="msg"></div>
+  <form id="f">
+    <div class="form-row"><label>Email</label><input name="email" disabled></div>
+    <div class="form-row"><label>Full Name</label><input name="name" required></div>
+    <div class="form-row"><label>Phone</label><input name="phone"></div>
+    <div class="form-row"><label>Class</label><select id="cls" name="className"></select></div>
+    <div class="form-row"><label>School / College</label><input name="school"></div>
+    <div class="form-row"><label>City</label><input name="city"></div>
+    <div class="form-row"><label>State</label><input name="state"></div>
+    <button class="btn primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+  </form>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/student-data.js"></script><script>
+Student.onChange(function(u){ if(!u){ location.href="student-login.html"; } });
+document.addEventListener("click",function(e){
+  if(e.target.closest("#logoutBtn")){ Student.logout().then(function(){ location.href="student-login.html"; }); }
+});
+</script>
+<script>
+var currentUid=null;
+Student.onChange(async function(u){
+  if(!u) return; currentUid=u.uid;
+  var classes = await AdminData.listClasses();
+  var prof = await Student.getProfile(u.uid) || {};
+  var f=document.getElementById('f');
+  f.email.value = u.email;
+  f.name.value  = prof.name || u.displayName || '';
+  f.phone.value = prof.phone || '';
+  f.school.value= prof.school|| '';
+  f.city.value  = prof.city  || '';
+  f.state.value = prof.state || '';
+  document.getElementById('cls').innerHTML =
+    '<option value="">—</option>'+classes.map(function(c){
+      return '<option value="'+c.id+'"'+(prof.className===c.id?' selected':'')+'>'+c.label+'</option>';
+    }).join('');
+});
+document.getElementById('f').addEventListener('submit', async function(ev){
+  ev.preventDefault();
+  var msg=document.getElementById('msg'); msg.innerHTML='';
+  var d=Object.fromEntries(new FormData(ev.target).entries());
+  try{ await Student.updateProfile(currentUid, d);
+    msg.innerHTML='<div class="msg ok">Profile updated.</div>';
+  }catch(e){ msg.innerHTML='<div class="msg err">'+(e.message||e)+'</div>'; }
+});
+</script></body></html>

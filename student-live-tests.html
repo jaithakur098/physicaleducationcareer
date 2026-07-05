@@ -1,0 +1,51 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="student-styles.css">
+<link rel="icon" href="ultimate-logo.PNG"/>
+<title>Available Live Tests — PEEngine</title></head><body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-broadcast-tower"></i></div><h1>Available <span>Live Tests</span></h1></div>
+  <nav class="nav">
+  <a class="btn ghost" href="student-dashboard.html">Dashboard</a>
+  <a class="btn ghost" href="student-live-tests.html">Live Tests</a>
+  <a class="btn ghost" href="student-my-results.html">My Results</a>
+  <a class="btn ghost" href="student-analytics.html">Analytics</a>
+  <a class="btn ghost" href="student-profile.html">Profile</a>
+  <button class="btn danger" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+</nav>
+</header>
+<div id="list" class="grid g-3"><div class="empty">Loading…</div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/student-data.js"></script><script>
+Student.onChange(function(u){ if(!u){ location.href="student-login.html"; } });
+document.addEventListener("click",function(e){
+  if(e.target.closest("#logoutBtn")){ Student.logout().then(function(){ location.href="student-login.html"; }); }
+});
+</script>
+<script>
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+Student.onChange(async function(u){
+  if(!u) return;
+  var list=document.getElementById('list');
+  var tests = await Student.listActiveTests();
+  if(!tests.length){ list.innerHTML='<div class="empty">No active live tests right now.</div>'; return; }
+  var attempted={};
+  await Promise.all(tests.map(async function(t){ attempted[t.id]=await Student.hasAttempted(t.id,u.uid); }));
+  list.innerHTML = tests.map(function(t){
+    var done=attempted[t.id];
+    return '<article class="card"><span class="badge good">Active</span>'+
+      '<h3 style="margin:8px 0;font-size:18px">'+esc(t.title||'Untitled')+'</h3>'+
+      '<p class="meta">Questions: '+(t.totalQuestions||'—')+' • Duration: '+(t.durationMin||'—')+' min</p>'+
+      '<p class="meta">Marks/Q: '+(t.marksPerQuestion||1)+' • Negative: '+(t.negativeMarks||0)+'</p>'+
+      (done
+        ? '<span class="badge warn" style="margin-top:10px">Already attempted</span>'
+        : '<a class="btn primary" style="margin-top:12px" href="student-attempt.html?id='+t.id+'"><i class="fa-solid fa-play"></i> Start Test</a>')+
+      '</article>';
+  }).join('');
+});
+</script></body></html>

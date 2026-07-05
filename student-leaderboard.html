@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="student-styles.css">
+<link rel="icon" href="ultimate-logo.PNG"/><title>Leaderboard — PEEngine</title></head><body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-trophy"></i></div><h1>Leader<span>board</span></h1></div>
+  <nav class="nav">
+  <a class="btn ghost" href="student-dashboard.html">Dashboard</a>
+  <a class="btn ghost" href="student-live-tests.html">Live Tests</a>
+  <a class="btn ghost" href="student-my-results.html">My Results</a>
+  <a class="btn ghost" href="student-analytics.html">Analytics</a>
+  <a class="btn ghost" href="student-profile.html">Profile</a>
+  <button class="btn danger" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+</nav>
+</header>
+<div class="card" style="margin-bottom:16px">
+  <label>Select Live Test</label>
+  <select id="test"><option value="">Loading…</option></select>
+</div>
+<div class="card"><div id="wrap"><p class="empty">Choose a test above.</p></div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/student-data.js"></script><script>
+Student.onChange(function(u){ if(!u){ location.href="student-login.html"; } });
+document.addEventListener("click",function(e){
+  if(e.target.closest("#logoutBtn")){ Student.logout().then(function(){ location.href="student-login.html"; }); }
+});
+</script>
+<script>
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+var meUid=null;
+Student.onChange(async function(u){
+  if(!u) return; meUid=u.uid;
+  var tests = await Student.listActiveTests();
+  var sel=document.getElementById('test');
+  sel.innerHTML='<option value="">— select —</option>'+tests.map(function(t){
+    return '<option value="'+t.id+'">'+esc(t.title||'Untitled')+'</option>';
+  }).join('');
+  var pre=new URLSearchParams(location.search).get('id');
+  if(pre){ sel.value=pre; render(pre); }
+  sel.onchange=function(){ render(sel.value); };
+});
+async function render(tid){
+  var w=document.getElementById('wrap');
+  if(!tid){ w.innerHTML='<p class="empty">Choose a test above.</p>'; return; }
+  w.innerHTML='<p class="empty">Loading…</p>';
+  var rows = await Student.leaderboard(tid, 100);
+  if(!rows.length){ w.innerHTML='<p class="empty">No attempts yet for this test.</p>'; return; }
+  w.innerHTML='<table><thead><tr><th>Rank</th><th>Student</th><th>Score</th><th>%</th><th>Time</th></tr></thead><tbody>'+
+    rows.map(function(r,i){
+      var mine = r.studentId===meUid;
+      return '<tr style="'+(mine?'background:rgba(212,175,55,.08)':'')+'"><td class="mono">#'+(i+1)+
+        '</td><td>'+esc(r.studentName||'—')+(mine?' <span class="badge info">You</span>':'')+
+        '</td><td class="mono">'+r.score+'/'+r.maxMarks+
+        '</td><td class="mono">'+(r.percent||0).toFixed(1)+'%'+
+        '</td><td class="mono">'+Math.floor((r.durationSec||0)/60)+'m '+((r.durationSec||0)%60)+'s</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+</script></body></html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="student-styles.css">
+<link rel="icon" href="ultimate-logo.PNG"/><title>Result — PEEngine</title></head><body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-award"></i></div><h1>Test <span>Result</span></h1></div>
+  <nav class="nav">
+  <a class="btn ghost" href="student-dashboard.html">Dashboard</a>
+  <a class="btn ghost" href="student-live-tests.html">Live Tests</a>
+  <a class="btn ghost" href="student-my-results.html">My Results</a>
+  <a class="btn ghost" href="student-analytics.html">Analytics</a>
+  <a class="btn ghost" href="student-profile.html">Profile</a>
+  <button class="btn danger" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+</nav>
+</header>
+<div id="out"><p class="empty">Loading…</p></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/student-data.js"></script><script>
+Student.onChange(function(u){ if(!u){ location.href="student-login.html"; } });
+document.addEventListener("click",function(e){
+  if(e.target.closest("#logoutBtn")){ Student.logout().then(function(){ location.href="student-login.html"; }); }
+});
+</script>
+<script>
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+Student.onChange(async function(u){
+  if(!u) return;
+  var id=new URLSearchParams(location.search).get('id');
+  if(!id){ document.getElementById('out').innerHTML='<p class="empty">Missing result id.</p>'; return; }
+  var r = await Student.getAttempt(id);
+  if(!r){ document.getElementById('out').innerHTML='<p class="empty">Result not found.</p>'; return; }
+  var pass = (r.percent||0) >= 40;
+  document.getElementById('out').innerHTML =
+    '<section class="grid g-4" style="margin-bottom:20px">'+
+      '<div class="card stat"><span class="l">Score</span><span class="n mono">'+r.score+' / '+r.maxMarks+'</span></div>'+
+      '<div class="card stat"><span class="l">Percentage</span><span class="n mono">'+(r.percent||0).toFixed(1)+'%</span></div>'+
+      '<div class="card stat"><span class="l">Correct</span><span class="n mono">'+r.correct+' / '+r.total+'</span></div>'+
+      '<div class="card stat"><span class="l">Wrong</span><span class="n mono">'+r.wrong+'</span></div>'+
+    '</section>'+
+    '<div class="card"><h2 style="margin-bottom:8px">'+esc(r.testTitle||'Test')+'</h2>'+
+      '<p class="meta">Duration used: '+Math.floor((r.durationSec||0)/60)+'m '+((r.durationSec||0)%60)+'s '+
+      (r.autoSubmitted?'• <span class="badge warn">Auto-submitted</span>':'')+'</p>'+
+      '<p style="margin-top:10px"><span class="badge '+(pass?'good':'bad')+'">'+(pass?'PASS':'FAIL')+'</span></p>'+
+      '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">'+
+        '<a class="btn primary" href="student-leaderboard.html?id='+r.testId+'"><i class="fa-solid fa-trophy"></i> Leaderboard</a>'+
+        (pass?'<a class="btn" href="student-certificate.html?id='+r.id+'"><i class="fa-solid fa-certificate"></i> View Certificate</a>':'')+
+        '<a class="btn ghost" href="student-my-results.html">All Results</a>'+
+      '</div></div>';
+});
+</script></body></html>

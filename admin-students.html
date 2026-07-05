@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="student-styles.css">
+<link rel="icon" href="ultimate-logo.PNG"/><title>Student Management — Admin — PEEngine</title></head><body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-users-gear"></i></div><h1>Student <span>Management</span></h1></div>
+  <nav class="nav">
+    <a class="btn ghost" href="admin.html"><i class="fa-solid fa-arrow-left"></i> Admin Panel</a>
+    <a class="btn ghost" href="live-test-admin.html">Live Tests</a>
+  </nav>
+</header>
+
+<div class="card" style="margin-bottom:16px">
+  <label>Search students (name / email / phone / class)</label>
+  <input id="q" placeholder="Type to filter…">
+</div>
+
+<section class="grid g-4" style="margin-bottom:16px">
+  <div class="card stat"><span class="l">Total Students</span><span class="n mono" id="sTotal">–</span></div>
+  <div class="card stat"><span class="l">Active</span><span class="n mono" id="sActive">–</span></div>
+  <div class="card stat"><span class="l">Blocked</span><span class="n mono" id="sBlocked">–</span></div>
+  <div class="card stat"><span class="l">Total Attempts</span><span class="n mono" id="sAttempts">–</span></div>
+</section>
+
+<div class="card">
+  <div id="wrap"><p class="empty">Loading students…</p></div>
+</div>
+
+<!-- Results modal -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;padding:20px;overflow:auto">
+  <div class="card" style="max-width:900px;margin:40px auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 id="mTitle" style="font-size:20px">Student Results</h2>
+      <button class="btn ghost" onclick="document.getElementById('modal').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="mBody"><p class="empty">Loading…</p></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/student-data.js"></script>
+<script>
+var ALL=[];
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+
+async function load(){
+  ALL = await Student.listStudents();
+  var blocked = ALL.filter(function(s){return s.blocked;}).length;
+  document.getElementById('sTotal').textContent = ALL.length;
+  document.getElementById('sBlocked').textContent = blocked;
+  document.getElementById('sActive').textContent = ALL.length - blocked;
+  try{ document.getElementById('sAttempts').textContent = (await AdminData.countStudentsAppeared()); }catch(e){ document.getElementById('sAttempts').textContent='—'; }
+  render();
+}
+function render(){
+  var f=(document.getElementById('q').value||'').toLowerCase().trim();
+  var rows = ALL.filter(function(s){
+    if(!f) return true;
+    return (s.name||'').toLowerCase().includes(f)
+      || (s.email||'').toLowerCase().includes(f)
+      || (s.phone||'').toLowerCase().includes(f)
+      || (s.className||'').toLowerCase().includes(f);
+  });
+  var w=document.getElementById('wrap');
+  if(!rows.length){ w.innerHTML='<p class="empty">No students found.</p>'; return; }
+  w.innerHTML='<table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Class</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+
+    rows.map(function(s){
+      return '<tr><td>'+esc(s.name)+'</td>'+
+        '<td>'+esc(s.email)+'</td>'+
+        '<td>'+esc(s.phone||'—')+'</td>'+
+        '<td>'+esc(s.className||'—')+'</td>'+
+        '<td>'+(s.blocked?'<span class="badge bad">Blocked</span>':'<span class="badge good">Active</span>')+'</td>'+
+        '<td style="display:flex;gap:6px;flex-wrap:wrap">'+
+          '<button class="btn ghost" onclick="viewResults(\''+s.id+'\',\''+esc(s.name).replace(/'/g,"\\'")+'\')"><i class="fa-solid fa-chart-line"></i> Results</button>'+
+          '<button class="btn" onclick="toggleBlock(\''+s.id+'\','+(!s.blocked)+')">'+(s.blocked?'<i class="fa-solid fa-unlock"></i> Unblock':'<i class="fa-solid fa-ban"></i> Block')+'</button>'+
+          '<button class="btn danger" onclick="delStudent(\''+s.id+'\')"><i class="fa-solid fa-trash"></i></button>'+
+        '</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+async function toggleBlock(uid, block){
+  await Student.setBlocked(uid, block);
+  await load();
+}
+async function delStudent(uid){
+  if(!confirm('Delete this student record? (This removes the Firestore profile; auth account must be removed from Firebase Console.)')) return;
+  await Student.deleteStudentDoc(uid);
+  await load();
+}
+async function viewResults(uid, name){
+  document.getElementById('modal').style.display='block';
+  document.getElementById('mTitle').textContent = 'Results — '+name;
+  document.getElementById('mBody').innerHTML='<p class="empty">Loading…</p>';
+  var rs = await Student.resultsByStudent(uid);
+  if(!rs.length){ document.getElementById('mBody').innerHTML='<p class="empty">No attempts yet.</p>'; return; }
+  rs.sort(function(a,b){
+    var ax=a.submittedAt&&a.submittedAt.toMillis?a.submittedAt.toMillis():0;
+    var bx=b.submittedAt&&b.submittedAt.toMillis?b.submittedAt.toMillis():0;
+    return bx-ax;
+  });
+  document.getElementById('mBody').innerHTML =
+    '<table><thead><tr><th>Test</th><th>Score</th><th>%</th><th>Correct</th><th>Date</th></tr></thead><tbody>'+
+    rs.map(function(r){
+      var d=r.submittedAt&&r.submittedAt.toDate?r.submittedAt.toDate().toLocaleString():'—';
+      return '<tr><td>'+esc(r.testTitle||'')+'</td><td class="mono">'+r.score+'/'+r.maxMarks+'</td><td class="mono">'+(r.percent||0).toFixed(1)+'%</td><td class="mono">'+r.correct+'/'+r.total+'</td><td>'+d+'</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+window.toggleBlock=toggleBlock;window.delStudent=delStudent;window.viewResults=viewResults;
+document.getElementById('q').addEventListener('input', render);
+load();
+</script></body></html>
