@@ -1,253 +1,367 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Practice Test Manager — Admin</title>
-<link rel="icon" href="ultimate-logo.PNG"/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Practice Test Manager — PEEngine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script>
+/* Admin guard — mirrors admin.html */
+(function(){
+  var _s=document.createElement('style');
+  _s.id='__adminGuardStyle';
+  _s.textContent='html,body{visibility:hidden !important}';
+  document.documentElement.appendChild(_s);
+  function reject(){ location.replace('admin-login.html'); }
+  try{
+    firebase.auth().onAuthStateChanged(async function(user){
+      if(!user){ return reject(); }
+      try{
+        var doc = await firebase.firestore().collection('admins').doc(user.uid).get();
+        if(!doc.exists){ try{ await firebase.auth().signOut(); }catch(_){}; return reject(); }
+        var st=document.getElementById('__adminGuardStyle'); if(st) st.parentNode.removeChild(st);
+        window.__ADMIN_USER__ = user;
+      }catch(err){ console.error('[admin-guard]', err); reject(); }
+    });
+  }catch(e){ reject(); }
+})();
+</script>
 <style>
-  :root{--bg:#0b1020;--bg2:#0f1730;--card:rgba(255,255,255,.07);--stroke:rgba(255,255,255,.14);
-    --text:#eef2ff;--muted:#a6b0d0;--brand:#22d3ee;--brand2:#a78bfa;--radius:16px}
-  *{box-sizing:border-box}html,body{margin:0;color:var(--text);font-family:Inter,system-ui,sans-serif;
-    min-height:100vh;background:radial-gradient(900px 500px at 100% 0%,rgba(167,139,250,.22),transparent 60%),
-      linear-gradient(180deg,var(--bg),var(--bg2))}
+  :root{
+    --navy-900:#050b1f; --navy-800:#0a1633; --navy-700:#0f2148; --navy-600:#152c5e;
+    --gold-500:#d4af37; --gold-400:#e6c458; --gold-300:#f2d97a;
+    --ink:#e9eefb; --ink-soft:#b8c2dc; --ink-mute:#8892b2;
+    --glass:rgba(255,255,255,0.06); --glass-strong:rgba(255,255,255,0.09);
+    --glass-border:rgba(212,175,55,0.22);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--navy-900);color:var(--ink);font-family:'Inter',system-ui,sans-serif;min-height:100vh}
+  body{background:radial-gradient(ellipse at top,var(--navy-700),var(--navy-900) 60%)}
+  a{color:var(--gold-300);text-decoration:none}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(5,11,31,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--glass-border);padding:14px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+  .brand{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;color:var(--gold-300)}
+  .brand span{color:var(--ink)}
+  .btn{background:var(--glass);color:var(--ink);border:1px solid var(--glass-border);border-radius:10px;padding:9px 14px;font:500 13px 'Inter';cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.2s}
+  .btn:hover{background:var(--glass-strong)}
+  .btn-gold{background:linear-gradient(135deg,var(--gold-500),var(--gold-400));color:#1a1305;border:none;font-weight:600}
+  .btn-gold:hover{filter:brightness(1.05)}
+  .btn-danger{background:rgba(220,60,60,.15);border-color:rgba(220,60,60,.4);color:#ffb3b3}
+  .btn-sm{padding:6px 10px;font-size:12px}
   .wrap{max-width:1200px;margin:0 auto;padding:22px}
-  .glass{background:var(--card);border:1px solid var(--stroke);border-radius:var(--radius);backdrop-filter:blur(18px)}
-  .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
-  .brand{display:flex;gap:10px;align-items:center;font-weight:800}
-  .brand img{height:36px;width:36px;border-radius:10px;object-fit:cover}
-  .btn{border:1px solid var(--stroke);background:var(--card);color:inherit;padding:10px 14px;
-    border-radius:12px;cursor:pointer;font-weight:600;text-decoration:none;display:inline-block}
-  .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#0b1020;border:none}
-  .btn.danger{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#fca5a5}
-  .btn.small{padding:6px 10px;font-size:12px}
-  .grid{display:grid;gap:14px;grid-template-columns:1.1fr .9fr}
-  @media(max-width:900px){.grid{grid-template-columns:1fr}}
-  .card{padding:18px}
-  label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:12px 0 4px}
-  input,select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--stroke);
-    background:rgba(255,255,255,.06);color:var(--text);font-size:14px}
-  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
-  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--stroke);vertical-align:top}
-  .row{display:flex;gap:10px;flex-wrap:wrap}
-  .msg{margin-top:10px;font-size:13px}
-  .msg.err{color:#fca5a5}.msg.ok{color:#86efac}
-  .pill{display:inline-flex;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;
-    background:rgba(34,211,238,.14);color:var(--brand);border:1px solid rgba(34,211,238,.3)}
-  .pill.off{background:rgba(148,163,184,.14);color:#cbd5e1;border-color:rgba(148,163,184,.3)}
-  .empty{padding:16px;color:var(--muted);text-align:center}
-  .hint{color:var(--muted);font-size:12px;margin-top:4px}
+  .panel{background:var(--glass);border:1px solid var(--glass-border);border-radius:14px;padding:20px;margin-bottom:18px}
+  h2,h3,h4{margin:0 0 12px;font-family:'Playfair Display',serif;color:#fff;font-weight:700}
+  h2{font-size:26px} h3{font-size:20px} h4{font-size:16px;font-family:'Inter';font-weight:600}
+  .section-title{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .section-title p{margin:4px 0 0;color:var(--ink-mute);font-size:13px}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.full{grid-column:1/-1}
+  .field label{font-size:12px;color:var(--ink-soft);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+  .field input,.field select,.field textarea{background:rgba(5,11,31,.55);border:1px solid var(--glass-border);color:var(--ink);border-radius:9px;padding:10px 12px;font:400 14px 'Inter';outline:none}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold-400)}
+  .field textarea{min-height:70px;resize:vertical}
+  .btn-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--glass-border);margin-top:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:11px 14px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06)}
+  th{background:rgba(5,11,31,.6);color:var(--gold-300);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  tr:hover td{background:rgba(255,255,255,.03)}
+  .empty{text-align:center;color:var(--ink-mute);padding:30px}
+  .row-actions{display:flex;gap:6px}
+  .row-actions button{background:transparent;border:1px solid var(--glass-border);color:var(--ink);width:32px;height:32px;border-radius:7px;cursor:pointer;font-size:13px}
+  .row-actions button:hover{background:var(--glass-strong);color:var(--gold-300)}
+  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600}
+  .b-ok{background:rgba(80,200,120,.18);color:#a8e6b8}
+  .b-draft{background:rgba(220,180,60,.18);color:#f0d585}
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;justify-content:center;align-items:flex-start;padding:40px 20px;overflow-y:auto}
+  .modal.open{display:flex}
+  .modal-card{background:linear-gradient(180deg,var(--navy-800),var(--navy-700));border:1px solid var(--glass-border);border-radius:14px;padding:24px;max-width:900px;width:100%;position:relative}
+  .modal-close{position:absolute;top:14px;right:14px}
+  .q-list{max-height:340px;overflow-y:auto;border:1px solid var(--glass-border);border-radius:10px;margin-top:8px;background:rgba(5,11,31,.35)}
+  .q-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer}
+  .q-item:hover{background:rgba(255,255,255,.04)}
+  .q-item input{margin-top:3px}
+  .q-item .qtxt{font-size:13px;color:var(--ink)}
+  .q-item .qmeta{font-size:11px;color:var(--ink-mute);margin-top:2px}
+  .selected-count{color:var(--gold-300);font-weight:600}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--navy-800);border:1px solid var(--glass-border);color:var(--ink);padding:12px 18px;border-radius:10px;opacity:0;transform:translateY(10px);transition:.3s;z-index:200;font-size:13px}
+  .toast.show{opacity:1;transform:translateY(0)}
+  .toast.danger{border-color:rgba(220,60,60,.55);color:#ffb3b3}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--gold-400);border-top-color:transparent;border-radius:50%;animation:sp 1s linear infinite;vertical-align:middle}
+  @keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="nav">
-    <div class="brand"><img src="ultimate-logo.PNG" alt=""/><span>Practice Test Manager</span></div>
-    <div class="row">
-      <a class="btn" href="admin.html"><i></i> Admin Panel</a>
-      <a class="btn" href="live-test-admin.html">Live Tests</a>
-    </div>
+
+<div class="topbar">
+  <div class="brand">Practice <span>Test Manager</span></div>
+  <div style="display:flex;gap:10px">
+    <a class="btn" href="admin.html"><i class="fa-solid fa-arrow-left"></i> Back to Admin</a>
+    <button class="btn btn-gold" onclick="openTestModal()"><i class="fa-solid fa-plus"></i> New Practice Test</button>
   </div>
+</div>
 
-  <div class="grid">
-    <div class="glass card">
-      <h3 id="formTitle" style="margin:0 0 6px">Create Practice Test</h3>
-      <p style="color:var(--muted);margin:0 0 6px;font-size:13px">
-        Questions are randomly picked from the Question Bank based on Class, Subject and Chapter.
-      </p>
-
-      <label>Test Title</label>
-      <input id="fTitle" placeholder="e.g. Class 11 PE — Chapter 2 Practice"/>
-
-      <div class="row">
-        <div style="flex:1;min-width:180px">
-          <label>Class</label>
-          <select id="fClass"><option value="">-- Select --</option></select>
-        </div>
-        <div style="flex:1;min-width:180px">
-          <label>Subject</label>
-          <select id="fSubject"><option value="">-- Select --</option></select>
-        </div>
-        <div style="flex:1;min-width:180px">
-          <label>Chapter</label>
-          <select id="fChapter"><option value="">-- Select --</option></select>
-        </div>
+<div class="wrap">
+  <section class="panel">
+    <div class="section-title">
+      <div>
+        <h3><i class="fa-solid fa-clipboard-check"></i> Practice <span style="color:var(--gold-400);font-family:'Playfair Display',serif">Tests</span></h3>
+        <p>Create, edit and delete practice tests. Questions are reused from the Question Bank.</p>
       </div>
-      <div class="hint" id="poolHint">Available questions in this pool: —</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th><th>Class / Subject / Chapter</th><th>Duration</th>
+            <th>Questions</th><th>Status</th><th style="width:150px">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="ptTableBody"><tr><td colspan="6" class="empty"><span class="spin"></span> Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</div>
 
-      <div class="row">
-        <div style="flex:1;min-width:140px">
-          <label>Number of Questions</label>
-          <input id="fTotal" type="number" min="1" value="10"/>
-        </div>
-        <div style="flex:1;min-width:140px">
-          <label>Duration (min)</label>
-          <input id="fDur" type="number" min="1" value="15"/>
-        </div>
-        <div style="flex:1;min-width:140px">
-          <label>Marks / Question</label>
-          <input id="fMarks" type="number" min="0" step="0.25" value="1"/>
-        </div>
-        <div style="flex:1;min-width:140px">
-          <label>Negative Marking</label>
-          <input id="fNeg" type="number" min="0" step="0.25" value="0"/>
-        </div>
+<!-- MODAL -->
+<div class="modal" id="ptModal" onclick="if(event.target===this)closeTestModal()">
+  <div class="modal-card">
+    <button class="btn modal-close" onclick="closeTestModal()"><i class="fa-solid fa-xmark"></i></button>
+    <h3><i class="fa-solid fa-clipboard-check"></i> <span id="ptModalTitle">Create Practice Test</span></h3>
+    <div class="form-grid" style="margin-top:8px">
+      <div class="field full"><label>Title</label><input id="pTitle" placeholder="e.g. Class 12 PE — Chapter 1 Practice"/></div>
+      <div class="field"><label>Class</label><select id="pClass" onchange="onPClassChange()"></select></div>
+      <div class="field"><label>Subject</label><select id="pSubject" onchange="onPSubjectChange()"></select></div>
+      <div class="field"><label>Chapter</label><select id="pChapter" onchange="loadQuestionPool()"></select></div>
+      <div class="field"><label>Duration (min)</label><input id="pDuration" type="number" min="1" value="20"/></div>
+      <div class="field"><label>Negative Marking</label><input id="pNeg" type="number" step="0.25" value="0"/></div>
+      <div class="field full" style="display:flex;align-items:center;gap:10px">
+        <input id="pPublished" type="checkbox" style="width:auto"/>
+        <label for="pPublished" style="margin:0;font-size:14px;color:var(--ink);text-transform:none;letter-spacing:0">Publish immediately</label>
       </div>
-
-      <label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text)">
-        <input id="fPub" type="checkbox" checked style="width:auto"/> Published (visible to students)
-      </label>
-
-      <div style="margin-top:16px" class="row">
-        <button id="btnSave" class="btn primary">Save Practice Test</button>
-        <button id="btnClear" class="btn">Reset</button>
-      </div>
-      <div id="msg" class="msg"></div>
-      <input type="hidden" id="fId"/>
     </div>
 
-    <div class="glass card">
-      <h3 style="margin:0 0 6px">Existing Practice Tests</h3>
-      <div id="tbl"><div class="empty">Loading…</div></div>
+    <div style="margin-top:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h4><i class="fa-solid fa-database"></i> Pick Questions from Question Bank</h4>
+        <div style="font-size:12px;color:var(--ink-mute)">Selected: <span class="selected-count" id="selCount">0</span></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+        <input id="qSearch" placeholder="Search questions..." oninput="renderQuestionPool()" style="flex:1;min-width:180px;background:rgba(5,11,31,.55);border:1px solid var(--glass-border);color:var(--ink);border-radius:9px;padding:9px 12px;font:400 13px 'Inter'"/>
+        <button class="btn btn-sm" onclick="selectAllVisible(true)"><i class="fa-solid fa-check-double"></i> Select all visible</button>
+        <button class="btn btn-sm" onclick="selectAllVisible(false)"><i class="fa-solid fa-square"></i> Clear visible</button>
+      </div>
+      <div class="q-list" id="qList"><div class="empty">Select Class, Subject and Chapter to load questions.</div></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-gold" id="pSaveBtn" onclick="submitTest()"><i class="fa-solid fa-floppy-disk"></i> <span>Save Practice Test</span></button>
+      <button class="btn" onclick="closeTestModal()">Cancel</button>
     </div>
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<div class="toast" id="toast"></div>
+
 <script src="config/firebase-init.js"></script>
 <script src="config/admin-data.js"></script>
-<script src="config/practice-data.js"></script>
 <script>
-var $=function(s){return document.querySelector(s);};
-function msg(t,ok){ var m=$("#msg"); m.textContent=t||''; m.className='msg '+(ok?'ok':'err'); }
-function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+/* ============ HELPERS ============ */
+function toast(msg,kind){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(kind||'success');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2600)}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function val(id){return (document.getElementById(id).value||'').trim()}
+function setVal(id,v){const el=document.getElementById(id);if(el)el.value=v??''}
 
-var classesCache=[], subjectsCache=[], chaptersCache=[];
+/* ============ STATE ============ */
+const db = firebase.firestore();
+const PT_COL = 'practiceTests';
+let classesCache = [];
+let practiceTests = [];
+let editingId = null;
+let questionPool = [];        // questions matching class/subject/chapter
+let selectedQIds = new Set(); // selected question ids
 
-async function loadClasses(){
-  await AdminData.ensureSeed();
-  classesCache = await AdminData.listClasses();
-  var sel=$("#fClass");
-  sel.innerHTML='<option value="">-- Select Class --</option>' +
-    classesCache.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.label||c.id)+'</option>';}).join('');
-}
-async function loadSubjects(){
-  var cls=$("#fClass").value;
-  $("#fSubject").innerHTML='<option value="">-- Select Subject --</option>';
-  $("#fChapter").innerHTML='<option value="">-- Select Chapter --</option>';
-  if(!cls){ return; }
-  subjectsCache = await AdminData.listSubjects(cls);
-  $("#fSubject").innerHTML='<option value="">-- Select Subject --</option>' +
-    subjectsCache.map(function(s){return '<option value="'+esc(s.id)+'">'+esc(s.label||s.id)+'</option>';}).join('');
-}
-async function loadChapters(){
-  var cls=$("#fClass").value, sub=$("#fSubject").value;
-  $("#fChapter").innerHTML='<option value="">-- Select Chapter --</option>';
-  if(!cls||!sub){ return; }
-  chaptersCache = await AdminData.listChapters(cls, sub);
-  $("#fChapter").innerHTML='<option value="">-- All Chapters --</option>' +
-    chaptersCache.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.title||c.id)+'</option>';}).join('');
-}
-async function refreshPool(){
-  var cls=$("#fClass").value, sub=$("#fSubject").value, ch=$("#fChapter").value;
-  if(!cls){ $("#poolHint").textContent='Available questions in this pool: —'; return; }
+/* ============ INIT ============ */
+window.addEventListener('DOMContentLoaded', async () => {
+  if(!window.AdminData){ toast('Firebase failed to load','danger'); return; }
   try{
-    var n = await Practice.countAvailableQuestions(cls, sub, ch);
-    $("#poolHint").textContent = 'Available questions in this pool: '+n;
-  }catch(e){ $("#poolHint").textContent = 'Could not read question pool.'; }
-}
-
-$("#fClass").addEventListener('change', async function(){ await loadSubjects(); refreshPool(); });
-$("#fSubject").addEventListener('change', async function(){ await loadChapters(); refreshPool(); });
-$("#fChapter").addEventListener('change', refreshPool);
-
-$("#btnClear").addEventListener('click', function(){
-  ['fTitle','fId'].forEach(function(id){$("#"+id).value='';});
-  $("#fTotal").value=10; $("#fDur").value=15; $("#fMarks").value=1; $("#fNeg").value=0; $("#fPub").checked=true;
-  $("#fClass").value=''; loadSubjects(); refreshPool();
-  $("#formTitle").textContent='Create Practice Test';
-  msg('');
+    classesCache = await AdminData.listClasses();
+    fillClassSelect('pClass', classesCache);
+    await refreshPracticeTests();
+  }catch(e){ console.error(e); toast('Load failed: '+e.message,'danger'); }
 });
 
-$("#btnSave").addEventListener('click', async function(){
-  msg('');
-  var data = {
-    id: $("#fId").value || null,
-    title: $("#fTitle").value.trim(),
-    classId: $("#fClass").value,
-    subjectId: $("#fSubject").value,
-    chapterId: $("#fChapter").value,
-    totalQuestions: $("#fTotal").value,
-    durationMin: $("#fDur").value,
-    marksPerQuestion: $("#fMarks").value,
-    negativeMarks: $("#fNeg").value,
-    isPublished: $("#fPub").checked
-  };
-  if(!data.title){ msg('Please enter a test title.'); return; }
-  if(!data.classId){ msg('Please select a class.'); return; }
+/* ============ DROPDOWNS ============ */
+function fillClassSelect(id,list){
+  const el=document.getElementById(id);
+  el.innerHTML='<option value="">Select Class</option>'+
+    list.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.label)}</option>`).join('');
+}
+async function onPClassChange(){
+  const cls=val('pClass');
+  const sub=document.getElementById('pSubject'), ch=document.getElementById('pChapter');
+  sub.innerHTML='<option value="">Loading…</option>'; ch.innerHTML='<option value="">Select Subject first</option>';
+  if(!cls){ sub.innerHTML='<option value="">Select Class first</option>'; questionPool=[]; renderQuestionPool(); return; }
+  const subs=await AdminData.listSubjects(cls);
+  sub.innerHTML='<option value="">Select Subject</option>'+subs.map(s=>`<option value="${escapeHtml(s.id)}">${escapeHtml(s.label)}</option>`).join('');
+  questionPool=[]; renderQuestionPool();
+}
+async function onPSubjectChange(){
+  const cls=val('pClass'), sub=val('pSubject');
+  const ch=document.getElementById('pChapter');
+  ch.innerHTML='<option value="">Loading…</option>';
+  if(!cls||!sub){ ch.innerHTML='<option value="">Select Subject first</option>'; questionPool=[]; renderQuestionPool(); return; }
+  const chs=await AdminData.listChapters(cls,sub);
+  ch.innerHTML='<option value="">Select Chapter</option>'+chs.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.title)}</option>`).join('');
+  questionPool=[]; renderQuestionPool();
+}
+
+/* ============ QUESTION POOL (from Question Bank) ============ */
+async function loadQuestionPool(){
+  const cls=val('pClass'), sub=val('pSubject'), ch=val('pChapter');
+  if(!cls||!sub||!ch){ questionPool=[]; renderQuestionPool(); return; }
+  document.getElementById('qList').innerHTML='<div class="empty"><span class="spin"></span> Loading questions…</div>';
   try{
-    await Practice.save(data);
-    msg('Saved successfully.', true);
-    $("#btnClear").click();
-    loadList();
-  }catch(e){ msg(e.message||'Save failed.'); }
-});
-
-async function loadList(){
-  var rows = await Practice.listAll();
-  var tbl=$("#tbl");
-  if(!rows.length){ tbl.innerHTML='<div class="empty">No practice tests yet.</div>'; return; }
-  tbl.innerHTML='<table><thead><tr><th>Title</th><th>Scope</th><th>Q · Dur · Marks</th><th>Status</th><th></th></tr></thead><tbody>'+
-    rows.map(function(r){
-      return '<tr>'+
-        '<td><b>'+esc(r.title||'—')+'</b></td>'+
-        '<td class="hint">'+esc(r.classId||'-')+' · '+esc(r.subjectId||'-')+' · '+esc(r.chapterId||'all')+'</td>'+
-        '<td class="hint">'+ (r.totalQuestions||0) +' Q · '+ (r.durationMin||0) +'m · '+ (r.marksPerQuestion||1) +'/-' + (r.negativeMarks||0) +'</td>'+
-        '<td>'+(r.isPublished?'<span class="pill">Published</span>':'<span class="pill off">Draft</span>')+'</td>'+
-        '<td style="white-space:nowrap">'+
-          '<button class="btn small" data-act="edit" data-id="'+r.id+'">Edit</button> '+
-          '<button class="btn small" data-act="toggle" data-id="'+r.id+'" data-pub="'+(r.isPublished?'0':'1')+'">'+(r.isPublished?'Unpublish':'Publish')+'</button> '+
-          '<button class="btn small danger" data-act="del" data-id="'+r.id+'">Delete</button>'+
-        '</td>'+
-      '</tr>';
-    }).join('')+'</tbody></table>';
-
-  tbl.querySelectorAll('button[data-act]').forEach(function(b){
-    b.addEventListener('click', async function(){
-      var id=b.dataset.id, act=b.dataset.act;
-      if(act==='del'){
-        if(!confirm('Delete this practice test?')) return;
-        await Practice.remove(id); loadList(); return;
-      }
-      if(act==='toggle'){
-        await Practice.togglePublish(id, b.dataset.pub==='1'); loadList(); return;
-      }
-      if(act==='edit'){
-        var t = await Practice.get(id);
-        if(!t) return;
-        $("#fId").value=t.id;
-        $("#fTitle").value=t.title||'';
-        $("#fClass").value=t.classId||''; await loadSubjects();
-        $("#fSubject").value=t.subjectId||''; await loadChapters();
-        $("#fChapter").value=t.chapterId||'';
-        $("#fTotal").value=t.totalQuestions||10;
-        $("#fDur").value=t.durationMin||10;
-        $("#fMarks").value=t.marksPerQuestion||1;
-        $("#fNeg").value=t.negativeMarks||0;
-        $("#fPub").checked=t.isPublished!==false;
-        $("#formTitle").textContent='Edit Practice Test';
-        refreshPool();
-        window.scrollTo({top:0,behavior:'smooth'});
-      }
-    });
+    const all = await AdminData.listQuestions();
+    questionPool = all.filter(q => q.cls===cls && q.subject===sub && q.chapter===ch);
+    renderQuestionPool();
+  }catch(e){ toast('Questions load failed: '+e.message,'danger'); }
+}
+function renderQuestionPool(){
+  const box=document.getElementById('qList');
+  const search=(document.getElementById('qSearch').value||'').toLowerCase();
+  if(!questionPool.length){ box.innerHTML='<div class="empty">No questions available for this selection.</div>'; updateSelCount(); return; }
+  const rows=questionPool.filter(q=>!search || (q.question||'').toLowerCase().includes(search) || (q.tags||'').toLowerCase().includes(search));
+  if(!rows.length){ box.innerHTML='<div class="empty">No questions match your search.</div>'; updateSelCount(); return; }
+  box.innerHTML=rows.map(q=>`
+    <label class="q-item">
+      <input type="checkbox" data-qid="${escapeHtml(q.id)}" ${selectedQIds.has(q.id)?'checked':''} onchange="toggleSel('${escapeHtml(q.id)}',this.checked)"/>
+      <div style="flex:1">
+        <div class="qtxt">${escapeHtml(q.question||'')}</div>
+        <div class="qmeta">${escapeHtml(q.examType||'MCQ')} · ${escapeHtml(q.difficulty||'—')} · ${q.marks||1} mark${(q.marks||1)>1?'s':''}${q.tags?' · '+escapeHtml(q.tags):''}</div>
+      </div>
+    </label>`).join('');
+  updateSelCount();
+}
+function toggleSel(id,checked){ if(checked) selectedQIds.add(id); else selectedQIds.delete(id); updateSelCount(); }
+function selectAllVisible(check){
+  document.querySelectorAll('#qList input[data-qid]').forEach(el=>{
+    el.checked=check; toggleSel(el.getAttribute('data-qid'), check);
   });
 }
+function updateSelCount(){ document.getElementById('selCount').textContent=selectedQIds.size; }
 
-(async function init(){
-  try{ await loadClasses(); await loadList(); }
-  catch(e){ msg('Init failed: '+(e.message||e)); }
-})();
+/* ============ PRACTICE TESTS CRUD ============ */
+async function refreshPracticeTests(){
+  const body=document.getElementById('ptTableBody');
+  body.innerHTML='<tr><td colspan="6" class="empty"><span class="spin"></span> Loading…</td></tr>';
+  try{
+    const snap = await db.collection(PT_COL).orderBy('createdAt','desc').get().catch(async()=>await db.collection(PT_COL).get());
+    practiceTests = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderPracticeTests();
+  }catch(e){ body.innerHTML=`<tr><td colspan="6" class="empty">Load failed: ${escapeHtml(e.message)}</td></tr>`; }
+}
+function renderPracticeTests(){
+  const body=document.getElementById('ptTableBody');
+  if(!practiceTests.length){ body.innerHTML='<tr><td colspan="6" class="empty">No practice tests yet. Click <b>New Practice Test</b> to add one.</td></tr>'; return; }
+  body.innerHTML=practiceTests.map(t=>`
+    <tr>
+      <td><div style="color:#fff;font-weight:500">${escapeHtml(t.title||'(untitled)')}</div>
+          <div style="font-size:11px;color:var(--ink-mute)">neg ${t.negativeMarking||0}</div></td>
+      <td style="font-size:12px">${escapeHtml(t.classId||'')} / ${escapeHtml(t.subjectId||'')} / ${escapeHtml(t.chapterId||'')}</td>
+      <td>${t.durationMin||0} min</td>
+      <td>${(t.questionIds||[]).length}</td>
+      <td>${t.isPublished?'<span class="badge b-ok">Published</span>':'<span class="badge b-draft">Draft</span>'}</td>
+      <td><div class="row-actions">
+        <button title="Edit" onclick="editTest('${t.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button title="${t.isPublished?'Unpublish':'Publish'}" onclick="togglePublish('${t.id}',${!t.isPublished})"><i class="fa-solid fa-${t.isPublished?'eye-slash':'tower-broadcast'}"></i></button>
+        <button title="Delete" onclick="delTest('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function openTestModal(){
+  editingId=null;
+  document.getElementById('ptModalTitle').textContent='Create Practice Test';
+  ['pTitle'].forEach(id=>setVal(id,''));
+  setVal('pDuration',20); setVal('pNeg',0);
+  document.getElementById('pPublished').checked=false;
+  fillClassSelect('pClass', classesCache);
+  document.getElementById('pSubject').innerHTML='<option value="">Select Class first</option>';
+  document.getElementById('pChapter').innerHTML='<option value="">Select Subject first</option>';
+  selectedQIds=new Set(); questionPool=[]; renderQuestionPool();
+  document.getElementById('qSearch').value='';
+  document.getElementById('ptModal').classList.add('open');
+}
+function closeTestModal(){ document.getElementById('ptModal').classList.remove('open'); }
+
+async function editTest(id){
+  const t=practiceTests.find(x=>x.id===id); if(!t) return;
+  openTestModal();
+  editingId=id;
+  document.getElementById('ptModalTitle').textContent='Edit Practice Test';
+  setVal('pTitle', t.title||'');
+  setVal('pDuration', t.durationMin||20);
+  setVal('pNeg', t.negativeMarking||0);
+  document.getElementById('pPublished').checked=!!t.isPublished;
+  setVal('pClass', t.classId||''); await onPClassChange();
+  setVal('pSubject', t.subjectId||''); await onPSubjectChange();
+  setVal('pChapter', t.chapterId||'');
+  selectedQIds = new Set(t.questionIds||[]);
+  await loadQuestionPool();
+}
+
+async function submitTest(){
+  const data={
+    title:val('pTitle'),
+    classId:val('pClass'), subjectId:val('pSubject'), chapterId:val('pChapter'),
+    durationMin:Number(val('pDuration'))||0,
+    negativeMarking:Number(val('pNeg'))||0,
+    isPublished:document.getElementById('pPublished').checked,
+    questionIds: Array.from(selectedQIds),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if(!data.title) return toast('Title is required','danger');
+  if(!data.classId||!data.subjectId||!data.chapterId) return toast('Class, Subject and Chapter are required','danger');
+  if(!data.questionIds.length) return toast('Select at least one question','danger');
+  const btn=document.getElementById('pSaveBtn'); btn.disabled=true; btn.querySelector('span').textContent='Saving…';
+  try{
+    if(editingId){
+      await db.collection(PT_COL).doc(editingId).update(data);
+      toast('Practice test updated','success');
+    }else{
+      data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection(PT_COL).add(data);
+      toast('Practice test created','success');
+    }
+    closeTestModal();
+    await refreshPracticeTests();
+  }catch(e){ toast('Save failed: '+e.message,'danger'); }
+  finally{ btn.disabled=false; btn.querySelector('span').textContent='Save Practice Test'; }
+}
+
+async function togglePublish(id,next){
+  try{
+    await db.collection(PT_COL).doc(id).update({isPublished:next, updatedAt: firebase.firestore.FieldValue.serverTimestamp()});
+    toast(next?'Published':'Unpublished','success');
+    await refreshPracticeTests();
+  }catch(e){ toast('Failed: '+e.message,'danger'); }
+}
+async function delTest(id){
+  if(!confirm('Delete this practice test?')) return;
+  try{
+    await db.collection(PT_COL).doc(id).delete();
+    toast('Practice test deleted','success');
+    await refreshPracticeTests();
+  }catch(e){ toast('Delete failed: '+e.message,'danger'); }
+}
 </script>
 </body>
 </html>
