@@ -172,6 +172,7 @@
 
 <script src="config/firebase-init.js"></script>
 <script src="config/admin-data.js"></script>
+<script src="config/practice-data.js"></script>
 <script>
 /* ============ HELPERS ============ */
 function toast(msg,kind){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(kind||'success');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2600)}
@@ -229,10 +230,19 @@ async function loadQuestionPool(){
   if(!cls||!sub||!ch){ questionPool=[]; renderQuestionPool(); return; }
   document.getElementById('qList').innerHTML='<div class="empty"><span class="spin"></span> Loading questions…</div>';
   try{
-    const all = await AdminData.listQuestions();
-    questionPool = all.filter(q => q.cls===cls && q.subject===sub && q.chapter===ch);
+    // Uses Practice.listAvailableQuestions which fetches the whole `questions`
+    // collection WITHOUT orderBy('createdAt') (so bulk-imported questions
+    // without createdAt are included) and matches with tolerant field/id
+    // normalisation. Debug output is printed to the console.
+    if (window.Practice && Practice.listAvailableQuestions) {
+      questionPool = await Practice.listAvailableQuestions(cls, sub, ch);
+    } else {
+      const snap = await firebase.firestore().collection('questions').get();
+      const all = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+      questionPool = all.filter(q => q.cls===cls && q.subject===sub && q.chapter===ch);
+    }
     renderQuestionPool();
-  }catch(e){ toast('Questions load failed: '+e.message,'danger'); }
+  }catch(e){ console.error('[practice-test-admin] loadQuestionPool failed', e); toast('Questions load failed: '+e.message,'danger'); }
 }
 function renderQuestionPool(){
   const box=document.getElementById('qList');
