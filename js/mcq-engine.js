@@ -265,9 +265,16 @@ async function initEngine() {
   }
 
   // Set default selection in form
-  const classSel = $("#fClass");
-  if (klass === "class11") classSel.value = "Class 11";
-  else if (klass === "class12") classSel.value = "Class 12";
+  // Set default selection in form
+const classSel = $("#fClass");
+
+if (klass === "class10") {
+    classSel.value = "Class 10";
+} else if (klass === "class11") {
+    classSel.value = "Class 11";
+} else if (klass === "class12") {
+    classSel.value = "Class 12";
+}
 
   // Load Leaderboard
   loadLeaderboard();
