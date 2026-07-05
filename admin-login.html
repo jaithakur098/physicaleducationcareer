@@ -94,13 +94,12 @@
     var d=Object.fromEntries(new FormData(form).entries());
     try{
       var cred=await firebase.auth().signInWithEmailAndPassword(d.email.trim(), d.password);
-      var uid=cred.user.uid;
-      var doc=await firebase.firestore().collection('admins').doc(uid).get();
-      if(!doc.exists){
-        await firebase.auth().signOut();
-        return fail('This account is not authorized as an admin.');
-      }
-      location.replace('admin.html');
+      if (cred.user.email === "phe.edu08@gmail.com") {
+    location.replace("admin.html");
+} else {
+    await firebase.auth().signOut();
+    return fail("This account is not authorized as an admin.");
+}
     }catch(e){
       fail(e && e.message ? e.message : 'Sign-in failed.');
     }
