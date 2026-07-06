@@ -1,0 +1,65 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="student-styles.css">
+<link rel="icon" href="ultimate-logo.PNG"/>
+<title>Practice Result — PEEngine</title>
+<style>
+.gold-cta{background:linear-gradient(135deg,#d4af37,#b8860b)!important;color:#1a1206!important;font-weight:800;border:none!important;box-shadow:0 8px 24px rgba(212,175,55,.3)}
+.gold-cta:hover{filter:brightness(1.08)}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:14px}
+.summary-grid .card.stat{background:rgba(15,33,72,.55);border:1px solid var(--glass-border);border-radius:10px;padding:12px}
+.summary-grid .l{color:var(--ink-mute);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.summary-grid .n{font-family:'Playfair Display',serif;font-size:22px;color:#d4af37;margin-top:4px}
+</style></head><body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-trophy"></i></div><h1>Practice <span>Result</span></h1></div>
+  <nav class="nav">
+    <a class="btn ghost" href="student-practice-tests.html">Practice Tests</a>
+    <a class="btn ghost" href="student-dashboard.html">Dashboard</a>
+  </nav>
+</header>
+<div id="wrap" class="card"><p class="empty">Loading…</p></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/student-data.js"></script>
+<script src="config/practice-data.js"></script>
+<script src="js/pec-upgrades.js"></script>
+<script>
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+function fmtTime(sec){ sec=Number(sec)||0; var m=Math.floor(sec/60), s=sec%60; return m+'m '+String(s).padStart(2,'0')+'s'; }
+var id=new URLSearchParams(location.search).get('id');
+Student.onChange(async function(u){
+  if(!u){ location.href='student-login.html'; return; }
+  var wrap=document.getElementById('wrap');
+  if(!id){ wrap.innerHTML='<p class="empty">Missing attempt id.</p>'; return; }
+  var r = await Practice.getAttempt(id);
+  if(!r){ wrap.innerHTML='<p class="empty">Attempt not found.</p>'; return; }
+  var attempted = (r.answers||[]).filter(function(a){ return a.picked; }).length;
+  var unatt = Math.max(0, (r.total||0) - attempted);
+  var eligible = (r.percent||0) >= 90;
+
+  wrap.innerHTML =
+    '<h2 style="margin-top:0">'+esc(r.testTitle||'Practice Test')+'</h2>'+
+    '<div class="summary-grid">'+
+      '<div class="card stat"><span class="l">Score</span><div class="n mono">'+(r.score||0)+' / '+(r.maxMarks||0)+'</div></div>'+
+      '<div class="card stat"><span class="l">Percentage</span><div class="n mono">'+((r.percent||0).toFixed(2))+'%</div></div>'+
+      '<div class="card stat"><span class="l">Correct</span><div class="n mono" style="color:#2ecc71">'+(r.correct||0)+'</div></div>'+
+      '<div class="card stat"><span class="l">Wrong</span><div class="n mono" style="color:#e74c3c">'+(r.wrong||0)+'</div></div>'+
+      '<div class="card stat"><span class="l">Unattempted</span><div class="n mono">'+unatt+'</div></div>'+
+      '<div class="card stat"><span class="l">Time Taken</span><div class="n mono">'+fmtTime(r.durationSec)+'</div></div>'+
+    '</div>'+
+    '<p class="meta" style="margin-top:14px">'+(r.autoSubmitted?'Auto submitted · ':'')+'Submitted successfully. Leaderboard updates only after final submission.</p>'+
+    '<div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">'+
+      '<a class="btn primary" href="student-review.html?type=practice&id='+esc(r.id||id)+'"><i class="fa-solid fa-clipboard-check"></i> Review Answers</a>'+
+      '<a class="btn" href="student-practice-leaderboard.html?id='+esc(r.testId||'')+'"><i class="fa-solid fa-trophy"></i> Leaderboard</a>'+
+      (eligible
+        ? '<a class="btn gold-cta" href="student-certificate.html?id='+esc(r.id||id)+'"><i class="fa-solid fa-award"></i> 🏆 Download Certificate</a>'
+        : '<span class="btn ghost" title="Score 90%+ required" style="cursor:not-allowed;opacity:.6"><i class="fa-solid fa-lock"></i> Certificate — need 90%+</span>')+
+      '<a class="btn ghost" href="student-practice-tests.html">More Tests</a>'+
+    '</div>';
+});
+</script></body></html>
