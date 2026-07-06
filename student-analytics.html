@@ -1,0 +1,72 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="student-styles.css">
+<link rel="icon" href="ultimate-logo.PNG"/><title>Performance Analytics — PEEngine</title></head><body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-chart-pie"></i></div><h1>Performance <span>Analytics</span></h1></div>
+  <nav class="nav">
+  <a class="btn ghost" href="student-dashboard.html">Dashboard</a>
+  <a class="btn ghost" href="student-live-tests.html">Live Tests</a>
+  <a class="btn ghost" href="student-my-results.html">My Results</a>
+  <a class="btn ghost" href="student-analytics.html">Analytics</a>
+  <a class="btn ghost" href="student-profile.html">Profile</a>
+  <button class="btn danger" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+</nav>
+</header>
+<section class="grid g-4" style="margin-bottom:20px">
+  <div class="card stat"><span class="l">Total Attempts</span><span class="n mono" id="s1">–</span></div>
+  <div class="card stat"><span class="l">Avg %</span><span class="n mono" id="s2">–</span></div>
+  <div class="card stat"><span class="l">Best %</span><span class="n mono" id="s3">–</span></div>
+  <div class="card stat"><span class="l">Total Correct</span><span class="n mono" id="s4">–</span></div>
+</section>
+<div class="card"><h2 style="margin-bottom:10px;font-size:18px">Subject-wise Performance</h2><div id="bysub"><p class="empty">Loading…</p></div></div>
+<div class="card" style="margin-top:16px"><h2 style="margin-bottom:10px;font-size:18px">Recent Trend</h2><div id="trend"><p class="empty">Loading…</p></div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/student-data.js"></script><script>
+Student.onChange(function(u){ if(!u){ location.href="student-login.html"; } });
+document.addEventListener("click",function(e){
+  if(e.target.closest("#logoutBtn")){ Student.logout().then(function(){ location.href="student-login.html"; }); }
+});
+</script>
+<script>
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+Student.onChange(async function(u){
+  if(!u) return;
+  var all = await Student.myResults(u.uid);
+  // Analytics reflect APPROVED attempts only.
+  var rs = all.filter(function(r){ return (r.status||'pending')==='approved'; });
+  document.getElementById('s1').textContent = rs.length;
+  if(!rs.length){
+    document.getElementById('s2').textContent='0';document.getElementById('s3').textContent='0';document.getElementById('s4').textContent='0';
+    document.getElementById('bysub').innerHTML='<p class="empty">Attempt tests to see analytics.</p>';
+    document.getElementById('trend').innerHTML=''; return;
+  }
+  var avg = rs.reduce(function(a,r){return a+(r.percent||0);},0)/rs.length;
+  var best = Math.max.apply(null, rs.map(function(r){return r.percent||0;}));
+  var totalCorrect = rs.reduce(function(a,r){return a+(r.correct||0);},0);
+  document.getElementById('s2').textContent = avg.toFixed(1);
+  document.getElementById('s3').textContent = best.toFixed(1);
+  document.getElementById('s4').textContent = totalCorrect;
+  // subject-wise
+  var subs={};
+  var subLabels={}; try{ (await AdminData.listAllSubjects()).forEach(function(s){subLabels[s.id]=s.label;}); }catch(e){}
+  rs.forEach(function(r){
+    var k=r.subjectId||'—'; if(!subs[k]) subs[k]={n:0,sum:0}; subs[k].n++; subs[k].sum+=(r.percent||0);
+  });
+  document.getElementById('bysub').innerHTML='<table><thead><tr><th>Subject</th><th>Attempts</th><th>Avg %</th></tr></thead><tbody>'+
+    Object.keys(subs).map(function(k){
+      return '<tr><td>'+esc(subLabels[k]||k)+'</td><td class="mono">'+subs[k].n+'</td><td class="mono">'+(subs[k].sum/subs[k].n).toFixed(1)+'%</td></tr>';
+    }).join('')+'</tbody></table>';
+  // trend (chronological)
+  var chrono = rs.slice().reverse();
+  document.getElementById('trend').innerHTML='<table><thead><tr><th>#</th><th>Test</th><th>%</th></tr></thead><tbody>'+
+    chrono.slice(-10).map(function(r,i){
+      return '<tr><td class="mono">'+(i+1)+'</td><td>'+esc(r.testTitle||'')+'</td><td class="mono">'+(r.percent||0).toFixed(1)+'%</td></tr>';
+    }).join('')+'</tbody></table>';
+});
+</script></body></html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="student-styles.css">
+<link rel="icon" href="ultimate-logo.PNG"/><title>My Results — PEEngine</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head><body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-chart-line"></i></div><h1>My <span>Results</span></h1></div>
+  <nav class="nav">
+  <a class="btn ghost" href="student-dashboard.html">Dashboard</a>
+  <a class="btn ghost" href="student-live-tests.html">Live Tests</a>
+  <a class="btn ghost" href="student-my-results.html">My Results</a>
+  <a class="btn ghost" href="student-analytics.html">Analytics</a>
+  <a class="btn ghost" href="student-profile.html">Profile</a>
+  <button class="btn danger" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+</nav>
+</header>
+<div class="card" style="margin-bottom:12px">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+    <button class="btn" id="dlCsv"><i class="fa-solid fa-file-csv"></i> Download CSV</button>
+    <button class="btn" id="dlXlsx"><i class="fa-solid fa-file-excel"></i> Download Excel</button>
+    <button class="btn primary" id="dlPdf"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+  </div>
+</div>
+<div class="card"><div id="wrap"><p class="empty">Loading…</p></div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/student-data.js"></script>
+<script src="config/practice-data.js"></script>
+<script>
+Student.onChange(function(u){ if(!u){ location.href="student-login.html"; } });
+document.addEventListener("click",function(e){
+  if(e.target.closest("#logoutBtn")){ Student.logout().then(function(){ location.href="student-login.html"; }); }
+});
+</script>
+<script>
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+function fmtDate(r){ return r.submittedAt&&r.submittedAt.toDate?r.submittedAt.toDate().toLocaleString():'—'; }
+function statusBadge(s){
+  s = (s||'pending').toLowerCase();
+  var cls = s==='approved' ? 'good' : (s==='rejected' ? 'bad' : 'warn');
+  return '<span class="badge '+cls+'">'+s.charAt(0).toUpperCase()+s.slice(1)+'</span>';
+}
+var CURRENT = [];
+
+Student.onChange(async function(u){
+  if(!u) return;
+  var rs = await Student.myResults(u.uid);
+  CURRENT = rs;
+  var w=document.getElementById('wrap');
+  if(!rs.length){ w.innerHTML='<p class="empty">No attempts yet.</p>'; return; }
+  w.innerHTML='<table><thead><tr><th>Test</th><th>Type</th><th>Score</th><th>%</th><th>Correct</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody>'+
+    rs.map(function(r){
+      var isPrac = (r.type==='practice');
+      var viewHref = isPrac
+        ? 'student-practice-result.html?id='+r.id
+        : 'student-result.html?id='+r.id;
+      return '<tr><td>'+esc(r.testTitle||'')+'</td>'+
+        '<td>'+(isPrac?'<span class="badge info">Practice</span>':'<span class="badge">Live</span>')+'</td>'+
+        '<td class="mono">'+(r.score||0)+'/'+(r.maxMarks||0)+'</td>'+
+        '<td class="mono">'+(r.percent||0).toFixed(1)+'%</td>'+
+        '<td class="mono">'+(r.correct||0)+'/'+(r.total||0)+'</td>'+
+        '<td>'+statusBadge(r.status)+'</td>'+
+        '<td>'+fmtDate(r)+'</td>'+
+        '<td><a class="btn ghost" href="'+viewHref+'">View</a></td></tr>';
+    }).join('')+'</tbody></table>';
+});
+
+function rowsForExport(){
+  return CURRENT.map(function(r){
+    return {
+      Test: r.testTitle||'',
+      Type: (r.type==='practice'?'Practice':'Live'),
+      Score: (r.score||0)+'/'+(r.maxMarks||0),
+      Percent: (r.percent||0).toFixed(1)+'%',
+      Correct: (r.correct||0)+'/'+(r.total||0),
+      Wrong: r.wrong||0,
+      Status: r.status||'pending',
+      Duration_sec: r.durationSec||0,
+      Date: r.submittedAt&&r.submittedAt.toDate?r.submittedAt.toDate().toLocaleString():''
+    };
+  });
+}
+
+document.getElementById('dlCsv').addEventListener('click', function(){
+  if(!CURRENT.length){ alert('Nothing to export.'); return; }
+  var rows = rowsForExport();
+  var cols = Object.keys(rows[0]);
+  var lines = [cols.join(',')].concat(rows.map(function(r){
+    return cols.map(function(k){
+      var v = String(r[k]==null?'':r[k]).replace(/"/g,'""');
+      return /[",\n]/.test(v) ? '"'+v+'"' : v;
+    }).join(',');
+  }));
+  var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='my-results.csv'; a.click();
+});
+
+document.getElementById('dlXlsx').addEventListener('click', function(){
+  if(!CURRENT.length){ alert('Nothing to export.'); return; }
+  var ws = XLSX.utils.json_to_sheet(rowsForExport());
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Results');
+  XLSX.writeFile(wb, 'my-results.xlsx');
+});
+
+document.getElementById('dlPdf').addEventListener('click', function(){
+  if(!CURRENT.length){ alert('Nothing to export.'); return; }
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF({ orientation: 'landscape' });
+  doc.setFontSize(16);
+  doc.text('My Test Results — PEEngine', 14, 15);
+  var rows = rowsForExport();
+  var cols = Object.keys(rows[0]);
+  doc.autoTable({
+    startY: 22,
+    head: [cols],
+    body: rows.map(function(r){ return cols.map(function(k){ return r[k]; }); }),
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [212,175,55], textColor: 20 }
+  });
+  doc.save('my-results.pdf');
+});
+</script></body></html>
