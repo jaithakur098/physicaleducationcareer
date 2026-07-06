@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Dashboard — PEEngine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script>
+/* ============================================================
+   ADMIN GUARD — blocks direct access to admin.html.
+   Redirects to admin-login.html unless the current Firebase user
+   is authorized (exists in Firestore `admins/{uid}` document).
+   ============================================================ */
+(function(){
+  // Hide page until auth verified
+  var _s=document.createElement('style');
+  _s.id='__adminGuardStyle';
+  _s.textContent='html,body{visibility:hidden !important}';
+  document.documentElement.appendChild(_s);
+  function reject(){ location.replace('admin-login.html'); }
+  try{
+    firebase.auth().onAuthStateChanged(async function(user){
+      if(!user){ return reject(); }
+      try{
+        var doc = await firebase.firestore().collection('admins').doc(user.uid).get();
+        if(!doc.exists){
+          // Not an authorized admin — sign out and redirect.
+          try{ await firebase.auth().signOut(); }catch(_){}
+          return reject();
+        }
+        // Authorized: reveal page.
+        var st=document.getElementById('__adminGuardStyle');
+        if(st) st.parentNode.removeChild(st);
+        window.__ADMIN_USER__ = user;
+      }catch(err){
+        console.error('[admin-guard]', err);
+        reject();
+      }
+    });
+  }catch(e){ reject(); }
+})();
+</script>
+<style>
+  :root{
+    --navy-900:#050b1f; --navy-800:#0a1633; --navy-700:#0f2148; --navy-600:#152c5e;
+    --gold-500:#d4af37; --gold-400:#e6c458; --gold-300:#f2d97a;
+    --ink:#e9eefb; --ink-soft:#b8c2dc; --ink-mute:#8892b2;
+    --glass:rgba(255,255,255,0.06); --glass-strong:rgba(255,255,255,0.09);
+    --glass-border:rgba(212,175,55,0.22);
+    --danger:#ff5c7a; --success:#3ddc97; --info:#5aa9ff;
+    --radius:16px;
+    --shadow:0 20px 60px rgba(0,0,0,.45);
+    --shadow-gold:0 10px 40px rgba(212,175,55,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;color:var(--ink);
+    background:
+      radial-gradient(1200px 700px at 85% -10%, rgba(212,175,55,.15), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(90,169,255,.12), transparent 60%),
+      linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 45%, var(--navy-700) 100%);
+    min-height:100vh;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(212,175,55,.06) 0 2px, transparent 3px),
+      radial-gradient(circle at 70% 80%, rgba(255,255,255,.04) 0 2px, transparent 3px);
+    background-size:120px 120px, 180px 180px;z-index:0;
+  }
+  .topnav{
+    position:sticky;top:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;padding:14px 28px;
+    background:linear-gradient(180deg, rgba(5,11,31,.85), rgba(5,11,31,.55));
+    backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid var(--glass-border);
+  }
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-logo{
+    width:42px;height:42px;border-radius:12px;
+    background:linear-gradient(135deg,var(--gold-500),var(--gold-300));
+    display:grid;place-items:center;color:#1a1206;font-weight:800;box-shadow:var(--shadow-gold);
+  }
+  .brand-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;letter-spacing:.3px}
+  .brand-name span{color:var(--gold-400)}
+  .top-actions{display:flex;align-items:center;gap:14px}
+  .search-top{
+    display:flex;align-items:center;gap:8px;
+    background:var(--glass);border:1px solid var(--glass-border);
+    padding:8px 14px;border-radius:999px;min-width:280px;
+  }
+  .search-top input{background:transparent;border:0;outline:0;color:var(--ink);width:100%;font-size:14px}
+  .icon-btn{
+    width:40px;height:40px;border-radius:12px;
+    background:var(--glass);border:1px solid var(--glass-border);
+    color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:all .25s ease;
+  }
+  .icon-btn:hover{background:var(--glass-strong);transform:translateY(-1px);color:var(--gold-300)}
+  .avatar{
+    width:40px;height:40px;border-radius:50%;
+    background:linear-gradient(135deg,#1c2d5a,#0a1633);
+    border:1px solid var(--gold-500);display:grid;place-items:center;font-weight:700;color:var(--gold-300);
+  }
+  .menu-toggle{display:none}
+  .layout{display:grid;grid-template-columns:260px 1fr;gap:24px;padding:24px;position:relative;z-index:1}
+  .sidebar{
+    position:sticky;top:88px;align-self:start;height:calc(100vh - 110px);
+    background:var(--glass);border:1px solid var(--glass-border);
+    border-radius:var(--radius);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;
+  }
+  .side-title{font-size:11px;letter-spacing:2px;color:var(--ink-mute);text-transform:uppercase;margin:12px 8px 6px}
+  .side-link{
+    display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;
+    color:var(--ink-soft);text-decoration:none;cursor:pointer;font-weight:500;font-size:14px;
+    transition:all .25s ease;border:1px solid transparent;
+  }
+  .side-link i{width:18px;text-align:center;color:var(--gold-400)}
+  .side-link:hover{background:var(--glass-strong);color:#fff;transform:translateX(4px)}
+  .side-link.active{
+    background:linear-gradient(135deg, rgba(212,175,55,.18), rgba(212,175,55,.05));
+    border-color:var(--glass-border);color:#fff;
+  }
+  .side-footer{margin-top:auto;padding:12px;border-top:1px solid var(--glass-border);color:var(--ink-mute);font-size:12px}
+
+  .main{display:flex;flex-direction:column;gap:24px;min-width:0}
+  .section-title{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .section-title h2{font-family:'Playfair Display',serif;font-size:26px;font-weight:700}
+  .section-title h2 span{color:var(--gold-400)}
+  .section-title p{color:var(--ink-mute);font-size:13px}
+
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .card{
+    position:relative;overflow:hidden;
+    background:var(--glass);border:1px solid var(--glass-border);
+    border-radius:var(--radius);padding:18px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:var(--shadow);animation:rise .6s ease both;
+    transition:transform .3s ease, box-shadow .3s ease;
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-gold)}
+  .card::after{
+    content:"";position:absolute;inset:auto -30px -30px auto;width:120px;height:120px;
+    background:radial-gradient(circle, rgba(212,175,55,.25), transparent 60%);filter:blur(10px);
+  }
+  .card .ico{
+    width:42px;height:42px;border-radius:12px;
+    background:linear-gradient(135deg, rgba(212,175,55,.3), rgba(212,175,55,.08));
+    display:grid;place-items:center;color:var(--gold-300);margin-bottom:12px;
+    border:1px solid var(--glass-border);
+  }
+  .card .label{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-mute)}
+  .card .value{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;margin-top:4px;color:#fff}
+  .card .trend{font-size:11px;color:var(--success);margin-top:6px}
+
+  .panel{
+    background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);
+    padding:22px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:var(--shadow);animation:rise .7s ease both;
+  }
+  .panel h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .panel h3 i{color:var(--gold-400)}
+  .filters{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-size:12px;color:var(--ink-mute);letter-spacing:.5px}
+  .field select, .field input, .field textarea{
+    background:rgba(10,22,51,.6);border:1px solid var(--glass-border);
+    color:var(--ink);padding:11px 13px;border-radius:12px;font-size:14px;font-family:inherit;
+    outline:none;transition:all .2s ease;width:100%;
+  }
+  .field select:focus, .field input:focus, .field textarea:focus{
+    border-color:var(--gold-400);box-shadow:0 0 0 3px rgba(212,175,55,.15);
+  }
+  .field textarea{resize:vertical;min-height:80px}
+  .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .form-grid .full{grid-column:1/-1}
+  .btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:12px;
+    font-weight:600;font-size:13px;cursor:pointer;border:1px solid var(--glass-border);
+    background:var(--glass);color:var(--ink);transition:all .25s ease;font-family:inherit;
+  }
+  .btn:hover{transform:translateY(-2px);background:var(--glass-strong)}
+  .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+  .btn-gold{background:linear-gradient(135deg,var(--gold-500),var(--gold-300));color:#1a1206;border-color:transparent;box-shadow:var(--shadow-gold)}
+  .btn-gold:hover{filter:brightness(1.05)}
+  .btn-danger{color:var(--danger);border-color:rgba(255,92,122,.35)}
+  .btn-danger:hover{background:rgba(255,92,122,.12)}
+  .btn-info{color:var(--info);border-color:rgba(90,169,255,.35)}
+  .btn-success{color:var(--success);border-color:rgba(61,220,151,.35)}
+
+  .table-toolbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .table-toolbar .search-box{
+    display:flex;align-items:center;gap:8px;background:rgba(10,22,51,.6);
+    border:1px solid var(--glass-border);padding:9px 14px;border-radius:12px;min-width:220px;flex:1;
+  }
+  .table-toolbar .search-box input{background:transparent;border:0;outline:0;color:var(--ink);width:100%;font-size:13px}
+  .table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--glass-border);-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;min-width:720px}
+  thead th{
+    background:rgba(10,22,51,.75);text-align:left;padding:13px 14px;
+    font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--gold-300);
+    font-weight:600;cursor:pointer;user-select:none;border-bottom:1px solid var(--glass-border);
+  }
+  thead th:hover{color:var(--gold-400)}
+  tbody td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.05);font-size:14px;color:var(--ink-soft)}
+  tbody tr{transition:background .2s ease}
+  tbody tr:hover{background:rgba(212,175,55,.06)}
+  .badge{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.4px;display:inline-block}
+  .b-easy{background:rgba(61,220,151,.15);color:var(--success)}
+  .b-med{background:rgba(212,175,55,.18);color:var(--gold-300)}
+  .b-hard{background:rgba(255,92,122,.15);color:var(--danger)}
+  .b-info{background:rgba(90,169,255,.18);color:var(--info)}
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .row-actions button{
+    width:32px;height:32px;border-radius:9px;border:1px solid var(--glass-border);
+    background:var(--glass);color:var(--ink-soft);cursor:pointer;transition:all .2s ease;
+  }
+  .row-actions button:hover{color:var(--gold-300);transform:translateY(-1px)}
+  .pagination{display:flex;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap;gap:10px}
+  .pager{display:flex;gap:6px;flex-wrap:wrap}
+  .pager button{
+    min-width:34px;height:34px;border-radius:9px;border:1px solid var(--glass-border);
+    background:var(--glass);color:var(--ink-soft);cursor:pointer;font-weight:600;
+  }
+  .pager button.active{background:linear-gradient(135deg,var(--gold-500),var(--gold-300));color:#1a1206;border-color:transparent}
+  .pager button:disabled{opacity:.4;cursor:not-allowed}
+
+  .io-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .io-block h4{font-family:'Playfair Display',serif;font-size:16px;margin-bottom:10px;color:var(--gold-300)}
+  .io-buttons{display:flex;gap:10px;flex-wrap:wrap}
+
+  .modal{
+    position:fixed;inset:0;background:rgba(2,6,20,.7);backdrop-filter:blur(6px);
+    display:none;align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal.open{display:flex;animation:fade .25s ease}
+  .modal-card{
+    background:linear-gradient(160deg,var(--navy-700),var(--navy-800));
+    border:1px solid var(--glass-border);border-radius:var(--radius);
+    max-width:640px;width:100%;padding:28px;box-shadow:var(--shadow);
+    animation:pop .3s ease;max-height:90vh;overflow-y:auto;
+  }
+  .modal-card h3{font-family:'Playfair Display',serif;color:var(--gold-300);margin-bottom:12px}
+  .modal-close{float:right}
+
+  .toast{
+    position:fixed;bottom:24px;right:24px;z-index:200;
+    background:linear-gradient(135deg,var(--navy-700),var(--navy-800));
+    border:1px solid var(--gold-400);color:#fff;padding:14px 20px;border-radius:12px;
+    box-shadow:var(--shadow-gold);display:none;font-size:14px;max-width:calc(100vw - 48px);
+  }
+  .toast.show{display:block;animation:slide .4s ease}
+  .toast.success{border-color:var(--success)}
+  .toast.danger{border-color:var(--danger)}
+  .toast.info{border-color:var(--info)}
+
+  .loader-bar{
+    position:fixed;top:0;left:0;height:3px;width:0%;z-index:300;
+    background:linear-gradient(90deg,var(--gold-500),var(--gold-300));
+    transition:width .3s ease;
+  }
+  .loader-bar.on{width:80%}
+  .loader-bar.done{width:100%;opacity:0;transition:width .3s ease, opacity .4s ease .2s}
+
+  .empty{text-align:center;padding:30px;color:var(--ink-mute)}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.25);border-top-color:var(--gold-300);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  @keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+  @keyframes slide{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+
+  /* RESPONSIVE */
+  @media (max-width:1200px){
+    .cards{grid-template-columns:repeat(2,1fr)}
+    .filters{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:900px){
+    .menu-toggle{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--glass);border:1px solid var(--glass-border);color:var(--ink);cursor:pointer}
+    .layout{grid-template-columns:1fr;padding:16px;gap:16px}
+    .sidebar{
+      position:fixed;top:0;left:0;bottom:0;width:78%;max-width:300px;height:100vh;z-index:80;
+      border-radius:0;transform:translateX(-102%);transition:transform .3s ease;
+    }
+    .sidebar.open{transform:translateX(0)}
+    .side-title,.side-footer{display:block}
+    .search-top{display:none}
+    .io-grid{grid-template-columns:1fr}
+    .form-grid{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){
+    .cards{grid-template-columns:1fr 1fr}
+    .filters{grid-template-columns:1fr}
+    .topnav{padding:12px 16px}
+    .brand-name{font-size:16px}
+    .section-title h2{font-size:20px}
+    .card .value{font-size:22px}
+    .panel{padding:16px}
+  }
+</style>
+</head>
+<body>
+
+<div class="loader-bar" id="loaderBar"></div>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="brand">
+    <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+    <div class="brand-logo"><i class="fa-solid fa-dumbbell"></i></div>
+    <div class="brand-name">PE<span>Engine</span> Admin</div>
+  </div>
+  <div class="top-actions">
+    <div class="search-top">
+      <i class="fa-solid fa-magnifying-glass" style="color:var(--ink-mute)"></i>
+      <input placeholder="Quick search…" />
+    </div>
+    <button class="icon-btn" title="Notifications"><i class="fa-regular fa-bell"></i></button>
+    <button class="icon-btn" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    <div class="avatar">A</div>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="side-title">Overview</div>
+    <a class="side-link active" data-tab="dashboard" onclick="showTab('dashboard');return false;"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a class="side-link" data-tab="manager" onclick="showTab('manager');return false;"><i class="fa-solid fa-pen-to-square"></i> Question Manager</a>
+    <a class="side-link" data-tab="manager" onclick="showTab('manager');return false;"><i class="fa-solid fa-database"></i> Question Bank</a>
+    <a class="side-link" data-tab="livetests" onclick="showTab('livetests');return false;"><i class="fa-solid fa-broadcast-tower"></i> Live Tests</a>
+    <a class="side-link" href="practice-test-admin.html"><i class="fa-solid fa-clipboard-check"></i> Practice Test Manager</a>
+
+    <div class="side-title">Admin</div>
+    <a class="side-link" data-tab="masterdata" onclick="showTab('masterdata');return false;"><i class="fa-solid fa-layer-group"></i> Master Data</a>
+
+
+    <div class="side-title">Data</div>
+    <a class="side-link" data-tab="manager" onclick="showTab('manager');return false;"><i class="fa-solid fa-file-import"></i> Import</a>
+    <a class="side-link" data-tab="manager" onclick="showTab('manager');return false;"><i class="fa-solid fa-file-export"></i> Export</a>
+
+    <div class="side-title">System</div>
+    <a class="side-link" data-tab="dashboard" onclick="showTab('dashboard');return false;"><i class="fa-solid fa-user-graduate"></i> Students</a>
+    <a class="side-link" data-tab="dashboard" onclick="showTab('dashboard');return false;"><i class="fa-solid fa-chart-line"></i> Reports</a>
+
+    <div class="side-footer">
+      <div>Signed in as <b style="color:var(--gold-300)">Admin</b></div>
+      <div style="margin-top:4px">v1.1 · Premium</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div id="dashboardSection">
+      <section id="dashboard">
+        <div class="section-title" style="margin-bottom:14px">
+          <div>
+            <h2>Dash<span>board</span></h2>
+            <p>Overview of your question bank, live tests and student engagement.</p>
+          </div>
+        </div>
+        <div class="cards">
+          <div class="card"><div class="ico"><i class="fa-solid fa-circle-question"></i></div><div class="label">Total Questions</div><div class="value" id="statQuestions">–</div><div class="trend"><i class="fa-solid fa-arrow-up"></i> Live bank</div></div>
+          <div class="card"><div class="ico"><i class="fa-solid fa-broadcast-tower"></i></div><div class="label">Total Live Tests</div><div class="value" id="statLiveTests">–</div><div class="trend"><i class="fa-solid fa-arrow-up"></i> All</div></div>
+          <div class="card"><div class="ico"><i class="fa-solid fa-tower-broadcast"></i></div><div class="label">Published Tests</div><div class="value" id="statPublished">–</div><div class="trend"><i class="fa-solid fa-arrow-up"></i> Live now</div></div>
+          <div class="card"><div class="ico"><i class="fa-solid fa-user-graduate"></i></div><div class="label">Students Appeared</div><div class="value" id="statStudents">–</div><div class="trend"><i class="fa-solid fa-arrow-up"></i> Unique</div></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- QUESTION MANAGER -->
+    <div id="questionManagerSection" style="display:none">
+      <section id="manager" class="panel">
+        <div class="section-title" style="margin-bottom:16px">
+          <div><h3><i class="fa-solid fa-pen-to-square"></i> Question <span style="color:var(--gold-400);font-family:'Playfair Display',serif">Manager</span></h3></div>
+        </div>
+
+        <div class="filters">
+          <div class="field">
+            <label>Class</label>
+            <select id="fClass" onchange="onClassChange()">
+              <option value="">Loading…</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Subject</label>
+            <select id="fSubject" onchange="onSubjectChange()">
+              <option value="">Select Class first</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Chapter</label>
+            <select id="fChapter">
+              <option value="">Select Subject first</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Exam Type</label>
+            <select id="fExamType">
+              <option value="MCQ">MCQ</option>
+              <option value="Theory">Theory</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="field full"><label>Question</label><textarea id="qText" placeholder="Enter the question..."></textarea></div>
+          <div class="field"><label>Option A</label><input id="qA" placeholder="Option A"/></div>
+          <div class="field"><label>Option B</label><input id="qB" placeholder="Option B"/></div>
+          <div class="field"><label>Option C</label><input id="qC" placeholder="Option C"/></div>
+          <div class="field"><label>Option D</label><input id="qD" placeholder="Option D"/></div>
+          <div class="field">
+            <label>Correct Answer</label>
+            <select id="qCorrect">
+              <option value="A">A</option><option value="B">B</option>
+              <option value="C">C</option><option value="D">D</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Difficulty</label>
+            <select id="qDifficulty">
+              <option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option>
+            </select>
+          </div>
+          <div class="field"><label>Marks</label><input id="qMarks" type="number" min="1" value="1"/></div>
+          <div class="field"><label>Tags (comma separated)</label><input id="qTags" placeholder="e.g. yoga, asana"/></div>
+          <div class="field full"><label>Explanation</label><textarea id="qExplanation" placeholder="Explanation shown after answering..."></textarea></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-gold" onclick="saveQuestion()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+          <button class="btn btn-info" onclick="updateQuestion()"><i class="fa-solid fa-rotate"></i> Update</button>
+          <button class="btn btn-danger" onclick="deleteQuestion()"><i class="fa-solid fa-trash"></i> Delete</button>
+          <button class="btn" onclick="duplicateQuestion()"><i class="fa-solid fa-copy"></i> Duplicate</button>
+          <button class="btn btn-success" onclick="previewQuestion()"><i class="fa-solid fa-eye"></i> Preview</button>
+          <button class="btn" onclick="resetForm()"><i class="fa-solid fa-eraser"></i> Reset</button>
+        </div>
+      </section>
+
+      <section id="bank" class="panel" style="margin-top:24px">
+        <div class="table-toolbar">
+          <h3><i class="fa-solid fa-database"></i> Question Bank</h3>
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass" style="color:var(--ink-mute)"></i>
+            <input id="tableSearch" placeholder="Search questions..." oninput="renderTable()"/>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th onclick="sortBy('question')">Question</th>
+                <th onclick="sortBy('correct')">Answer</th>
+                <th onclick="sortBy('difficulty')">Difficulty</th>
+                <th onclick="sortBy('marks')">Marks</th>
+                <th style="width:140px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="qTableBody"><tr><td colspan="5" class="empty"><span class="spin"></span> Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div style="color:var(--ink-mute);font-size:13px" id="pageInfo">0 questions</div>
+          <div class="pager" id="pager"></div>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top:24px">
+        <div class="io-grid">
+          <div class="io-block" id="import">
+            <h4><i class="fa-solid fa-file-import"></i> Import Questions</h4>
+            <p style="color:var(--ink-mute);font-size:13px;margin-bottom:12px">Upload a file to bulk-add questions to Firestore.</p>
+            <div class="io-buttons">
+              <label class="btn btn-gold"><i class="fa-solid fa-file-csv"></i> CSV<input type="file" accept=".csv" hidden onchange="importFile(event,'csv')"/></label>
+              <label class="btn"><i class="fa-solid fa-file-excel"></i> Excel<input type="file" accept=".xlsx,.xls" hidden onchange="importFile(event,'excel')"/></label>
+              <label class="btn"><i class="fa-solid fa-file-code"></i> JSON<input type="file" accept=".json" hidden onchange="importFile(event,'json')"/></label>
+            </div>
+          </div>
+          <div class="io-block" id="export">
+            <h4><i class="fa-solid fa-file-export"></i> Export Questions</h4>
+            <p style="color:var(--ink-mute);font-size:13px;margin-bottom:12px">Download the current bank in your preferred format.</p>
+            <div class="io-buttons">
+              <button class="btn btn-gold" onclick="exportData('csv')"><i class="fa-solid fa-file-csv"></i> CSV</button>
+              <button class="btn" onclick="exportData('excel')"><i class="fa-solid fa-file-excel"></i> Excel</button>
+              <button class="btn" onclick="exportData('json')"><i class="fa-solid fa-file-code"></i> JSON</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top:24px">
+        <div class="section-title">
+          <div>
+            <h3><i class="fa-solid fa-screwdriver-wrench"></i> Repair / Migrate <span style="color:var(--gold-400);font-family:'Playfair Display',serif">All Questions</span></h3>
+            <p style="color:var(--ink-mute);font-size:13px;margin-top:4px">
+              One-click fix for legacy / bulk-imported questions. Scans every document in <b>questions</b>
+              and fills in the missing <code>classId</code> / <code>subjectId</code> / <code>chapterId</code>
+              (from <code>cls</code>, <code>class</code>, <code>subject</code>, <code>chapter</code>,
+              <code>chapterKey</code>, labels like "Class 12" / "Physical Education", etc.),
+              adds <code>createdAt</code> when missing, and preserves every question, option, answer and id.
+              Safe to run more than once.
+            </p>
+          </div>
+          <button class="btn btn-gold" id="migrateBtn" onclick="runMigration()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Repair / Migrate All Questions</span>
+          </button>
+        </div>
+        <div id="migrateProgressWrap" style="display:none;margin-top:10px">
+          <div style="height:10px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;border:1px solid var(--glass-border)">
+            <div id="migrateBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold-500),var(--gold-300));transition:width .2s"></div>
+          </div>
+          <div id="migrateStatus" style="margin-top:8px;font-size:13px;color:var(--ink-soft)">Starting…</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- LIVE TESTS -->
+    <div id="liveTestsSection" style="display:none">
+      <section id="liveMgr" class="panel">
+        <div class="section-title" style="margin-bottom:16px">
+          <div><h3><i class="fa-solid fa-broadcast-tower"></i> Live <span style="color:var(--gold-400);font-family:'Playfair Display',serif">Tests</span></h3></div>
+          <button class="btn btn-gold" onclick="openTestModal()"><i class="fa-solid fa-plus"></i> Create Test</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th><th>Class / Subject / Chapter</th><th>Duration</th>
+                <th>Window</th><th>Status</th><th style="width:170px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="testTableBody"><tr><td colspan="6" class="empty"><span class="spin"></span> Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- MASTER DATA -->
+    <div id="masterDataSection" style="display:none">
+      <section class="panel">
+        <div class="section-title" style="margin-bottom:16px">
+          <div>
+            <h3><i class="fa-solid fa-layer-group"></i> Master <span style="color:var(--gold-400);font-family:'Playfair Display',serif">Data</span></h3>
+            <p style="color:var(--ink-mute);font-size:13px;margin-top:4px">Manage Classes, Subjects and Chapters. Used by Question Manager and Live Test Manager.</p>
+          </div>
+        </div>
+
+        <!-- CLASSES -->
+        <div class="panel" style="background:rgba(10,22,51,.35);margin-bottom:20px">
+          <h3><i class="fa-solid fa-graduation-cap"></i> Classes</h3>
+          <div class="form-grid">
+            <div class="field"><label>Label</label><input id="mcLabel" placeholder="e.g. Class 10"/></div>
+            <div class="field"><label>Order</label><input id="mcOrder" type="number" value="0"/></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-gold" onclick="saveMasterClass()"><i class="fa-solid fa-floppy-disk"></i> <span id="mcSaveLbl">Add Class</span></button>
+            <button class="btn" onclick="resetMasterClass()"><i class="fa-solid fa-eraser"></i> Reset</button>
+          </div>
+          <div class="table-wrap" style="margin-top:14px">
+            <table>
+              <thead><tr><th>Label</th><th>ID</th><th>Order</th><th>Status</th><th style="width:170px">Actions</th></tr></thead>
+              <tbody id="mcTableBody"><tr><td colspan="5" class="empty"><span class="spin"></span> Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SUBJECTS -->
+        <div class="panel" style="background:rgba(10,22,51,.35);margin-bottom:20px">
+          <h3><i class="fa-solid fa-book"></i> Subjects</h3>
+          <div class="form-grid">
+            <div class="field"><label>Class</label><select id="msClass" onchange="renderMasterSubjects()"></select></div>
+            <div class="field"><label>Label</label><input id="msLabel" placeholder="e.g. Physical Education"/></div>
+            <div class="field"><label>Order</label><input id="msOrder" type="number" value="0"/></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-gold" onclick="saveMasterSubject()"><i class="fa-solid fa-floppy-disk"></i> <span id="msSaveLbl">Add Subject</span></button>
+            <button class="btn" onclick="resetMasterSubject()"><i class="fa-solid fa-eraser"></i> Reset</button>
+          </div>
+          <div class="table-wrap" style="margin-top:14px">
+            <table>
+              <thead><tr><th>Label</th><th>Class</th><th>Order</th><th>Status</th><th style="width:170px">Actions</th></tr></thead>
+              <tbody id="msTableBody"><tr><td colspan="5" class="empty">Select a class</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- CHAPTERS -->
+        <div class="panel" style="background:rgba(10,22,51,.35)">
+          <h3><i class="fa-solid fa-list"></i> Chapters</h3>
+          <div class="form-grid">
+            <div class="field"><label>Class</label><select id="mhClass" onchange="onMasterChapterClassChange()"></select></div>
+            <div class="field"><label>Subject</label><select id="mhSubject" onchange="renderMasterChapters()"></select></div>
+            <div class="field"><label>Title</label><input id="mhTitle" placeholder="e.g. Yoga"/></div>
+            <div class="field"><label>Order</label><input id="mhOrder" type="number" value="0"/></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-gold" onclick="saveMasterChapter()"><i class="fa-solid fa-floppy-disk"></i> <span id="mhSaveLbl">Add Chapter</span></button>
+            <button class="btn" onclick="resetMasterChapter()"><i class="fa-solid fa-eraser"></i> Reset</button>
+          </div>
+          <div class="table-wrap" style="margin-top:14px">
+            <table>
+              <thead><tr><th>Title</th><th>Class / Subject</th><th>Order</th><th>Status</th><th style="width:170px">Actions</th></tr></thead>
+              <tbody id="mhTableBody"><tr><td colspan="5" class="empty">Select class &amp; subject</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+</div>
+
+
+
+<!-- PREVIEW MODAL -->
+<div class="modal" id="previewModal" onclick="if(event.target===this)closePreview()">
+  <div class="modal-card">
+    <button class="btn modal-close" onclick="closePreview()"><i class="fa-solid fa-xmark"></i></button>
+    <h3><i class="fa-solid fa-eye"></i> Question Preview</h3>
+    <div id="pvBody"></div>
+  </div>
+</div>
+
+<!-- LIVE TEST MODAL -->
+<div class="modal" id="testModal" onclick="if(event.target===this)closeTestModal()">
+  <div class="modal-card">
+    <button class="btn modal-close" onclick="closeTestModal()"><i class="fa-solid fa-xmark"></i></button>
+    <h3><i class="fa-solid fa-broadcast-tower"></i> <span id="testModalTitle">Create Live Test</span></h3>
+    <div class="form-grid" style="margin-top:10px">
+      <div class="field full"><label>Title</label><input id="tTitle" placeholder="e.g. Class 12 PE — Chapter 1 Mock"/></div>
+      <div class="field"><label>Class</label><select id="tClass" onchange="onTestClassChange()"></select></div>
+      <div class="field"><label>Subject</label><select id="tSubject" onchange="onTestSubjectChange()"></select></div>
+      <div class="field"><label>Chapter</label><select id="tChapter" onchange="loadTestQuestionPool()"></select></div>
+      <div class="field"><label>Duration (min)</label><input id="tDuration" type="number" min="1" value="30"/></div>
+      <div class="field"><label>Negative Marking</label><input id="tNeg" type="number" step="0.25" value="0"/></div>
+      <div class="field"><label>Test URL (auto-generated if empty)</label><input id="tUrl" placeholder="tests/mcq-engine.html?testId=..."/></div>
+      <div class="field"><label>Start Time</label><input id="tStart" type="datetime-local"/></div>
+      <div class="field"><label>End Time</label><input id="tEnd" type="datetime-local"/></div>
+      <div class="field full" style="display:flex;align-items:center;gap:10px">
+        <input id="tPublished" type="checkbox" style="width:auto"/>
+        <label for="tPublished" style="margin:0;font-size:14px;color:var(--ink)">Publish immediately</label>
+      </div>
+    </div>
+
+    <div style="margin-top:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <h4 style="margin:0"><i class="fa-solid fa-database"></i> Pick Questions from Question Bank</h4>
+        <div style="font-size:12px;color:var(--ink-mute)">Selected: <span id="tSelCount" style="color:var(--gold-300);font-weight:600">0</span></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+        <input id="tQSearch" placeholder="Search questions..." oninput="renderTestQuestionPool()" style="flex:1;min-width:180px;background:rgba(5,11,31,.55);border:1px solid var(--glass-border);color:var(--ink);border-radius:9px;padding:9px 12px;font:400 13px 'Inter'"/>
+        <button type="button" class="btn" onclick="selectAllTestVisible(true)"><i class="fa-solid fa-check-double"></i> Select All</button>
+        <button type="button" class="btn" onclick="selectAllTestVisible(false)"><i class="fa-solid fa-square"></i> Clear</button>
+      </div>
+      <div id="tQList" style="max-height:340px;overflow-y:auto;border:1px solid var(--glass-border);border-radius:10px;margin-top:8px;background:rgba(5,11,31,.35)">
+        <div style="text-align:center;color:var(--ink-mute);padding:30px">Select Class, Subject and Chapter to load questions.</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-gold" id="tSaveBtn" onclick="submitTest()"><i class="fa-solid fa-floppy-disk"></i> <span>Save Test</span></button>
+      <button class="btn" onclick="closeTestModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase + data layer -->
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/question-bank.js"></script>
+<script src="config/practice-data.js"></script>
+
+<script>
+/* ============ UI HELPERS ============ */
+function toast(msg, kind){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show '+(kind||'success');
+  clearTimeout(window._tt);
+  window._tt=setTimeout(()=>t.classList.remove('show'),2600);
+}
+function startLoad(){document.getElementById('loaderBar').classList.remove('done');document.getElementById('loaderBar').classList.add('on')}
+function stopLoad(){const b=document.getElementById('loaderBar');b.classList.remove('on');b.classList.add('done');setTimeout(()=>b.classList.remove('done'),700)}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function truncate(s,n){s=String(s||'');return s.length>n?s.slice(0,n)+'…':s}
+function val(id){return (document.getElementById(id).value||'').trim()}
+function setVal(id,v){const el=document.getElementById(id);if(el)el.value=v??''}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+
+/* ============ STATE ============ */
+let questions = [];
+let liveTests = [];
+let classesCache = [];
+let editingId = null;
+let editingTestId = null;
+let sortKey = null, sortDir = 1;
+let currentPage = 1;
+const pageSize = 8;
+
+/* Shared question-pool state for the Live Test modal (mirrors practice-test-admin) */
+let testQuestionPool = [];
+let selectedTestQIds = new Set();
+
+/* ============ INIT ============ */
+window.addEventListener('DOMContentLoaded', async () => {
+  if(!window.AdminData){ toast('Firebase failed to load','danger'); return; }
+  startLoad();
+  try{
+    await AdminData.ensureSeed();
+    classesCache = await AdminData.listClasses();
+    fillClassSelect('fClass', classesCache);
+    fillClassSelect('tClass', classesCache);
+    await onClassChange();
+    await refreshQuestions();
+    await refreshLiveTests();
+    await refreshDashboard();
+  }catch(e){
+    console.error(e); toast('Load failed: '+e.message,'danger');
+  }finally{ stopLoad(); }
+});
+
+/* ============ DROPDOWNS (Firestore) ============ */
+function fillClassSelect(id, list){
+  const el=document.getElementById(id);
+  el.innerHTML = '<option value="">Select Class</option>' +
+    list.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.label)}</option>`).join('');
+}
+async function onClassChange(){
+  const cls = val('fClass');
+  const sub = document.getElementById('fSubject');
+  const ch  = document.getElementById('fChapter');
+  sub.innerHTML='<option value="">Loading…</option>';
+  ch.innerHTML='<option value="">Select Subject first</option>';
+  if(!cls){ sub.innerHTML='<option value="">Select Class first</option>'; return; }
+  try{
+    const subs = await AdminData.listSubjects(cls);
+    sub.innerHTML='<option value="">Select Subject</option>'+
+      subs.map(s=>`<option value="${escapeHtml(s.id)}">${escapeHtml(s.label)}</option>`).join('');
+  }catch(e){ toast('Subjects load failed','danger'); }
+}
+async function onSubjectChange(){
+  const cls=val('fClass'), sub=val('fSubject');
+  const ch=document.getElementById('fChapter');
+  ch.innerHTML='<option value="">Loading…</option>';
+  if(!cls||!sub){ ch.innerHTML='<option value="">Select Subject first</option>'; return; }
+  try{
+    const chs = await AdminData.listChapters(cls, sub);
+    ch.innerHTML='<option value="">Select Chapter</option>'+
+      chs.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.title)}</option>`).join('');
+  }catch(e){ toast('Chapters load failed','danger'); }
+}
+
+/* Test-modal cascade */
+async function onTestClassChange(){
+  const cls=val('tClass');
+  const sub=document.getElementById('tSubject'); const ch=document.getElementById('tChapter');
+  sub.innerHTML='<option value="">Loading…</option>'; ch.innerHTML='<option value="">Select Subject first</option>';
+  if(!cls){ sub.innerHTML='<option value="">Select Class first</option>'; testQuestionPool=[]; renderTestQuestionPool(); return; }
+  const subs = await AdminData.listSubjects(cls);
+  sub.innerHTML='<option value="">Select Subject</option>'+
+    subs.map(s=>`<option value="${escapeHtml(s.id)}">${escapeHtml(s.label)}</option>`).join('');
+  testQuestionPool=[]; renderTestQuestionPool();
+}
+async function onTestSubjectChange(){
+  const cls=val('tClass'), sub=val('tSubject');
+  const ch=document.getElementById('tChapter');
+  ch.innerHTML='<option value="">Loading…</option>';
+  if(!cls||!sub){ ch.innerHTML='<option value="">Select Subject first</option>'; testQuestionPool=[]; renderTestQuestionPool(); return; }
+  const chs=await AdminData.listChapters(cls,sub);
+  ch.innerHTML='<option value="">Select Chapter</option>'+
+    chs.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.title)}</option>`).join('');
+  testQuestionPool=[]; renderTestQuestionPool();
+}
+async function onTestClassChangeReset(){ testQuestionPool=[]; renderTestQuestionPool(); }
+
+/* ============ LIVE TEST QUESTION POOL (same helper as Practice) ============ */
+async function loadTestQuestionPool(){
+  const cls=val('tClass'), sub=val('tSubject'), ch=val('tChapter');
+  console.log('[live-test] selection', {classId:cls, subjectId:sub, chapterId:ch});
+  if(!cls||!sub||!ch){ testQuestionPool=[]; renderTestQuestionPool(); return; }
+  const box=document.getElementById('tQList');
+  box.innerHTML='<div style="text-align:center;color:var(--ink-mute);padding:30px"><span class="spin"></span> Loading questions…</div>';
+  try{
+    if (window.Practice && Practice.listAvailableQuestions) {
+      testQuestionPool = await Practice.listAvailableQuestions(cls, sub, ch);
+    } else {
+      const snap = await firebase.firestore().collection('questions').get();
+      const all = snap.docs.map(d => Object.assign({id:d.id}, d.data()));
+      testQuestionPool = all.filter(q =>
+        (q.classId===cls||q.cls===cls) &&
+        (q.subjectId===sub||q.subject===sub) &&
+        (q.chapterId===ch||q.chapter===ch));
+    }
+    console.log('[live-test] pool loaded', testQuestionPool.length, 'questions');
+    renderTestQuestionPool();
+  }catch(e){ console.error('[live-test] loadTestQuestionPool failed', e); toast('Questions load failed: '+e.message,'danger'); }
+}
+function renderTestQuestionPool(){
+  const box=document.getElementById('tQList');
+  const search=(document.getElementById('tQSearch')?.value||'').toLowerCase();
+  if(!testQuestionPool.length){ box.innerHTML='<div style="text-align:center;color:var(--ink-mute);padding:30px">No questions available for this selection.</div>'; updateTestSelCount(); return; }
+  const rows=testQuestionPool.filter(q=>!search || (q.question||'').toLowerCase().includes(search) || (q.tags||'').toLowerCase().includes(search));
+  if(!rows.length){ box.innerHTML='<div style="text-align:center;color:var(--ink-mute);padding:30px">No questions match your search.</div>'; updateTestSelCount(); return; }
+  box.innerHTML=rows.map(q=>`
+    <label style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer">
+      <input type="checkbox" data-tqid="${escapeHtml(q.id)}" ${selectedTestQIds.has(q.id)?'checked':''} onchange="toggleTestSel('${escapeHtml(q.id)}',this.checked)" style="margin-top:3px"/>
+      <div style="flex:1">
+        <div style="font-size:13px;color:var(--ink)">${escapeHtml(q.question||'')}</div>
+        <div style="font-size:11px;color:var(--ink-mute);margin-top:2px">${escapeHtml(q.examType||'MCQ')} · ${escapeHtml(q.difficulty||'—')} · ${q.marks||1} mark${(q.marks||1)>1?'s':''}${q.tags?' · '+escapeHtml(q.tags):''}</div>
+      </div>
+    </label>`).join('');
+  updateTestSelCount();
+}
+function toggleTestSel(id,checked){ if(checked) selectedTestQIds.add(id); else selectedTestQIds.delete(id); updateTestSelCount(); }
+function selectAllTestVisible(check){
+  document.querySelectorAll('#tQList input[data-tqid]').forEach(el=>{
+    el.checked=check; toggleTestSel(el.getAttribute('data-tqid'), check);
+  });
+}
+function updateTestSelCount(){ const el=document.getElementById('tSelCount'); if(el) el.textContent=selectedTestQIds.size; }
+
+/* ============ QUESTIONS ============ */
+function readQForm(){
+  return {
+    cls:val('fClass'), subject:val('fSubject'), chapter:val('fChapter'),
+    examType:val('fExamType'),
+    question:val('qText'),a:val('qA'),b:val('qB'),c:val('qC'),d:val('qD'),
+    correct:val('qCorrect'),explanation:val('qExplanation'),
+    difficulty:val('qDifficulty'),marks:Number(val('qMarks'))||1,tags:val('qTags')
+  };
+}
+async function refreshQuestions(){
+  try{
+    questions = await AdminData.listQuestions();
+    renderTable(); refreshDashboard();
+  }catch(e){ toast('Question load failed: '+e.message,'danger'); }
+}
+async function saveQuestion(){
+  const data=readQForm();
+  if(!data.cls||!data.subject||!data.chapter) return toast('Class, Subject and Chapter are required','danger');
+  if(!data.question) return toast('Please enter a question','danger');
+  startLoad();
+  try{ await AdminData.saveQuestion(data); toast('Question saved','success'); resetForm(); await refreshQuestions(); }
+  catch(e){ toast('Save failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+async function updateQuestion(){
+  if(!editingId) return toast('Select a question from the table first','danger');
+  startLoad();
+  try{ await AdminData.updateQuestion(editingId, readQForm()); toast('Question updated','success'); editingId=null; resetForm(); await refreshQuestions(); }
+  catch(e){ toast('Update failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+async function deleteQuestion(){
+  if(!editingId) return toast('No question selected','danger');
+  if(!confirm('Delete this question?')) return;
+  startLoad();
+  try{ await AdminData.deleteQuestion(editingId); editingId=null; resetForm(); toast('Question deleted','success'); await refreshQuestions(); }
+  catch(e){ toast('Delete failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+async function duplicateQuestion(){
+  const data=readQForm();
+  if(!data.question) return toast('Nothing to duplicate','danger');
+  startLoad();
+  try{ await AdminData.saveQuestion(data); toast('Duplicated','success'); await refreshQuestions(); }
+  catch(e){ toast('Duplicate failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+function previewQuestion(){
+  const d=readQForm();
+  const opts=['A','B','C','D'].map(k=>{
+    const text=d[k.toLowerCase()]||'—';
+    return `<div class="opt ${d.correct===k?'correct':''}" style="padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid var(--glass-border);border-radius:10px;margin-bottom:6px${d.correct===k?';border-color:var(--success);color:var(--success)':''}"><b>${k}.</b> ${escapeHtml(text)}</div>`;
+  }).join('');
+  document.getElementById('pvBody').innerHTML =
+    `<div style="font-size:16px;margin-bottom:14px;line-height:1.5">${escapeHtml(d.question||'(no question)')}</div>
+     <div style="margin-bottom:14px">${opts}</div>
+     ${d.explanation?`<div style="font-size:13px;color:var(--ink-mute);border-left:3px solid var(--gold-400);padding-left:12px;margin-bottom:16px"><b>Explanation:</b> ${escapeHtml(d.explanation)}</div>`:''}
+     <div style="display:flex;gap:8px;flex-wrap:wrap">
+       <span class="badge b-${d.difficulty==='Easy'?'easy':d.difficulty==='Hard'?'hard':'med'}">${d.difficulty}</span>
+       <span class="badge b-med">${d.marks} marks</span>
+       <span class="badge b-info">${d.examType}</span>
+     </div>`;
+  document.getElementById('previewModal').classList.add('open');
+}
+function closePreview(){document.getElementById('previewModal').classList.remove('open')}
+function resetForm(){
+  ['qText','qA','qB','qC','qD','qExplanation','qTags'].forEach(id=>setVal(id,''));
+  setVal('qMarks',1); setVal('qCorrect','A'); setVal('qDifficulty','Easy');
+  editingId=null;
+}
+
+/* ============ QUESTIONS TABLE ============ */
+function renderTable(){
+  const search=(document.getElementById('tableSearch').value||'').toLowerCase();
+  let rows=questions.filter(q=>!search ||
+    (q.question||'').toLowerCase().includes(search) ||
+    (q.tags||'').toLowerCase().includes(search));
+  if(sortKey){
+    rows.sort((a,b)=>{
+      const x=(a[sortKey]??'').toString().toLowerCase(), y=(b[sortKey]??'').toString().toLowerCase();
+      if(!isNaN(parseFloat(x))&&!isNaN(parseFloat(y))) return (parseFloat(x)-parseFloat(y))*sortDir;
+      return x.localeCompare(y)*sortDir;
+    });
+  }
+  const total=rows.length;
+  const pages=Math.max(1,Math.ceil(total/pageSize));
+  if(currentPage>pages) currentPage=pages;
+  const slice=rows.slice((currentPage-1)*pageSize, currentPage*pageSize);
+  const body=document.getElementById('qTableBody');
+  body.innerHTML = slice.map(q=>`
+    <tr>
+      <td style="max-width:380px">
+        <div style="color:#fff;font-weight:500;margin-bottom:2px">${escapeHtml(truncate(q.question,90))}</div>
+        <div style="font-size:11px;color:var(--ink-mute)">${escapeHtml(q.cls||'')} · ${escapeHtml(q.subject||'')} · ${escapeHtml(q.chapter||'')}</div>
+      </td>
+      <td><span class="badge b-med">${escapeHtml(q.correct||'-')}</span></td>
+      <td><span class="badge b-${q.difficulty==='Easy'?'easy':q.difficulty==='Hard'?'hard':'med'}">${escapeHtml(q.difficulty||'')}</span></td>
+      <td>${q.marks||0}</td>
+      <td><div class="row-actions">
+        <button title="Edit" onclick="editRow('${q.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button title="Duplicate" onclick="dupRow('${q.id}')"><i class="fa-solid fa-copy"></i></button>
+        <button title="Delete" onclick="delRow('${q.id}')"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('') || `<tr><td colspan="5" class="empty">No questions found</td></tr>`;
+  document.getElementById('pageInfo').textContent = `${total} question${total===1?'':'s'} · Page ${currentPage} of ${pages}`;
+  const pager=document.getElementById('pager');
+  let html=`<button ${currentPage===1?'disabled':''} onclick="goPage(${currentPage-1})"><i class="fa-solid fa-chevron-left"></i></button>`;
+  for(let i=1;i<=pages;i++){
+    if(i===1||i===pages||Math.abs(i-currentPage)<=1)
+      html+=`<button class="${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+    else if(Math.abs(i-currentPage)===2) html+=`<button disabled>…</button>`;
+  }
+  html+=`<button ${currentPage===pages?'disabled':''} onclick="goPage(${currentPage+1})"><i class="fa-solid fa-chevron-right"></i></button>`;
+  pager.innerHTML=html;
+}
+function goPage(n){currentPage=n;renderTable()}
+function sortBy(k){if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=1;}renderTable()}
+async function editRow(id){
+  const q=questions.find(x=>x.id===id); if(!q) return;
+  editingId=id;
+  setVal('fClass',q.cls); await onClassChange();
+  setVal('fSubject',q.subject); await onSubjectChange();
+  setVal('fChapter',q.chapter);
+  setVal('fExamType',q.examType||'MCQ');
+  setVal('qText',q.question);setVal('qA',q.a);setVal('qB',q.b);setVal('qC',q.c);setVal('qD',q.d);
+  setVal('qCorrect',q.correct||'A');setVal('qExplanation',q.explanation);
+  setVal('qDifficulty',q.difficulty||'Easy');setVal('qMarks',q.marks||1);setVal('qTags',q.tags);
+  document.getElementById('manager').scrollIntoView({behavior:'smooth'});
+}
+async function dupRow(id){
+  const q=questions.find(x=>x.id===id); if(!q) return;
+  const clone={...q}; delete clone.id; delete clone.createdAt; delete clone.updatedAt;
+  startLoad();
+  try{ await AdminData.saveQuestion(clone); toast('Duplicated','success'); await refreshQuestions(); }
+  catch(e){ toast('Duplicate failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+async function delRow(id){
+  if(!confirm('Delete this question?')) return;
+  startLoad();
+  try{ await AdminData.deleteQuestion(id); toast('Deleted','success'); await refreshQuestions(); }
+  catch(e){ toast('Delete failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+
+/* ============ IMPORT / EXPORT ============ */
+function importFile(ev,kind){
+  const file=ev.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    startLoad();
+    try{
+      let arr=[];
+      if(kind==='json'){
+        const parsed=JSON.parse(e.target.result);
+        arr=Array.isArray(parsed)?parsed:(Array.isArray(parsed.questions)?parsed.questions:[parsed]);
+      }
+      else if(kind==='csv') arr=csvToObjects(e.target.result);
+      else if(kind==='excel'){
+        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        arr=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+      }
+      // ROOT-CAUSE FIX: normalise every incoming row to the SAME schema that
+      // manual questions use (question, a, b, c, d, correct as A/B/C/D,
+      // cls+classId, subject+subjectId, chapter+chapterId). This handles all
+      // legacy field aliases: optionA / option_a / options[] / options{},
+      // answer / correctAnswer / correctOption, classId / cls / class, ...
+      let ok=0, skipped=0;
+      for(const o of arr){
+        if(!window.QuestionBank || !QuestionBank.normalizeQuestion){
+          throw new Error('QuestionBank normaliser not loaded');
+        }
+        const rec=QuestionBank.normalizeQuestion(o);
+        if(rec.question && (rec.a||rec.b||rec.c||rec.d)){
+          await AdminData.saveQuestion(rec); ok++;
+        } else {
+          skipped++;
+        }
+      }
+      await refreshQuestions();
+      const msg = `Imported ${ok} question${ok===1?'':'s'}` + (skipped?` (${skipped} skipped: missing text/options)`:'');
+      toast(msg, ok?'success':'danger');
+    }catch(err){ console.error(err); toast('Import failed: '+err.message,'danger'); }
+    finally{ stopLoad(); ev.target.value=''; }
+  };
+  if(kind==='excel') reader.readAsArrayBuffer(file); else reader.readAsText(file);
+}
+function exportData(kind){
+  if(!questions.length) return toast('Nothing to export','danger');
+  const clean = questions.map(q=>{const c={...q}; delete c.createdAt; delete c.updatedAt; return c;});
+  if(kind==='json') download('questions.json', JSON.stringify(clean,null,2), 'application/json');
+  else if(kind==='csv') download('questions.csv', objectsToCsv(clean), 'text/csv');
+  else if(kind==='excel'){
+    const ws=XLSX.utils.json_to_sheet(clean);
+    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Questions');
+    XLSX.writeFile(wb,'questions.xlsx'); return toast('Excel exported','success');
+  }
+  toast(kind.toUpperCase()+' exported','success');
+}
+function csvToObjects(text){
+  const lines=text.trim().split(/\r?\n/);
+  const headers=lines.shift().split(',').map(h=>h.trim());
+  return lines.map(l=>{
+    const cells=l.match(/("([^"]|"")*"|[^,]*)(,|$)/g).map(c=>c.replace(/,$/,'').replace(/^"|"$/g,'').replace(/""/g,'"'));
+    const o={}; headers.forEach((h,i)=>o[h]=cells[i]||''); return o;
+  });
+}
+function objectsToCsv(arr){
+  const headers=Object.keys(arr[0]);
+  const esc=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  return [headers.join(','), ...arr.map(o=>headers.map(h=>esc(o[h])).join(','))].join('\n');
+}
+function download(name,data,type){
+  const blob=new Blob([data],{type}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url);
+}
+
+/* ============ LIVE TESTS ============ */
+async function refreshLiveTests(){
+  try{
+    liveTests = await AdminData.listLiveTests();
+    renderLiveTests(); refreshDashboard();
+  }catch(e){ toast('Live tests load failed: '+e.message,'danger'); }
+}
+function fmtDT(v){
+  if(!v) return '—';
+  const d = v.toDate ? v.toDate() : new Date(v);
+  if(isNaN(d)) return '—';
+  return d.toLocaleString([], {dateStyle:'short', timeStyle:'short'});
+}
+function renderLiveTests(){
+  const body=document.getElementById('testTableBody');
+  if(!liveTests.length){ body.innerHTML=`<tr><td colspan="6" class="empty">No live tests yet. Click <b>Create Test</b> to add one.</td></tr>`; return; }
+  body.innerHTML = liveTests.map(t=>`
+    <tr>
+      <td><div style="color:#fff;font-weight:500">${escapeHtml(t.title||'(untitled)')}</div>
+          <div style="font-size:11px;color:var(--ink-mute)">${t.totalQuestions||0} Qs · ${t.durationMin||0} min · neg ${t.negativeMarking||0}</div></td>
+      <td style="font-size:12px">${escapeHtml(t.classId||'')} / ${escapeHtml(t.subjectId||'')} / ${escapeHtml(t.chapterId||'')}</td>
+      <td>${t.durationMin||0} min</td>
+      <td style="font-size:12px">${fmtDT(t.startTime)}<br/><span style="color:var(--ink-mute)">→ ${fmtDT(t.endTime)}</span></td>
+      <td>${t.isPublished
+        ? '<span class="badge b-easy">Published</span>'
+        : '<span class="badge b-hard">Draft</span>'}</td>
+      <td><div class="row-actions">
+        <button title="${t.isPublished?'Unpublish':'Publish'}" onclick="togglePublish('${t.id}',${!t.isPublished})">
+          <i class="fa-solid fa-${t.isPublished?'eye-slash':'tower-broadcast'}"></i>
+        </button>
+        <button title="Edit" onclick="editTest('${t.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button title="Delete" onclick="delTest('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+}
+function openTestModal(){
+  editingTestId=null;
+  document.getElementById('testModalTitle').textContent='Create Live Test';
+  ['tTitle','tUrl'].forEach(id=>setVal(id,''));
+  setVal('tDuration',30); setVal('tNeg',0);
+  setVal('tStart',''); setVal('tEnd','');
+  document.getElementById('tPublished').checked=false;
+  fillClassSelect('tClass', classesCache);
+  document.getElementById('tSubject').innerHTML='<option value="">Select Class first</option>';
+  document.getElementById('tChapter').innerHTML='<option value="">Select Subject first</option>';
+  selectedTestQIds=new Set(); testQuestionPool=[]; renderTestQuestionPool();
+  const s=document.getElementById('tQSearch'); if(s) s.value='';
+  document.getElementById('testModal').classList.add('open');
+}
+function closeTestModal(){document.getElementById('testModal').classList.remove('open')}
+async function editTest(id){
+  const t=liveTests.find(x=>x.id===id); if(!t) return;
+  editingTestId=id;
+  openTestModal();
+  document.getElementById('testModalTitle').textContent='Edit Live Test';
+  setVal('tTitle',t.title); setVal('tUrl',t.testUrl);
+  setVal('tDuration',t.durationMin||30);
+  setVal('tNeg',t.negativeMarking||0);
+  document.getElementById('tPublished').checked=!!t.isPublished;
+  const toLocal=v=>{ if(!v) return ''; const d=v.toDate?v.toDate():new Date(v); if(isNaN(d)) return '';
+    const off=d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,16); };
+  setVal('tStart', toLocal(t.startTime)); setVal('tEnd', toLocal(t.endTime));
+  setVal('tClass', t.classId||''); await onTestClassChange();
+  setVal('tSubject', t.subjectId||''); await onTestSubjectChange();
+  setVal('tChapter', t.chapterId||'');
+  // Restore previously-selected question ids so editing preserves the picks
+  selectedTestQIds = new Set(t.questionIds || []);
+  await loadTestQuestionPool();
+}
+async function submitTest(){
+  const chosen = Array.from(selectedTestQIds);
+  const data={
+    title:val('tTitle'),
+    classId:val('tClass'), subjectId:val('tSubject'), chapterId:val('tChapter'),
+    durationMin:Number(val('tDuration'))||0,
+    totalQuestions:chosen.length,
+    questionIds:chosen,
+    negativeMarking:Number(val('tNeg'))||0,
+    startTime: val('tStart') ? new Date(val('tStart')) : null,
+    endTime:   val('tEnd')   ? new Date(val('tEnd'))   : null,
+    isPublished: document.getElementById('tPublished').checked,
+    testUrl: val('tUrl')
+  };
+  if(!data.title) return toast('Title is required','danger');
+  if(!data.classId||!data.subjectId||!data.chapterId) return toast('Class, Subject and Chapter are required','danger');
+  if(!chosen.length) return toast('Select at least one question','danger');
+  const btn=document.getElementById('tSaveBtn'); btn.disabled=true; btn.querySelector('span').textContent='Saving…';
+  startLoad();
+  try{
+    if(editingTestId){
+      if(!data.testUrl) data.testUrl = 'tests/mcq-engine.html?testId='+editingTestId;
+      await AdminData.updateLiveTest(editingTestId, data);
+      toast('Test updated','success');
+    } else {
+      const newId = await AdminData.saveLiveTest(data);
+      // saveLiveTest already auto-fills testUrl in the DB when empty
+      console.log('[live-test] created', newId);
+      toast('Test created','success');
+    }
+    closeTestModal(); await refreshLiveTests();
+  }catch(e){ toast('Save failed: '+e.message,'danger'); }
+  finally{ btn.disabled=false; btn.querySelector('span').textContent='Save Test'; stopLoad(); }
+}
+async function togglePublish(id, next){
+  startLoad();
+  try{ await AdminData.togglePublish(id, next); toast(next?'Published':'Unpublished','success'); await refreshLiveTests(); }
+  catch(e){ toast('Failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+async function delTest(id){
+  if(!confirm('Delete this live test?')) return;
+  startLoad();
+  try{ await AdminData.deleteLiveTest(id); toast('Test deleted','success'); await refreshLiveTests(); }
+  catch(e){ toast('Delete failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+
+/* ============ DASHBOARD ============ */
+async function refreshDashboard(){
+  try{
+    const [qCount, lt, students] = await Promise.all([
+      AdminData.countQuestions(),
+      AdminData.countLiveTests(),
+      AdminData.countStudentsAppeared()
+    ]);
+    document.getElementById('statQuestions').textContent = qCount;
+    document.getElementById('statLiveTests').textContent = lt.total;
+    document.getElementById('statPublished').textContent = lt.published;
+    document.getElementById('statStudents').textContent  = students;
+  }catch(e){ console.warn('dashboard refresh failed', e); }
+}
+
+/* ============ ONE-CLICK MIGRATION ============ */
+async function runMigration(){
+  const btn=document.getElementById('migrateBtn');
+  const wrap=document.getElementById('migrateProgressWrap');
+  const bar=document.getElementById('migrateBar');
+  const status=document.getElementById('migrateStatus');
+  if(!confirm('Scan every question and normalise classId / subjectId / chapterId?\n\nThis is safe to run more than once.')) return;
+  btn.disabled=true; btn.querySelector('span').textContent='Migrating…';
+  wrap.style.display='block'; bar.style.width='0%'; status.textContent='Preparing…';
+  try{
+    const result = await AdminData.migrateAllQuestions(function(done,total,stats){
+      const pct = total ? Math.round(done*100/total) : 100;
+      bar.style.width = pct+'%';
+      status.textContent = `Scanned ${done} / ${total} · updated ${stats.updated} · already-clean ${stats.skipped}`;
+    });
+    bar.style.width='100%';
+    status.innerHTML = `<b style="color:var(--gold-300)">Done.</b> ${result.total} questions scanned · ${result.updated} updated · ${result.skipped} already clean.`;
+    toast(`Migration complete: ${result.updated} updated`, 'success');
+    await refreshQuestions();
+  }catch(e){
+    console.error('[migration] failed', e);
+    status.innerHTML = `<span style="color:#ffb3b3">Migration failed: ${escapeHtml(e.message||String(e))}</span>`;
+    toast('Migration failed: '+e.message,'danger');
+  }finally{
+    btn.disabled=false; btn.querySelector('span').textContent='Repair / Migrate All Questions';
+  }
+}
+
+/* ============ TABS ============ */
+function showTab(tab){
+  const map={dashboard:'dashboardSection', manager:'questionManagerSection', livetests:'liveTestsSection', masterdata:'masterDataSection'};
+  Object.values(map).forEach(id=>{const el=document.getElementById(id); if(el) el.style.display='none';});
+  const active=document.getElementById(map[tab]); if(active) active.style.display='';
+  document.querySelectorAll('.side-link').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.side-link[data-tab="'+tab+'"]').forEach(x=>x.classList.add('active'));
+  if(window.innerWidth<=900) document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(tab==='masterdata') refreshMasterData();
+}
+
+/* ============ MASTER DATA ============ */
+let mdClasses=[], mdSubjects=[], mdChapters=[];
+let editingClassId=null, editingSubjectId=null, editingChapterId=null;
+
+async function refreshMasterData(){
+  startLoad();
+  try{
+    mdClasses = await AdminData.listAllClasses();
+    fillMasterClassSelects();
+    renderMasterClasses();
+    await renderMasterSubjects();
+    await onMasterChapterClassChange();
+  }catch(e){ toast('Master data load failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+function fillMasterClassSelects(){
+  const opts = '<option value="">Select Class</option>' +
+    mdClasses.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.label)}${c.active===false?' (inactive)':''}</option>`).join('');
+  ['msClass','mhClass'].forEach(id=>{ const el=document.getElementById(id); if(el){ const cur=el.value; el.innerHTML=opts; el.value=cur; } });
+}
+function classLabel(id){ const c=mdClasses.find(x=>x.id===id); return c?c.label:id; }
+function subjLabel(id){ const s=mdSubjects.find(x=>x.id===id); return s?s.label:id; }
+
+/* Classes */
+function renderMasterClasses(){
+  const body=document.getElementById('mcTableBody');
+  if(!mdClasses.length){ body.innerHTML='<tr><td colspan="5" class="empty">No classes yet</td></tr>'; return; }
+  body.innerHTML = mdClasses.map(c=>`
+    <tr>
+      <td style="color:#fff;font-weight:500">${escapeHtml(c.label||'')}</td>
+      <td style="font-size:12px;color:var(--ink-mute)">${escapeHtml(c.id)}</td>
+      <td>${c.order||0}</td>
+      <td>${c.active===false?'<span class="badge b-hard">Inactive</span>':'<span class="badge b-easy">Active</span>'}</td>
+      <td><div class="row-actions">
+        <button title="Edit" onclick="editMasterClass('${c.id}')"><i class="fa-solid fa-pen"></i></button>
+        <button title="${c.active===false?'Activate':'Deactivate'}" onclick="toggleMasterClass('${c.id}',${c.active===false})"><i class="fa-solid fa-${c.active===false?'toggle-off':'toggle-on'}"></i></button>
+        <button title="Delete" onclick="deleteMasterClass('${c.id}')"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+}
+async function saveMasterClass(){
+  const label=val('mcLabel'); const order=Number(val('mcOrder'))||0;
+  if(!label) return toast('Label is required','danger');
+  startLoad();
+  try{
+    if(editingClassId){ await AdminData.updateClass(editingClassId,{label,order}); toast('Class updated','success'); }
+    else{ await AdminData.saveClass({label,order,active:true}); toast('Class added','success'); }
+    resetMasterClass(); classesCache = await AdminData.listClasses();
+    fillClassSelect('fClass', classesCache); fillClassSelect('tClass', classesCache);
+    await refreshMasterData();
+  }catch(e){ toast('Save failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+function editMasterClass(id){
+  const c=mdClasses.find(x=>x.id===id); if(!c) return;
+  editingClassId=id; setVal('mcLabel',c.label); setVal('mcOrder',c.order||0);
+  document.getElementById('mcSaveLbl').textContent='Update Class';
+}
+function resetMasterClass(){
+  editingClassId=null; setVal('mcLabel',''); setVal('mcOrder',0);
+  document.getElementById('mcSaveLbl').textContent='Add Class';
+}
+async function toggleMasterClass(id,next){
+  startLoad();
+  try{ await AdminData.updateClass(id,{active:next}); toast(next?'Activated':'Deactivated','success'); await refreshMasterData(); classesCache=await AdminData.listClasses(); fillClassSelect('fClass',classesCache); fillClassSelect('tClass',classesCache); }
+  catch(e){ toast('Failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+async function deleteMasterClass(id){
+  if(!confirm('Delete this class? Subjects and chapters under it will remain but become orphaned.')) return;
+  startLoad();
+  try{ await AdminData.deleteClass(id); toast('Class deleted','success'); await refreshMasterData(); classesCache=await AdminData.listClasses(); fillClassSelect('fClass',classesCache); fillClassSelect('tClass',classesCache); }
+  catch(e){ toast('Delete failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+
+/* Subjects */
+async function renderMasterSubjects(){
+  const cls=val('msClass'); const body=document.getElementById('msTableBody');
+  if(!cls){ mdSubjects=[]; body.innerHTML='<tr><td colspan="5" class="empty">Select a class</td></tr>'; return; }
+  try{
+    mdSubjects = await AdminData.listAllSubjects(cls);
+    if(!mdSubjects.length){ body.innerHTML='<tr><td colspan="5" class="empty">No subjects yet for this class</td></tr>'; return; }
+    body.innerHTML = mdSubjects.map(s=>`
+      <tr>
+        <td style="color:#fff;font-weight:500">${escapeHtml(s.label||'')}</td>
+        <td style="font-size:12px">${escapeHtml(classLabel(s.classId))}</td>
+        <td>${s.order||0}</td>
+        <td>${s.active===false?'<span class="badge b-hard">Inactive</span>':'<span class="badge b-easy">Active</span>'}</td>
+        <td><div class="row-actions">
+          <button title="Edit" onclick="editMasterSubject('${s.id}')"><i class="fa-solid fa-pen"></i></button>
+          <button title="${s.active===false?'Activate':'Deactivate'}" onclick="toggleMasterSubject('${s.id}',${s.active===false})"><i class="fa-solid fa-${s.active===false?'toggle-off':'toggle-on'}"></i></button>
+          <button title="Delete" onclick="deleteMasterSubject('${s.id}')"><i class="fa-solid fa-trash"></i></button>
+        </div></td>
+      </tr>`).join('');
+  }catch(e){ body.innerHTML=`<tr><td colspan="5" class="empty">Load failed: ${escapeHtml(e.message)}</td></tr>`; }
+}
+async function saveMasterSubject(){
+  const classId=val('msClass'), label=val('msLabel'), order=Number(val('msOrder'))||0;
+  if(!classId) return toast('Select a class','danger');
+  if(!label) return toast('Label is required','danger');
+  startLoad();
+  try{
+    if(editingSubjectId){ await AdminData.updateSubject(editingSubjectId,{classId,label,order}); toast('Subject updated','success'); }
+    else{ await AdminData.saveSubject({classId,label,order,active:true}); toast('Subject added','success'); }
+    resetMasterSubject(); await renderMasterSubjects();
+  }catch(e){ toast('Save failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+function editMasterSubject(id){
+  const s=mdSubjects.find(x=>x.id===id); if(!s) return;
+  editingSubjectId=id; setVal('msClass',s.classId); setVal('msLabel',s.label); setVal('msOrder',s.order||0);
+  document.getElementById('msSaveLbl').textContent='Update Subject';
+}
+function resetMasterSubject(){
+  editingSubjectId=null; setVal('msLabel',''); setVal('msOrder',0);
+  document.getElementById('msSaveLbl').textContent='Add Subject';
+}
+async function toggleMasterSubject(id,next){
+  startLoad();
+  try{ await AdminData.updateSubject(id,{active:next}); toast(next?'Activated':'Deactivated','success'); await renderMasterSubjects(); }
+  catch(e){ toast('Failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+async function deleteMasterSubject(id){
+  if(!confirm('Delete this subject?')) return;
+  startLoad();
+  try{ await AdminData.deleteSubject(id); toast('Subject deleted','success'); await renderMasterSubjects(); }
+  catch(e){ toast('Delete failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+
+/* Chapters */
+async function onMasterChapterClassChange(){
+  const cls=val('mhClass'); const sub=document.getElementById('mhSubject');
+  sub.innerHTML='<option value="">Select Subject</option>';
+  if(!cls){ document.getElementById('mhTableBody').innerHTML='<tr><td colspan="5" class="empty">Select class &amp; subject</td></tr>'; return; }
+  try{
+    const subs = await AdminData.listAllSubjects(cls);
+    sub.innerHTML='<option value="">Select Subject</option>'+subs.map(s=>`<option value="${escapeHtml(s.id)}">${escapeHtml(s.label)}${s.active===false?' (inactive)':''}</option>`).join('');
+    mdSubjects = subs;
+  }catch(e){ toast('Subjects load failed','danger'); }
+  await renderMasterChapters();
+}
+async function renderMasterChapters(){
+  const cls=val('mhClass'), sub=val('mhSubject');
+  const body=document.getElementById('mhTableBody');
+  if(!cls||!sub){ mdChapters=[]; body.innerHTML='<tr><td colspan="5" class="empty">Select class &amp; subject</td></tr>'; return; }
+  try{
+    mdChapters = await AdminData.listAllChapters(cls,sub);
+    if(!mdChapters.length){ body.innerHTML='<tr><td colspan="5" class="empty">No chapters yet</td></tr>'; return; }
+    body.innerHTML = mdChapters.map(c=>`
+      <tr>
+        <td style="color:#fff;font-weight:500">${escapeHtml(c.title||'')}</td>
+        <td style="font-size:12px">${escapeHtml(classLabel(c.classId))} / ${escapeHtml(subjLabel(c.subjectId))}</td>
+        <td>${c.order||0}</td>
+        <td>${c.active===false?'<span class="badge b-hard">Inactive</span>':'<span class="badge b-easy">Active</span>'}</td>
+        <td><div class="row-actions">
+          <button title="Edit" onclick="editMasterChapter('${c.id}')"><i class="fa-solid fa-pen"></i></button>
+          <button title="${c.active===false?'Activate':'Deactivate'}" onclick="toggleMasterChapter('${c.id}',${c.active===false})"><i class="fa-solid fa-${c.active===false?'toggle-off':'toggle-on'}"></i></button>
+          <button title="Delete" onclick="deleteMasterChapter('${c.id}')"><i class="fa-solid fa-trash"></i></button>
+        </div></td>
+      </tr>`).join('');
+  }catch(e){ body.innerHTML=`<tr><td colspan="5" class="empty">Load failed: ${escapeHtml(e.message)}</td></tr>`; }
+}
+async function saveMasterChapter(){
+  const classId=val('mhClass'), subjectId=val('mhSubject'), title=val('mhTitle'), order=Number(val('mhOrder'))||0;
+  if(!classId||!subjectId) return toast('Select class and subject','danger');
+  if(!title) return toast('Title is required','danger');
+  startLoad();
+  try{
+    if(editingChapterId){ await AdminData.updateChapter(editingChapterId,{classId,subjectId,title,order}); toast('Chapter updated','success'); }
+    else{ await AdminData.saveChapter({classId,subjectId,title,order,active:true}); toast('Chapter added','success'); }
+    resetMasterChapter(); await renderMasterChapters();
+  }catch(e){ toast('Save failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+function editMasterChapter(id){
+  const c=mdChapters.find(x=>x.id===id); if(!c) return;
+  editingChapterId=id;
+  setVal('mhClass',c.classId);
+  onMasterChapterClassChange().then(()=>{ setVal('mhSubject',c.subjectId); renderMasterChapters(); });
+  setVal('mhTitle',c.title); setVal('mhOrder',c.order||0);
+  document.getElementById('mhSaveLbl').textContent='Update Chapter';
+}
+function resetMasterChapter(){
+  editingChapterId=null; setVal('mhTitle',''); setVal('mhOrder',0);
+  document.getElementById('mhSaveLbl').textContent='Add Chapter';
+}
+async function toggleMasterChapter(id,next){
+  startLoad();
+  try{ await AdminData.updateChapter(id,{active:next}); toast(next?'Activated':'Deactivated','success'); await renderMasterChapters(); }
+  catch(e){ toast('Failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+async function deleteMasterChapter(id){
+  if(!confirm('Delete this chapter?')) return;
+  startLoad();
+  try{ await AdminData.deleteChapter(id); toast('Chapter deleted','success'); await renderMasterChapters(); }
+  catch(e){ toast('Delete failed: '+e.message,'danger'); }
+  finally{ stopLoad(); }
+}
+</script>
+
+</body>
+</html>
