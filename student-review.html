@@ -1,0 +1,195 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="student-styles.css">
+<link rel="icon" href="ultimate-logo.PNG"/>
+<title>Answer Review — PEEngine</title>
+<style>
+.review-hdr{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}
+.stat-box{background:rgba(15,33,72,.6);border:1px solid var(--glass-border);border-radius:10px;padding:12px}
+.stat-box .l{color:var(--ink-mute);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.stat-box .n{font-family:'Playfair Display',serif;font-size:22px;color:#d4af37;margin-top:4px}
+.review-card{background:rgba(15,33,72,.5);border:1px solid var(--glass-border);border-radius:14px;padding:20px;margin-bottom:14px}
+.opt-row{padding:12px 14px;border:1px solid var(--glass-border);border-radius:10px;margin:8px 0;display:flex;gap:12px;align-items:flex-start}
+.opt-letter{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.06);color:#fff;display:grid;place-items:center;font-weight:700;flex:0 0 auto}
+.opt-row.correct{background:rgba(46,204,113,.14);border-color:#2ecc71}
+.opt-row.wrong{background:rgba(231,76,60,.14);border-color:#e74c3c}
+.opt-row .tag{margin-left:auto;font-size:11px;padding:3px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.opt-row.correct .tag{background:#2ecc71;color:#08331d}
+.opt-row.wrong .tag{background:#e74c3c;color:#fff}
+.expl{margin-top:12px;padding:12px 14px;border-left:3px solid #d4af37;background:rgba(212,175,55,.08);border-radius:6px;color:#dbe4ff;font-size:14px;line-height:1.6}
+.nav-bar{display:flex;gap:10px;justify-content:space-between;margin:20px 0;flex-wrap:wrap}
+.qmeta{color:var(--ink-mute);font-size:13px;margin-bottom:6px}
+</style></head><body>
+<header class="topbar">
+  <div class="brand"><div class="logo"><i class="fa-solid fa-clipboard-check"></i></div><h1>Answer <span>Review</span></h1></div>
+  <nav class="nav">
+    <a class="btn ghost" href="student-dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a>
+    <a class="btn ghost" id="backBtn" href="student-my-results.html">My Results</a>
+  </nav>
+</header>
+<div id="stats"></div>
+<div id="reviewWrap"><p class="empty">Loading review…</p></div>
+<div class="nav-bar" id="navBar" style="display:none">
+  <button class="btn" id="prevBtn"><i class="fa-solid fa-chevron-left"></i> Previous</button>
+  <span id="qCount" class="meta"></span>
+  <button class="btn primary" id="nextBtn">Next <i class="fa-solid fa-chevron-right"></i></button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/admin-data.js"></script>
+<script src="config/student-data.js"></script>
+<script src="config/practice-data.js"></script>
+<script src="js/pec-upgrades.js"></script>
+<script>
+(function(){
+  var params = new URLSearchParams(location.search);
+  var id = params.get('id');
+  var type = (params.get('type')||'practice').toLowerCase();
+  var idx = Math.max(0, parseInt(params.get('q')||'0',10));
+  var attempt=null, questions=[], rank=null;
+
+  function esc(s){ return (window.PEC?PEC.esc(s):String(s==null?'':s)); }
+  function fmtTime(sec){ sec=Number(sec)||0; var m=Math.floor(sec/60), s=sec%60; return m+'m '+String(s).padStart(2,'0')+'s'; }
+
+  async function loadAttempt(){
+    var db = firebase.firestore();
+    var col = (type==='live') ? 'student_attempts' : 'practice_attempts';
+    var snap = await db.collection(col).doc(id).get();
+    if (!snap.exists){
+      // Fallback: search the other collection.
+      col = (col==='practice_attempts') ? 'student_attempts' : 'practice_attempts';
+      snap = await db.collection(col).doc(id).get();
+    }
+    if (!snap.exists) return null;
+    return Object.assign({id:snap.id, __col:col}, snap.data());
+  }
+
+  async function loadQuestions(qids){
+    var db = firebase.firestore();
+    var out = [];
+    // Firestore has no bulk get by ids in compat; sequential is fine for <100 items.
+    for (var i=0;i<qids.length;i++){
+      try {
+        var s = await db.collection('questions').doc(qids[i]).get();
+        if (s.exists) out.push(Object.assign({id:s.id}, s.data()));
+        else out.push({ id:qids[i], missing:true });
+      } catch(e){ out.push({ id:qids[i], missing:true }); }
+    }
+    return out;
+  }
+
+  async function computeRank(){
+    if (!attempt || !attempt.testId) return null;
+    try {
+      var col = attempt.__col;
+      var snap = await firebase.firestore().collection(col).where('testId','==',attempt.testId).get();
+      var rows = snap.docs
+        .map(function(d){ return Object.assign({id:d.id}, d.data()); })
+        .filter(function(r){ return (r.status||'pending')!=='rejected'; });
+      // Best score per student
+      var best = {};
+      rows.forEach(function(r){ var u=r.studentId||r.id; if(!best[u] || (r.score||0)>(best[u].score||0)) best[u]=r; });
+      var arr = Object.keys(best).map(function(k){ return best[k]; });
+      arr.sort(function(a,b){
+        if ((b.score||0)!==(a.score||0)) return (b.score||0)-(a.score||0);
+        return (a.durationSec||0)-(b.durationSec||0);
+      });
+      for (var i=0;i<arr.length;i++) if (arr[i].studentId===attempt.studentId){ return { rank:i+1, of:arr.length }; }
+    } catch(e){ console.warn('rank', e); }
+    return null;
+  }
+
+  function renderStats(){
+    var total = attempt.total || questions.length || 0;
+    var correct = attempt.correct || 0;
+    var wrong = attempt.wrong || 0;
+    var attempted = (attempt.answers||[]).filter(function(a){ return a.picked; }).length;
+    var unatt = Math.max(0, total - attempted);
+    var pct = attempt.percent || 0;
+    document.getElementById('stats').innerHTML =
+      '<div class="review-hdr">'
+      + '<div class="stat-box"><div class="l">Total Score</div><div class="n">'+(attempt.score||0)+' / '+(attempt.maxMarks||0)+'</div></div>'
+      + '<div class="stat-box"><div class="l">Percentage</div><div class="n">'+Number(pct).toFixed(2)+'%</div></div>'
+      + '<div class="stat-box"><div class="l">Correct</div><div class="n" style="color:#2ecc71">'+correct+'</div></div>'
+      + '<div class="stat-box"><div class="l">Wrong</div><div class="n" style="color:#e74c3c">'+wrong+'</div></div>'
+      + '<div class="stat-box"><div class="l">Unattempted</div><div class="n">'+unatt+'</div></div>'
+      + '<div class="stat-box"><div class="l">Time Taken</div><div class="n">'+fmtTime(attempt.durationSec||0)+'</div></div>'
+      + '<div class="stat-box"><div class="l">Rank</div><div class="n">'+(rank?('#'+rank.rank+' / '+rank.of):'—')+'</div></div>'
+      + '</div>';
+  }
+
+  function renderQuestion(){
+    var wrap = document.getElementById('reviewWrap');
+    var ans = (attempt.answers||[])[idx];
+    var q = questions[idx];
+    if (!q){ wrap.innerHTML='<p class="empty">Question data not available.</p>'; return; }
+    if (q.missing){
+      wrap.innerHTML = '<div class="review-card"><div class="qmeta">Question '+(idx+1)+' of '+questions.length+'</div><p class="empty">Original question was removed from the bank.</p></div>';
+    } else {
+      var picked = ans && ans.picked; // 'A' | 'B' | 'C' | 'D'
+      // Support every legacy + modern schema variant so options are never blank.
+      var correct = (q.correctAnswer || q.correct || q.answer || q.ans || '').toString().toUpperCase();
+      function pick(){ for (var i=0;i<arguments.length;i++){ var v=arguments[i]; if (v!=null && v!=='' ) return v; } return ''; }
+      var oArr = q.options || q.opts || null;
+      var opts = [
+        { L:'A', txt: pick(q.optionA, q.option_a, q.OptionA, q.a, q.A, oArr && oArr[0]) },
+        { L:'B', txt: pick(q.optionB, q.option_b, q.OptionB, q.b, q.B, oArr && oArr[1]) },
+        { L:'C', txt: pick(q.optionC, q.option_c, q.OptionC, q.c, q.C, oArr && oArr[2]) },
+        { L:'D', txt: pick(q.optionD, q.option_d, q.OptionD, q.d, q.D, oArr && oArr[3]) }
+      ];
+      var html = '<div class="review-card">'
+        + '<div class="qmeta">Question '+(idx+1)+' of '+questions.length+'</div>'
+        + '<h3 style="margin:6px 0 12px;font-family:Playfair Display,serif">'+esc(q.question||q.text||q.questionText||q.q||'—')+'</h3>';
+      opts.forEach(function(o){
+        var isCorrect = (o.L===correct);
+        var isPicked  = (picked && o.L===picked);
+        var cls='';
+        if (isCorrect) cls='correct';
+        else if (isPicked) cls='wrong';
+        var tag='';
+        if (isCorrect && isPicked) tag='<span class="tag">✓ Your Answer (Correct)</span>';
+        else if (isCorrect)        tag='<span class="tag">✓ Correct Answer</span>';
+        else if (isPicked)         tag='<span class="tag">✗ Your Answer</span>';
+        html += '<div class="opt-row '+cls+'"><div class="opt-letter">'+o.L+'</div><div style="flex:1">'+esc(o.txt||'—')+'</div>'+tag+'</div>';
+      });
+      if (!picked){ html += '<p class="meta" style="margin-top:8px;color:#e67e22"><i class="fa-solid fa-circle-info"></i> You did not attempt this question.</p>'; }
+      else if (picked && picked!==correct){ html += '<p class="meta" style="margin-top:8px;color:#e74c3c"><i class="fa-solid fa-xmark"></i> Your answer was incorrect.</p>'; }
+      else { html += '<p class="meta" style="margin-top:8px;color:#2ecc71"><i class="fa-solid fa-check"></i> Correct!</p>'; }
+      var _expl = q.explanation || q.explaination || q.solution || ''; if (_expl) html += '<div class="expl"><b>Explanation:</b> '+esc(_expl)+'</div>';
+      html += '</div>';
+      wrap.innerHTML = html;
+    }
+    document.getElementById('qCount').textContent = 'Question '+(idx+1)+' of '+questions.length;
+    document.getElementById('navBar').style.display='flex';
+    document.getElementById('prevBtn').disabled = idx<=0;
+    document.getElementById('nextBtn').disabled = idx>=questions.length-1;
+  }
+
+  function bindNav(){
+    document.getElementById('prevBtn').addEventListener('click', function(){ if(idx>0){ idx--; renderQuestion(); }});
+    document.getElementById('nextBtn').addEventListener('click', function(){ if(idx<questions.length-1){ idx++; renderQuestion(); }});
+    document.addEventListener('keydown', function(e){
+      if (e.key==='ArrowLeft'  && idx>0){ idx--; renderQuestion(); }
+      if (e.key==='ArrowRight' && idx<questions.length-1){ idx++; renderQuestion(); }
+    });
+  }
+
+  Student.onChange(async function(u){
+    if(!u){ location.href='student-login.html'; return; }
+    if(!id){ document.getElementById('reviewWrap').innerHTML='<p class="empty">Missing attempt id.</p>'; return; }
+    attempt = await loadAttempt();
+    if (!attempt){ document.getElementById('reviewWrap').innerHTML='<p class="empty">Attempt not found.</p>'; return; }
+    var qids = (attempt.answers||[]).map(function(a){ return a.qid; }).filter(Boolean);
+    questions = await loadQuestions(qids);
+    rank = await computeRank();
+    renderStats();
+    renderQuestion();
+    bindNav();
+  });
+})();
+</script></body></html>
