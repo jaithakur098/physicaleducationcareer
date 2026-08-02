@@ -1,0 +1,45 @@
+User-agent: *
+Allow: /
+
+Disallow: /Ready.admission.html
+Disallow: /admin-login.html
+Disallow: /admin-students.html
+Disallow: /admin.html
+Disallow: /certificate-verify.html
+Disallow: /certificate.html
+Disallow: /class-selection.html
+Disallow: /coming-soon.html
+Disallow: /dashboard.html
+Disallow: /live-test-admin.html
+Disallow: /live-test.html
+Disallow: /practice-test-admin.html
+Disallow: /student-analytics.html
+Disallow: /student-attempt.html
+Disallow: /student-certificate.html
+Disallow: /student-dashboard.html
+Disallow: /student-details.html
+Disallow: /student-forgot.html
+Disallow: /student-leaderboard.html
+Disallow: /student-live-tests.html
+Disallow: /student-login.html
+Disallow: /student-my-results.html
+Disallow: /student-practice-attempt.html
+Disallow: /student-practice-leaderboard.html
+Disallow: /student-practice-result.html
+Disallow: /student-practice-tests.html
+Disallow: /student-profile.html
+Disallow: /student-register.html
+Disallow: /student-result.html
+Disallow: /student-review.html
+Disallow: /test.html
+
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: AdsBot-Google-Mobile
+Allow: /
+
+Sitemap: https://physicaleducationcareer.in/sitemap.xml
