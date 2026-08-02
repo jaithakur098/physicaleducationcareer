@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🏆 Alwar Cup Championship — Tournament Portal | Physical Education Career</title>
+<meta name="description" content="Official Alwar Cup Championship portal — live results, medal tally, category-wise draws, player search, coach registration and certificate verification." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tournament.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/tournament-config.js"></script>
+<script src="js/tournament-core.js"></script>
+</head>
+<body class="t-page">
+
+<header class="t-top">
+  <div class="t-wrap t-top-in">
+    <a class="t-brand" href="tournament.html">
+      <span class="t-brand-mark">🏆</span>
+      <span><b>ALWAR CUP CHAMPIONSHIP</b><small>Official Tournament Portal</small></span>
+    </a>
+    <nav class="t-topnav">
+      <a href="#tournaments" class="active">Tournaments</a>
+      <a href="#results">Live Results</a>
+      <a href="#draws">Draw Sheets</a>
+      <a href="#medals">Medal Tally</a>
+      <a href="#search">Player Search</a>
+      <a href="tournament-verify.html">Verify Certificate</a>
+      <a href="index.html">← Main Website</a>
+    </nav>
+    <div class="t-row">
+      <a class="t-btn t-btn-ghost t-btn-sm" href="tournament-coach.html">Coach Login</a>
+      <a class="t-btn t-btn-gold t-btn-sm" href="tournament-coach.html">Register Players</a>
+    </div>
+  </div>
+</header>
+
+<section class="t-section">
+  <div class="t-wrap">
+    <span class="t-eyebrow">Championship Portal</span>
+    <h1 style="font-size:38px;color:#fff;margin:14px 0 10px">🏆 Alwar Cup Championship</h1>
+    <p style="color:var(--t-ink-soft);max-width:760px;font-size:15.5px">
+      Complete tournament management — online player registration by coaches, automatic age &amp; weight
+      categorisation, official ID cards, category draws, live results, medal tally and digital certificates.
+    </p>
+    <div class="t-row" style="margin-top:18px">
+      <a class="t-btn t-btn-gold" href="tournament-coach.html">Coach Login / Register Players</a>
+      <a class="t-btn t-btn-ghost" href="#results">View Live Results</a>
+      <a class="t-btn t-btn-ghost" href="tournament-verify.html">Verify a Certificate</a>
+    </div>
+
+    <div class="t-grid t-g4" style="margin-top:26px">
+      <div class="t-stat"><div class="n" id="stTournaments">0</div><div class="l">Tournaments</div></div>
+      <div class="t-stat"><div class="n" id="stPlayers">0</div><div class="l">Registered Players</div></div>
+      <div class="t-stat"><div class="n" id="stAcademies">0</div><div class="l">Academies</div></div>
+      <div class="t-stat"><div class="n" id="stMedals">0</div><div class="l">Medals Awarded</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="t-section" id="tournaments">
+  <div class="t-wrap">
+    <div class="t-sec-head"><h2>Tournaments</h2><p>Upcoming, live and completed championships.</p></div>
+    <div id="tourList" class="t-grid t-g3"><div class="t-loader">Loading tournaments…</div></div>
+  </div>
+</section>
+
+<section class="t-section" id="results">
+  <div class="t-wrap">
+    <div class="t-sec-head"><h2>Live Results</h2><p>Category-wise winners update instantly as the admin publishes them.</p></div>
+    <div class="t-card">
+      <div class="t-grid t-g3">
+        <div class="t-field"><label>Tournament</label><select id="rTour" class="t-select"></select></div>
+        <div class="t-field"><label>Age Category</label><select id="rAge" class="t-select"><option value="">All</option></select></div>
+        <div class="t-field"><label>Gender</label><select id="rGender" class="t-select"><option value="">All</option><option value="male">Boys</option><option value="female">Girls</option></select></div>
+      </div>
+      <div id="resultBox" style="margin-top:6px"><div class="t-empty">Select a tournament.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="t-section" id="draws">
+  <div class="t-wrap">
+    <div class="t-sec-head"><h2>Draw Sheets</h2><p>Official single-elimination draws published by the organising committee.</p></div>
+    <div class="t-card">
+      <div class="t-row">
+        <div class="t-field" style="margin:0;flex:1;min-width:240px"><label>Category</label><select id="dCat" class="t-select"><option value="">— Select a published draw —</option></select></div>
+        <button class="t-btn t-btn-ghost" id="dPrint" style="align-self:flex-end">Print / PDF</button>
+      </div>
+      <div id="drawBox" style="margin-top:16px"><div class="t-empty">Select a tournament above to load published draws.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="t-section" id="medals">
+  <div class="t-wrap">
+    <div class="t-sec-head"><h2>Medal Tally</h2><p>Gold 5 pts · Silver 3 pts · Bronze 1 pt.</p></div>
+    <div class="t-card">
+      <div class="t-tabs">
+        <div class="t-tab active" data-mt="academy">By Academy</div>
+        <div class="t-tab" data-mt="district">By District</div>
+        <div class="t-tab" data-mt="state">By State</div>
+      </div>
+      <div id="medalBox"><div class="t-empty">Select a tournament above.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="t-section" id="search">
+  <div class="t-wrap">
+    <div class="t-sec-head"><h2>Player Search</h2><p>Search by name, registration number, academy, district or category.</p></div>
+    <div class="t-card">
+      <div class="t-row">
+        <input id="pSearch" class="t-input" style="flex:1;min-width:220px" placeholder="Search players…">
+        <button class="t-btn t-btn-gold" id="pSearchBtn">Search</button>
+      </div>
+      <div id="searchBox" style="margin-top:14px"><div class="t-empty">Type a name or registration number.</div></div>
+    </div>
+  </div>
+</section>
+
+<footer class="t-foot">
+  <div class="t-wrap">🏆 Alwar Cup Championship · A module of Physical Education Career · <a href="index.html" style="color:var(--t-gold-3)">Back to main website</a></div>
+</footer>
+
+<script>
+(function(){
+  var T = window.TCore, E = T.esc;
+  var state = { tournaments:[], players:[], results:[], draws:[], medalMode:'academy', tid:'' };
+
+  function statusChip(s){
+    if(s==='live') return '<span class="t-chip live">LIVE</span>';
+    if(s==='completed') return '<span class="t-chip ok">Completed</span>';
+    return '<span class="t-chip warn">Upcoming</span>';
+  }
+
+  function renderTournaments(){
+    var box=document.getElementById('tourList');
+    if(!state.tournaments.length){ box.innerHTML='<div class="t-empty">No tournaments published yet.</div>'; return; }
+    box.innerHTML = state.tournaments.map(function(t){
+      return '<div class="t-card">'+
+        '<div class="t-row" style="justify-content:space-between"><span class="t-eyebrow">'+E(t.sport||'Championship')+'</span>'+statusChip(t.status)+'</div>'+
+        '<h3 style="margin-top:10px">'+E(t.name||'Untitled')+'</h3>'+
+        '<div class="t-sub">'+E(t.venue||'Venue TBA')+' · '+T.fmtDate(t.date)+'</div>'+
+        '<p style="color:var(--t-ink-soft);font-size:13.5px;margin:10px 0 0">'+E(t.description||'')+'</p>'+
+        '<div class="t-row" style="margin-top:14px">'+
+          '<a class="t-btn t-btn-gold t-btn-sm" href="tournament-coach.html?t='+encodeURIComponent(t.id)+'">Register Players</a>'+
+          '<button class="t-btn t-btn-ghost t-btn-sm" data-jump="'+E(t.id)+'">View Results</button>'+
+        '</div></div>';
+    }).join('');
+    box.querySelectorAll('[data-jump]').forEach(function(b){
+      b.onclick=function(){ document.getElementById('rTour').value=b.dataset.jump; loadTournamentData(b.dataset.jump);
+        document.getElementById('results').scrollIntoView({behavior:'smooth'}); };
+    });
+  }
+
+  function fillTourSelect(){
+    var sel=document.getElementById('rTour');
+    sel.innerHTML='<option value="">— Select tournament —</option>'+state.tournaments.map(function(t){
+      return '<option value="'+E(t.id)+'">'+E(t.name||'Untitled')+'</option>'; }).join('');
+  }
+
+  function fillAgeSelect(){
+    var r=T.getRules().ageRules, s=document.getElementById('rAge');
+    s.innerHTML='<option value="">All</option>'+r.map(function(a){return '<option value="'+E(a.key)+'">'+E(a.name)+'</option>';}).join('');
+  }
+
+  function loadTournamentData(tid){
+    state.tid=tid;
+    if(!tid){ document.getElementById('resultBox').innerHTML='<div class="t-empty">Select a tournament.</div>'; return; }
+    document.getElementById('resultBox').innerHTML='<div class="t-loader">Loading results…</div>';
+    Promise.all([T.listPlayers({tournamentId:tid}), T.listResults(tid)]).then(function(r){
+      state.players=r[0]; state.results=r[1];
+      renderResults(); renderMedals();
+    });
+    if(window.__unsubRes) window.__unsubRes();
+    window.__unsubRes = T.watchResults(tid, function(res){ state.results=res; renderResults(); renderMedals(); });
+    if(window.__unsubDraw) window.__unsubDraw();
+    window.__unsubDraw = T.watchDraws(tid, function(ds){ state.draws=ds; fillDrawSelect(); renderDraw(); });
+  }
+
+  function fillDrawSelect(){
+    var sel=document.getElementById('dCat'), cur=sel.value;
+    var list=(state.draws||[]).slice().sort(function(a,b){ return String(a.categoryLabel).localeCompare(String(b.categoryLabel)); });
+    sel.innerHTML='<option value="">— Select a published draw —</option>'+list.map(function(d){
+      return '<option value="'+E(d.id)+'">'+E(d.categoryLabel||d.id)+' ('+(d.entries||0)+' entries)</option>'; }).join('');
+    if(cur) sel.value=cur;
+  }
+
+  function drawHTML(){
+    var id=document.getElementById('dCat').value;
+    var d=(state.draws||[]).filter(function(x){return x.id===id;})[0];
+    if(!d) return '<div class="t-empty">No draw selected. Published draws appear here.</div>';
+    return '<h4 style="color:var(--t-gold-3);margin-bottom:10px">'+E(d.categoryLabel||'')+' · '+(d.entries||0)+' entries · '+(d.byes||0)+' byes</h4>'+
+      '<div class="t-bracket">'+(d.rounds||[]).map(function(r,i,arr){
+        var title=(i===arr.length-1)?'Final':(i===arr.length-2?'Semi Final':(i===arr.length-3?'Quarter Final':'Round '+(i+1)));
+        return '<div class="t-round"><h5>'+E(title)+'</h5>'+r.map(function(m){
+          function s(p){ return p? (E(p.name)+' <span style="color:var(--t-ink-mute)">· '+E(p.academy||'')+'</span>') : '<i>BYE</i>'; }
+          return '<div class="t-match"><div'+(m.a?'':' class="bye"')+'>'+s(m.a)+'</div><div'+(m.b?'':' class="bye"')+'>'+s(m.b)+'</div></div>';
+        }).join('')+'</div>';
+      }).join('')+'</div>';
+  }
+  function renderDraw(){ document.getElementById('drawBox').innerHTML=drawHTML(); }
+  document.getElementById('dCat').onchange=renderDraw;
+  document.getElementById('dPrint').onclick=function(){
+    if(!document.getElementById('dCat').value) return T.toast('Select a draw first','error');
+    T.printHTML('Draw Sheet', drawHTML(),
+      '@import url("'+location.href.replace(/[^/]*$/,'')+'tournament.css");body{background:#0a1633;color:#e9eefb}');
+  };
+
+  function pname(id){ var p=state.players.filter(function(x){return x.id===id;})[0]; return p? p.name+' ('+(p.academy||'—')+')' : '—'; }
+
+  function renderResults(){
+    var age=document.getElementById('rAge').value, g=document.getElementById('rGender').value;
+    var rows=state.results.filter(function(r){
+      return (!age||r.ageKey===age) && (!g||r.gender===g) && r.published!==false;
+    });
+    var box=document.getElementById('resultBox');
+    if(!rows.length){ box.innerHTML='<div class="t-empty">No results published for this selection yet.</div>'; return; }
+    box.innerHTML='<div class="t-table-wrap"><table class="t-table"><thead><tr>'+
+      '<th>Category</th><th>🥇 Gold</th><th>🥈 Silver</th><th>🥉 Bronze</th><th>🥉 Bronze</th></tr></thead><tbody>'+
+      rows.map(function(r){
+        return '<tr><td style="color:var(--t-gold-3);font-weight:600">'+E(r.categoryLabel||'')+'</td>'+
+          '<td>'+E(pname(r.gold))+'</td><td>'+E(pname(r.silver))+'</td>'+
+          '<td>'+E(pname(r.bronze1))+'</td><td>'+E(pname(r.bronze2))+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  }
+
+  function renderMedals(){
+    var rows=T.medalTable(state.results, state.players, state.medalMode);
+    var box=document.getElementById('medalBox');
+    if(!rows.length){ box.innerHTML='<div class="t-empty">No medals awarded yet.</div>'; return; }
+    box.innerHTML='<div class="t-table-wrap"><table class="t-table"><thead><tr><th>#</th><th>'+
+      (state.medalMode==='academy'?'Academy':state.medalMode==='district'?'District':'State')+
+      '</th><th>🥇</th><th>🥈</th><th>🥉</th><th>Points</th></tr></thead><tbody>'+
+      rows.map(function(r,i){
+        return '<tr><td>'+(i+1)+'</td><td style="color:#fff;font-weight:600">'+E(r.name)+'</td><td>'+r.gold+'</td><td>'+r.silver+'</td><td>'+r.bronze+'</td><td style="color:var(--t-gold-3);font-weight:700">'+r.points+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  }
+
+  function renderSearch(){
+    var q=document.getElementById('pSearch').value.trim().toLowerCase();
+    var box=document.getElementById('searchBox');
+    if(!q){ box.innerHTML='<div class="t-empty">Type a name or registration number.</div>'; return; }
+    box.innerHTML='<div class="t-loader">Searching…</div>';
+    T.listPlayers(state.tid?{tournamentId:state.tid}:null).then(function(all){
+      var rows=all.filter(function(p){
+        return [p.name,p.regNo,p.academy,p.district,p.state,p.categoryLabel]
+          .some(function(v){ return String(v||'').toLowerCase().indexOf(q)>-1; });
+      }).filter(function(p){ return p.status==='approved'; });
+      if(!rows.length){ box.innerHTML='<div class="t-empty">No approved players matched “'+E(q)+'”.</div>'; return; }
+      box.innerHTML='<div class="t-table-wrap"><table class="t-table"><thead><tr><th>Reg No</th><th>Name</th><th>Category</th><th>Academy</th><th>District</th></tr></thead><tbody>'+
+        rows.map(function(p){
+          return '<tr><td>'+E(p.regNo||'—')+'</td><td style="color:#fff">'+E(p.name)+'</td><td>'+E(p.categoryLabel||'—')+'</td><td>'+E(p.academy||'—')+'</td><td>'+E(p.district||'—')+'</td></tr>';
+        }).join('')+'</tbody></table></div>';
+    });
+  }
+
+  function loadStats(){
+    Promise.all([T.listPlayers(null), T.listResults(null)]).then(function(r){
+      var players=r[0], results=r[1];
+      document.getElementById('stPlayers').textContent=players.length;
+      var acad={}; players.forEach(function(p){ if(p.academy) acad[p.academy]=1; });
+      document.getElementById('stAcademies').textContent=Object.keys(acad).length;
+      var m=0; results.forEach(function(x){ ['gold','silver','bronze1','bronze2'].forEach(function(k){ if(x[k]) m++; }); });
+      document.getElementById('stMedals').textContent=m;
+    }).catch(function(){});
+  }
+
+  /* events */
+  document.getElementById('rTour').onchange=function(){ loadTournamentData(this.value); };
+  document.getElementById('rAge').onchange=renderResults;
+  document.getElementById('rGender').onchange=renderResults;
+  document.getElementById('pSearchBtn').onclick=renderSearch;
+  document.getElementById('pSearch').addEventListener('keydown',function(e){ if(e.key==='Enter') renderSearch(); });
+  document.querySelectorAll('[data-mt]').forEach(function(tab){
+    tab.onclick=function(){
+      document.querySelectorAll('[data-mt]').forEach(function(x){x.classList.remove('active');});
+      tab.classList.add('active'); state.medalMode=tab.dataset.mt; renderMedals();
+    };
+  });
+
+  /* boot */
+  T.loadCategoryRules().then(fillAgeSelect);
+  T.watchTournaments(function(list){
+    state.tournaments=list.sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')); });
+    document.getElementById('stTournaments').textContent=list.length;
+    renderTournaments(); fillTourSelect();
+    var qp=new URLSearchParams(location.search).get('t');
+    if(qp){ document.getElementById('rTour').value=qp; loadTournamentData(qp); }
+    else if(!state.tid && list.length){
+      var live=list.filter(function(t){return t.status==='live';})[0]||list[0];
+      document.getElementById('rTour').value=live.id; loadTournamentData(live.id);
+    }
+  });
+  loadStats();
+})();
+</script>
+</body>
+</html>

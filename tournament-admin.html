@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tournament Admin — 🏆 Alwar Cup Championship</title>
+<meta name="robots" content="noindex" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tournament.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/tournament-config.js"></script>
+<script src="js/tournament-core.js"></script>
+<script>
+/* ADMIN GUARD — same rule as admin.html (admins/{uid} must exist) */
+(function(){
+  var s=document.createElement('style'); s.id='__tGuard';
+  s.textContent='html,body{visibility:hidden !important}';
+  document.documentElement.appendChild(s);
+  function reject(){ location.replace('admin-login.html'); }
+  try{
+    firebase.auth().onAuthStateChanged(function(u){
+      if(!u) return reject();
+      firebase.firestore().collection('admins').doc(u.uid).get().then(function(d){
+        if(!d.exists){ firebase.auth().signOut(); return reject(); }
+        var st=document.getElementById('__tGuard'); if(st) st.remove();
+        window.__ADMIN_USER__=u;
+        if(window.__tBoot) window.__tBoot(u);
+      }).catch(reject);
+    });
+  }catch(e){ reject(); }
+})();
+</script>
+</head>
+<body class="t-page">
+
+<header class="t-top">
+  <div class="t-wrap t-top-in">
+    <a class="t-brand" href="tournament-admin.html">
+      <span class="t-brand-mark">🏆</span>
+      <span><b>ALWAR CUP CHAMPIONSHIP</b><small>Admin Control Panel</small></span>
+    </a>
+    <nav class="t-topnav">
+      <a href="admin.html">← Main Admin</a>
+      <a href="tournament.html" target="_blank">Public Portal</a>
+    </nav>
+    <div class="t-row"><button class="t-btn t-btn-ghost t-btn-sm" onclick="TCore.logout().then(function(){location.href='admin-login.html';})">Logout</button></div>
+  </div>
+</header>
+
+<section class="t-section">
+  <div class="t-wrap">
+    <div class="t-tabs">
+      <div class="t-tab active" data-tab="dash">Dashboard</div>
+      <div class="t-tab" data-tab="tours">Tournaments</div>
+      <div class="t-tab" data-tab="players">Players &amp; Approvals</div>
+      <div class="t-tab" data-tab="cats">Categories</div>
+      <div class="t-tab" data-tab="draw">Draw Generator</div>
+      <div class="t-tab" data-tab="results">Results</div>
+      <div class="t-tab" data-tab="certs">Certificates</div>
+      <div class="t-tab" data-tab="refs">Referees</div>
+      <div class="t-tab" data-tab="coaches">Coaches</div>
+    </div>
+
+    <div class="t-card" style="margin-bottom:18px">
+      <div class="t-row">
+        <div class="t-field" style="margin:0;flex:1;min-width:240px"><label>Active Tournament</label>
+          <select id="tourPick" class="t-select"></select></div>
+        <div class="t-spacer"></div>
+        <span class="t-chip" id="tourChip">—</span>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="t-panel active" id="tab-dash">
+      <div class="t-grid t-g4">
+        <div class="t-stat"><div class="n" id="dPlayers">0</div><div class="l">Players</div></div>
+        <div class="t-stat"><div class="n" id="dPending">0</div><div class="l">Pending Approval</div></div>
+        <div class="t-stat"><div class="n" id="dCoaches">0</div><div class="l">Coaches</div></div>
+        <div class="t-stat"><div class="n" id="dCats">0</div><div class="l">Active Categories</div></div>
+      </div>
+      <div class="t-card" style="margin-top:16px">
+        <h3>Category Strength</h3>
+        <div id="dashCats"><div class="t-empty">Select a tournament.</div></div>
+      </div>
+    </div>
+
+    <!-- TOURNAMENTS -->
+    <div class="t-panel" id="tab-tours">
+      <div class="t-card">
+        <h3 id="tourFormTitle">Create Tournament</h3>
+        <form id="tourForm" style="margin-top:12px">
+          <input type="hidden" name="id">
+          <div class="t-grid t-g3">
+            <div class="t-field"><label>Tournament Name *</label><input class="t-input" name="name" required placeholder="Alwar Cup Championship 2026"></div>
+            <div class="t-field"><label>Sport / Discipline</label><input class="t-input" name="sport" value="Taekwondo"></div>
+            <div class="t-field"><label>Date *</label><input class="t-input" type="date" name="date" required></div>
+            <div class="t-field"><label>Venue</label><input class="t-input" name="venue"></div>
+            <div class="t-field"><label>City / District</label><input class="t-input" name="city" value="Alwar"></div>
+            <div class="t-field"><label>Status</label><select class="t-select" name="status"><option value="upcoming">Upcoming</option><option value="live">Live</option><option value="completed">Completed</option></select></div>
+            <div class="t-field"><label>Registration Closes</label><input class="t-input" type="date" name="regClose"></div>
+            <div class="t-field"><label>Entry Fee (₹)</label><input class="t-input" type="number" name="fee" min="0"></div>
+            <div class="t-field"><label>Tournament Logo</label><input class="t-input" type="file" name="logoFile" accept="image/*"></div>
+          </div>
+          <div class="t-field"><label>Description</label><textarea class="t-textarea" name="description"></textarea></div>
+          <div class="t-row"><button class="t-btn t-btn-ghost" type="button" id="btnTourReset">Clear</button><div class="t-spacer"></div><button class="t-btn t-btn-gold" type="submit">Save Tournament</button></div>
+        </form>
+      </div>
+      <div class="t-card" style="margin-top:16px"><h3>All Tournaments</h3><div id="tourTable" style="margin-top:12px"></div></div>
+    </div>
+
+    <!-- PLAYERS -->
+    <div class="t-panel" id="tab-players">
+      <div class="t-card">
+        <div class="t-row" style="margin-bottom:12px">
+          <input id="fSearch" class="t-input" style="max-width:220px" placeholder="Search name / reg no">
+          <select id="fAge" class="t-select" style="max-width:170px"></select>
+          <select id="fGender" class="t-select" style="max-width:150px"><option value="">All Genders</option><option value="male">Boys</option><option value="female">Girls</option></select>
+          <select id="fStatus" class="t-select" style="max-width:160px"><option value="">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+          <div class="t-spacer"></div>
+          <button class="t-btn t-btn-success t-btn-sm" id="btnApprove">Approve Selected</button>
+          <button class="t-btn t-btn-danger t-btn-sm" id="btnReject">Reject Selected</button>
+          <button class="t-btn t-btn-ghost t-btn-sm" id="btnExcel">Export Excel</button>
+          <button class="t-btn t-btn-ghost t-btn-sm" id="btnCsv">Export CSV</button>
+        </div>
+        <div id="playersTable"><div class="t-empty">Select a tournament.</div></div>
+      </div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="t-panel" id="tab-cats">
+      <div class="t-card">
+        <h3>Age Categories</h3>
+        <div class="t-sub" style="margin-bottom:10px">Used to auto-assign every registration. Changes apply to new and re-saved players.</div>
+        <div id="ageEditor"></div>
+        <button class="t-btn t-btn-ghost t-btn-sm" id="btnAddAge" style="margin-top:10px">+ Add Age Category</button>
+      </div>
+      <div class="t-card" style="margin-top:16px">
+        <h3>Weight Categories</h3>
+        <div class="t-sub" style="margin-bottom:10px">Comma separated, e.g. <code>-33,-37,-41,+65</code>. A leading “+” marks the open class.</div>
+        <div id="weightEditor"></div>
+      </div>
+      <div class="t-row" style="margin-top:14px"><div class="t-spacer"></div><button class="t-btn t-btn-gold" id="btnSaveCats">Save Category Rules</button></div>
+    </div>
+
+    <!-- DRAW -->
+    <div class="t-panel" id="tab-draw">
+      <div class="t-card">
+        <div class="t-row">
+          <div class="t-field" style="margin:0;flex:1;min-width:240px"><label>Category</label><select id="drawCat" class="t-select"></select></div>
+          <div class="t-field" style="margin:0;max-width:180px"><label>Mode</label><select id="drawMode" class="t-select"><option value="random">Random</option><option value="seeded">Seeded (club separated)</option></select></div>
+          <button class="t-btn t-btn-gold" id="btnDraw" style="align-self:flex-end">Generate Draw</button>
+          <button class="t-btn t-btn-ghost" id="btnPrintDraw" style="align-self:flex-end">Print</button>
+          <button class="t-btn t-btn-success" id="btnPublishDraw" style="align-self:flex-end">Publish Draw</button>
+        </div>
+        <div id="drawBox" style="margin-top:16px"><div class="t-empty">Select a category and generate the draw.</div></div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="t-panel" id="tab-results">
+      <div class="t-card">
+        <div class="t-row">
+          <div class="t-field" style="margin:0;flex:1;min-width:240px"><label>Category</label><select id="resCat" class="t-select"></select></div>
+        </div>
+        <div id="resForm" style="margin-top:14px"><div class="t-empty">Select a category.</div></div>
+      </div>
+      <div class="t-card" style="margin-top:16px"><h3>Published Results</h3><div id="resTable" style="margin-top:12px"></div></div>
+    </div>
+
+    <!-- CERTIFICATES -->
+    <div class="t-panel" id="tab-certs">
+      <div class="t-card">
+        <div class="t-row">
+          <div class="t-field" style="margin:0;flex:1;min-width:240px"><label>Category</label><select id="certCat" class="t-select"></select></div>
+          <button class="t-btn t-btn-gold" id="btnGenCerts" style="align-self:flex-end">Generate Certificates</button>
+          <button class="t-btn t-btn-ghost" id="btnCoachCerts" style="align-self:flex-end">Coach Certificates</button>
+          <button class="t-btn t-btn-ghost" id="btnRefCerts" style="align-self:flex-end">Referee Certificates</button>
+        </div>
+        <div id="certTable" style="margin-top:16px"><div class="t-empty">No certificates yet.</div></div>
+      </div>
+    </div>
+
+    <!-- REFEREES -->
+    <div class="t-panel" id="tab-refs">
+      <div class="t-card">
+        <h3>Add Referee / Official</h3>
+        <form id="refForm" style="margin-top:12px">
+          <div class="t-grid t-g4">
+            <div class="t-field"><label>Name *</label><input class="t-input" name="name" required></div>
+            <div class="t-field"><label>Role</label><select class="t-select" name="role"><option>Referee</option><option>Judge</option><option>Chief Referee</option><option>Technical Official</option></select></div>
+            <div class="t-field"><label>Mobile</label><input class="t-input" name="phone"></div>
+            <div class="t-field"><label>District</label><input class="t-input" name="district"></div>
+          </div>
+          <div class="t-row"><div class="t-spacer"></div><button class="t-btn t-btn-gold" type="submit">Add Referee</button></div>
+        </form>
+        <div id="refTable" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <!-- COACHES -->
+    <div class="t-panel" id="tab-coaches">
+      <div class="t-card"><h3>Registered Coaches / Academies</h3><div id="coachTable" style="margin-top:12px"></div></div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="t-foot"><div class="t-wrap">🏆 Alwar Cup Championship · Admin Panel</div></footer>
+
+<script>
+(function(){
+  var T=window.TCore, E=T.esc;
+  var S={tours:[],tid:'',players:[],coaches:[],results:[],refs:[],draw:null};
+
+  document.querySelectorAll('[data-tab]').forEach(function(tab){
+    tab.onclick=function(){
+      document.querySelectorAll('[data-tab]').forEach(function(x){x.classList.remove('active');});
+      document.querySelectorAll('.t-panel').forEach(function(p){p.classList.remove('active');});
+      tab.classList.add('active'); document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
+    };
+  });
+  function tour(){ return S.tours.filter(function(t){return t.id===S.tid;})[0]||{}; }
+
+  window.__tBoot=function(){
+    T.loadCategoryRules().then(function(){ renderCatEditors(); fillAgeFilter(); });
+    T.watchTournaments(function(list){
+      S.tours=list.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
+      var sel=document.getElementById('tourPick');
+      var cur=S.tid;
+      sel.innerHTML='<option value="">— Select tournament —</option>'+S.tours.map(function(t){
+        return '<option value="'+E(t.id)+'">'+E(t.name)+' — '+T.fmtDate(t.date)+'</option>';}).join('');
+      if(!cur && S.tours.length) cur=S.tours[0].id;
+      sel.value=cur||''; if(cur) setTour(cur);
+      renderTourTable();
+    });
+    T.watchCoaches(function(list){ S.coaches=list; renderCoaches(); document.getElementById('dCoaches').textContent=list.length; });
+    T.listReferees().then(function(r){ S.refs=r; renderRefs(); });
+  };
+
+  document.getElementById('tourPick').onchange=function(){ setTour(this.value); };
+  function setTour(tid){
+    S.tid=tid;
+    document.getElementById('tourChip').textContent = tid ? (tour().status||'upcoming').toUpperCase() : '—';
+    if(window.__uP) window.__uP(); if(window.__uR) window.__uR();
+    if(!tid){ S.players=[]; S.results=[]; renderAll(); return; }
+    window.__uP=T.watchPlayers({tournamentId:tid},function(l){ S.players=l; renderAll(); });
+    window.__uR=T.watchResults(tid,function(l){ S.results=l; renderResults(); });
+    T.listCertificates({tournamentId:tid}).then(renderCerts);
+  }
+  function renderAll(){ renderPlayers(); renderDash(); fillCategorySelects(); renderResults(); }
+
+  /* ---------- dashboard ---------- */
+  function catMap(){
+    var m={};
+    S.players.filter(function(p){return p.status==='approved';}).forEach(function(p){
+      var id=T.categoryId(S.tid,p.ageKey,p.gender,p.weightCategory);
+      if(!m[id]) m[id]={id:id,label:p.categoryLabel,ageKey:p.ageKey,gender:p.gender,weight:p.weightCategory,players:[]};
+      m[id].players.push(p);
+    });
+    return m;
+  }
+  function renderDash(){
+    document.getElementById('dPlayers').textContent=S.players.length;
+    document.getElementById('dPending').textContent=S.players.filter(function(p){return (p.status||'pending')==='pending';}).length;
+    var m=catMap(), keys=Object.keys(m);
+    document.getElementById('dCats').textContent=keys.length;
+    document.getElementById('dashCats').innerHTML = keys.length
+      ? '<div class="t-table-wrap"><table class="t-table"><thead><tr><th>Category</th><th>Entries</th><th>Academies</th></tr></thead><tbody>'+
+        keys.map(function(k){ var c=m[k]; var a={}; c.players.forEach(function(p){a[p.academy]=1;});
+          return '<tr><td style="color:var(--t-gold-3)">'+E(c.label)+'</td><td>'+c.players.length+'</td><td>'+Object.keys(a).length+'</td></tr>';}).join('')+
+        '</tbody></table></div>'
+      : '<div class="t-empty">No approved players yet.</div>';
+  }
+
+  /* ---------- tournaments ---------- */
+  var logoUrl='';
+  document.querySelector('#tourForm [name=logoFile]').onchange=function(e){
+    var f=e.target.files[0]; if(!f) return;
+    T.uploadImage(f,'tournament/logos').then(function(u){ logoUrl=u; T.toast('Logo uploaded','success'); });
+  };
+  document.getElementById('btnTourReset').onclick=function(){
+    document.getElementById('tourForm').reset();
+    document.querySelector('#tourForm [name=id]').value=''; logoUrl='';
+    document.getElementById('tourFormTitle').textContent='Create Tournament';
+  };
+  document.getElementById('tourForm').onsubmit=function(e){
+    e.preventDefault(); var f=e.target;
+    var data={ name:f.name.value.trim(), sport:f.sport.value.trim(), date:f.date.value, venue:f.venue.value.trim(),
+      city:f.city.value.trim(), status:f.status.value, regClose:f.regClose.value, fee:Number(f.fee.value||0),
+      description:f.description.value.trim() };
+    if(logoUrl) data.logo=logoUrl;
+    T.saveTournament(data, f.id.value||null).then(function(){
+      T.toast('Tournament saved','success'); document.getElementById('btnTourReset').click();
+    }).catch(function(err){ T.toast(err.message,'error'); });
+  };
+  function renderTourTable(){
+    document.getElementById('tourTable').innerHTML = S.tours.length
+      ? '<div class="t-table-wrap"><table class="t-table"><thead><tr><th>Name</th><th>Date</th><th>Venue</th><th>Status</th><th></th></tr></thead><tbody>'+
+        S.tours.map(function(t){ return '<tr><td style="color:#fff">'+E(t.name)+'</td><td>'+T.fmtDate(t.date)+'</td><td>'+E(t.venue||'—')+
+          '</td><td>'+E((t.status||'upcoming').toUpperCase())+'</td><td style="white-space:nowrap">'+
+          '<button class="t-btn t-btn-ghost t-btn-sm" data-et="'+E(t.id)+'">Edit</button> '+
+          '<button class="t-btn t-btn-danger t-btn-sm" data-dt="'+E(t.id)+'">Delete</button></td></tr>';}).join('')+'</tbody></table></div>'
+      : '<div class="t-empty">No tournaments yet.</div>';
+    document.querySelectorAll('[data-et]').forEach(function(b){ b.onclick=function(){
+      var t=S.tours.filter(function(x){return x.id===b.dataset.et;})[0]; var f=document.getElementById('tourForm');
+      f.id.value=t.id; f.name.value=t.name||''; f.sport.value=t.sport||''; f.date.value=t.date||'';
+      f.venue.value=t.venue||''; f.city.value=t.city||''; f.status.value=t.status||'upcoming';
+      f.regClose.value=t.regClose||''; f.fee.value=t.fee||''; f.description.value=t.description||'';
+      document.getElementById('tourFormTitle').textContent='Edit — '+t.name;
+      window.scrollTo({top:0,behavior:'smooth'});
+    };});
+    document.querySelectorAll('[data-dt]').forEach(function(b){ b.onclick=function(){
+      if(confirm('Delete this tournament?')) T.deleteTournament(b.dataset.dt).then(function(){T.toast('Deleted','success');});
+    };});
+  }
+
+  /* ---------- players ---------- */
+  function fillAgeFilter(){
+    document.getElementById('fAge').innerHTML='<option value="">All Ages</option>'+
+      T.getRules().ageRules.map(function(a){return '<option value="'+E(a.key)+'">'+E(a.name)+'</option>';}).join('');
+  }
+  function fp(){
+    var q=document.getElementById('fSearch').value.trim().toLowerCase();
+    var a=document.getElementById('fAge').value,g=document.getElementById('fGender').value,st=document.getElementById('fStatus').value;
+    return S.players.filter(function(p){
+      if(a&&p.ageKey!==a) return false;
+      if(g&&p.gender!==g) return false;
+      if(st&&(p.status||'pending')!==st) return false;
+      if(q&&![p.name,p.regNo,p.academy,p.district].some(function(v){return String(v||'').toLowerCase().indexOf(q)>-1;})) return false;
+      return true;
+    });
+  }
+  ['fSearch','fAge','fGender','fStatus'].forEach(function(id){
+    document.getElementById(id).addEventListener('input',renderPlayers);
+    document.getElementById(id).addEventListener('change',renderPlayers);
+  });
+  function renderPlayers(){
+    var rows=fp(), box=document.getElementById('playersTable');
+    if(!S.tid){ box.innerHTML='<div class="t-empty">Select a tournament.</div>'; return; }
+    if(!rows.length){ box.innerHTML='<div class="t-empty">No players match the filters.</div>'; return; }
+    box.innerHTML='<div class="t-table-wrap"><table class="t-table"><thead><tr><th><input type="checkbox" id="ckAll"></th><th>Reg No</th><th>Player</th><th>Category</th><th>Academy</th><th>Coach</th><th>Status</th></tr></thead><tbody>'+
+      rows.map(function(p){
+        var s=p.status||'pending';
+        return '<tr><td><input type="checkbox" class="ck" value="'+E(p.id)+'"></td><td>'+E(p.regNo||'—')+
+          '</td><td style="color:#fff">'+E(p.name)+'<div class="t-hint">'+E(p.dob||'')+' · '+E(p.weight||'')+' kg</div></td>'+
+          '<td>'+E(p.categoryLabel||'—')+'</td><td>'+E(p.academy||'—')+'</td><td>'+E(p.coachName||'—')+'</td>'+
+          '<td><span class="t-chip '+(s==='approved'?'ok':s==='rejected'?'bad':'warn')+'">'+E(s)+'</span></td></tr>';
+      }).join('')+'</tbody></table></div>';
+    document.getElementById('ckAll').onclick=function(){
+      var v=this.checked; box.querySelectorAll('.ck').forEach(function(c){c.checked=v;});
+    };
+  }
+  function selected(){ return Array.prototype.slice.call(document.querySelectorAll('#playersTable .ck:checked')).map(function(c){return c.value;}); }
+  document.getElementById('btnApprove').onclick=function(){
+    var ids=selected(); if(!ids.length) return T.toast('Select players first','error');
+    T.setPlayerStatus(ids,'approved').then(function(){T.toast(ids.length+' approved','success');});
+  };
+  document.getElementById('btnReject').onclick=function(){
+    var ids=selected(); if(!ids.length) return T.toast('Select players first','error');
+    T.setPlayerStatus(ids,'rejected').then(function(){T.toast(ids.length+' rejected','success');});
+  };
+  function exportRows(){
+    return fp().map(function(p){ return { RegNo:p.regNo||'',Name:p.name,Father:p.fatherName,DOB:p.dob,Gender:p.gender,
+      Age:p.age,AgeCategory:p.ageCategory,Weight:p.weight,WeightCategory:p.weightCategory,Academy:p.academy,
+      Coach:p.coachName,District:p.district,State:p.state,Phone:p.phone,Status:p.status||'pending' };});
+  }
+  document.getElementById('btnExcel').onclick=function(){ var r=exportRows(); r.length?T.exportExcel('players',r):T.toast('Nothing to export','error'); };
+  document.getElementById('btnCsv').onclick=function(){ var r=exportRows(); r.length?T.exportCSV('players',r):T.toast('Nothing to export','error'); };
+
+  /* ---------- category editors ---------- */
+  function renderCatEditors(){
+    var r=T.getRules();
+    document.getElementById('ageEditor').innerHTML='<div class="t-table-wrap"><table class="t-table"><thead><tr><th>Key</th><th>Name</th><th>Min Age</th><th>Max Age</th></tr></thead><tbody>'+
+      r.ageRules.map(function(a,i){
+        return '<tr><td><input class="t-input ageK" data-i="'+i+'" value="'+E(a.key)+'"></td>'+
+          '<td><input class="t-input ageN" data-i="'+i+'" value="'+E(a.name)+'"></td>'+
+          '<td><input class="t-input ageMin" type="number" data-i="'+i+'" value="'+E(a.min)+'"></td>'+
+          '<td><input class="t-input ageMax" type="number" data-i="'+i+'" value="'+E(a.max)+'"></td></tr>';}).join('')+'</tbody></table></div>';
+    var keys=[]; r.ageRules.forEach(function(a){ keys.push(a.key+'_male'); keys.push(a.key+'_female'); });
+    document.getElementById('weightEditor').innerHTML=keys.map(function(k){
+      return '<div class="t-field"><label>'+E(k.replace('_',' · '))+'</label><input class="t-input wRule" data-k="'+E(k)+'" value="'+E((r.weightRules[k]||[]).join(','))+'"></div>';
+    }).join('');
+  }
+  document.getElementById('btnAddAge').onclick=function(){
+    var r=T.getRules(); r.ageRules.push({key:'new'+r.ageRules.length,name:'New Category',min:0,max:99}); renderCatEditors();
+  };
+  document.getElementById('btnSaveCats').onclick=function(){
+    var ages=[];
+    document.querySelectorAll('.ageK').forEach(function(el,i){
+      ages.push({ key:el.value.trim(), name:document.querySelectorAll('.ageN')[i].value.trim(),
+        min:Number(document.querySelectorAll('.ageMin')[i].value), max:Number(document.querySelectorAll('.ageMax')[i].value) });
+    });
+    var w={};
+    document.querySelectorAll('.wRule').forEach(function(el){
+      w[el.dataset.k]=el.value.split(',').map(function(s){return s.trim();}).filter(Boolean);
+    });
+    T.saveCategoryRules({ageRules:ages,weightRules:w}).then(function(){
+      T.toast('Category rules saved','success'); fillAgeFilter(); renderCatEditors();
+    }).catch(function(e){T.toast(e.message,'error');});
+  };
+
+  /* ---------- category selects ---------- */
+  function fillCategorySelects(){
+    var m=catMap(), opts='<option value="">— Select category —</option>'+
+      Object.keys(m).map(function(k){ return '<option value="'+E(k)+'">'+E(m[k].label)+' ('+m[k].players.length+')</option>'; }).join('');
+    ['drawCat','resCat','certCat'].forEach(function(id){
+      var el=document.getElementById(id), cur=el.value; el.innerHTML=opts; el.value=cur;
+    });
+  }
+
+  /* ---------- draw ---------- */
+  document.getElementById('btnDraw').onclick=function(){
+    var id=document.getElementById('drawCat').value; if(!id) return T.toast('Select a category','error');
+    var c=catMap()[id]; if(!c) return;
+    S.draw={cat:c,data:T.generateDraw(c.players,document.getElementById('drawMode').value)};
+    renderDraw();
+  };
+  function drawHTML(){
+    if(!S.draw) return '<div class="t-empty">Select a category and generate the draw.</div>';
+    var d=S.draw.data, names=['Round 1','Quarter Final','Semi Final','Final','Winner'];
+    return '<h4 style="color:var(--t-gold-3);margin-bottom:10px">'+E(S.draw.cat.label)+' · '+S.draw.cat.players.length+' entries · '+d.byes+' byes</h4>'+
+      '<div class="t-bracket">'+d.rounds.map(function(r,i){
+        var title = d.rounds.length-i<=names.length ? names[names.length-1-(d.rounds.length-1-i)-0] : 'Round '+(i+1);
+        title = (i===d.rounds.length-1)?'Final':(i===d.rounds.length-2?'Semi Final':(i===d.rounds.length-3?'Quarter Final':'Round '+(i+1)));
+        return '<div class="t-round"><h5>'+E(title)+'</h5>'+r.map(function(m){
+          function s(p){ return p? (E(p.name)+' <span style="color:var(--t-ink-mute)">· '+E(p.academy||'')+'</span>') : '<i>BYE</i>'; }
+          return '<div class="t-match"><div'+(m.a?'':' class="bye"')+'>'+s(m.a)+'</div><div'+(m.b?'':' class="bye"')+'>'+s(m.b)+'</div></div>';
+        }).join('')+'</div>';
+      }).join('')+'</div>';
+  }
+  function renderDraw(){ document.getElementById('drawBox').innerHTML=drawHTML(); }
+  document.getElementById('btnPublishDraw').onclick=function(){
+    if(!S.draw) return T.toast('Generate a draw first','error');
+    var tour=S.tours.filter(function(t){return t.id===S.tid;})[0]||{id:S.tid};
+    var mode=document.getElementById('drawMode').value;
+    Promise.all([
+      T.saveDraw(tour, S.draw.cat, S.draw.data, mode),
+      T.saveCategory(S.tid, S.draw.cat)
+    ]).then(function(){ T.toast('Draw published to the public portal','success'); })
+     .catch(function(e){ T.toast(e.message||'Publish failed','error'); });
+  };
+  document.getElementById('btnPrintDraw').onclick=function(){
+    if(!S.draw) return T.toast('Generate a draw first','error');
+    T.printHTML('Draw — '+S.draw.cat.label, drawHTML(),
+      '@import url("'+location.href.replace(/[^/]*$/,'')+'tournament.css");body{background:#0a1633;color:#e9eefb}');
+  };
+
+  /* ---------- results ---------- */
+  document.getElementById('resCat').onchange=renderResForm;
+  function renderResForm(){
+    var id=document.getElementById('resCat').value, box=document.getElementById('resForm');
+    if(!id){ box.innerHTML='<div class="t-empty">Select a category.</div>'; return; }
+    var c=catMap()[id]; if(!c) return;
+    var existing=S.results.filter(function(r){return r.id===id;})[0]||{};
+    function sel(k,label){
+      return '<div class="t-field"><label>'+label+'</label><select class="t-select" id="med_'+k+'"><option value="">—</option>'+
+        c.players.map(function(p){ return '<option value="'+E(p.id)+'"'+(existing[k]===p.id?' selected':'')+'>'+E(p.name)+' · '+E(p.academy||'')+'</option>';}).join('')+
+        '</select></div>';
+    }
+    box.innerHTML='<div class="t-grid t-g4">'+sel('gold','🥇 Gold')+sel('silver','🥈 Silver')+sel('bronze1','🥉 Bronze 1')+sel('bronze2','🥉 Bronze 2')+'</div>'+
+      '<div class="t-row"><div class="t-spacer"></div><button class="t-btn t-btn-gold" id="btnSaveRes">Publish Result</button></div>';
+    document.getElementById('btnSaveRes').onclick=function(){
+      T.saveResult(id,{ tournamentId:S.tid, categoryId:id, categoryLabel:c.label, ageKey:c.ageKey, gender:c.gender,
+        weightCategory:c.weight, gold:document.getElementById('med_gold').value,
+        silver:document.getElementById('med_silver').value, bronze1:document.getElementById('med_bronze1').value,
+        bronze2:document.getElementById('med_bronze2').value })
+        .then(function(){ T.toast('Result published — live on the portal','success'); });
+    };
+  }
+  function pn(id){ var p=S.players.filter(function(x){return x.id===id;})[0]; return p?p.name:'—'; }
+  function renderResults(){
+    var box=document.getElementById('resTable');
+    box.innerHTML=S.results.length
+      ? '<div class="t-table-wrap"><table class="t-table"><thead><tr><th>Category</th><th>Gold</th><th>Silver</th><th>Bronze</th><th>Bronze</th></tr></thead><tbody>'+
+        S.results.map(function(r){ return '<tr><td style="color:var(--t-gold-3)">'+E(r.categoryLabel||'')+'</td><td>'+E(pn(r.gold))+'</td><td>'+E(pn(r.silver))+'</td><td>'+E(pn(r.bronze1))+'</td><td>'+E(pn(r.bronze2))+'</td></tr>';}).join('')+'</tbody></table></div>'
+      : '<div class="t-empty">No results published yet.</div>';
+    renderResForm();
+  }
+
+  /* ---------- certificates ---------- */
+  document.getElementById('btnGenCerts').onclick=function(){
+    var id=document.getElementById('certCat').value; if(!id) return T.toast('Select a category','error');
+    var c=catMap()[id]; var r=S.results.filter(function(x){return x.id===id;})[0]||{categoryLabel:c.label};
+    T.generateCertificatesForCategory(Object.assign({id:S.tid},tour()), id, r, c.players).then(function(made){
+      T.toast(made.length+' certificates generated','success');
+      T.listCertificates({tournamentId:S.tid}).then(renderCerts);
+    }).catch(function(e){T.toast(e.message,'error');});
+  };
+  document.getElementById('btnCoachCerts').onclick=function(){
+    var uids={}; S.players.filter(function(p){return p.status==='approved';}).forEach(function(p){uids[p.coachUid]=p;});
+    var list=S.coaches.filter(function(c){return uids[c.id];});
+    if(!list.length) return T.toast('No participating coaches','error');
+    Promise.all(list.map(function(c){ return T.generateStaffCertificate(Object.assign({id:S.tid},tour()),'coach',c,'Coach Appreciation Certificate'); }))
+      .then(function(){ T.toast('Coach certificates generated','success'); T.listCertificates({tournamentId:S.tid}).then(renderCerts); });
+  };
+  document.getElementById('btnRefCerts').onclick=function(){
+    if(!S.refs.length) return T.toast('No referees added','error');
+    Promise.all(S.refs.map(function(r){ return T.generateStaffCertificate(Object.assign({id:S.tid},tour()),'referee',r,'Referee / Official Certificate'); }))
+      .then(function(){ T.toast('Referee certificates generated','success'); T.listCertificates({tournamentId:S.tid}).then(renderCerts); });
+  };
+  function renderCerts(list){
+    var box=document.getElementById('certTable');
+    box.innerHTML=(list&&list.length)
+      ? '<div class="t-row" style="margin-bottom:10px"><button class="t-btn t-btn-ghost t-btn-sm" id="btnCertCsv">Export List</button></div>'+
+        '<div class="t-table-wrap"><table class="t-table"><thead><tr><th>Cert No</th><th>Name</th><th>Type</th><th>Medal</th><th>Category</th></tr></thead><tbody>'+
+        list.map(function(c){return '<tr><td>'+E(c.certNo)+'</td><td style="color:#fff">'+E(c.name)+'</td><td>'+E(c.type)+'</td><td>'+E(c.medal||'—')+'</td><td>'+E(c.category||'—')+'</td></tr>';}).join('')+'</tbody></table></div>'
+      : '<div class="t-empty">No certificates yet.</div>';
+    var b=document.getElementById('btnCertCsv');
+    if(b) b.onclick=function(){ T.exportCSV('certificates', list.map(function(c){
+      return {CertNo:c.certNo,Name:c.name,Type:c.type,Medal:c.medal,Category:c.category,Tournament:c.tournamentName}; })); };
+  }
+
+  /* ---------- referees ---------- */
+  document.getElementById('refForm').onsubmit=function(e){
+    e.preventDefault(); var f=e.target;
+    T.saveReferee({name:f.name.value.trim(),role:f.role.value,phone:f.phone.value.trim(),district:f.district.value.trim()})
+      .then(function(){ f.reset(); T.toast('Referee added','success'); return T.listReferees(); })
+      .then(function(r){ S.refs=r; renderRefs(); });
+  };
+  function renderRefs(){
+    document.getElementById('refTable').innerHTML=S.refs.length
+      ? '<div class="t-table-wrap"><table class="t-table"><thead><tr><th>ID</th><th>Name</th><th>Role</th><th>District</th><th></th></tr></thead><tbody>'+
+        S.refs.map(function(r){return '<tr><td>'+E(r.refereeId||'—')+'</td><td style="color:#fff">'+E(r.name)+'</td><td>'+E(r.role||'')+'</td><td>'+E(r.district||'')+
+          '</td><td><button class="t-btn t-btn-danger t-btn-sm" data-dr="'+E(r.id)+'">Delete</button></td></tr>';}).join('')+'</tbody></table></div>'
+      : '<div class="t-empty">No referees added.</div>';
+    document.querySelectorAll('[data-dr]').forEach(function(b){ b.onclick=function(){
+      T.deleteReferee(b.dataset.dr).then(function(){ return T.listReferees(); }).then(function(r){S.refs=r;renderRefs();T.toast('Deleted','success');});
+    };});
+  }
+
+  /* ---------- coaches ---------- */
+  function renderCoaches(){
+    document.getElementById('coachTable').innerHTML=S.coaches.length
+      ? '<div class="t-table-wrap"><table class="t-table"><thead><tr><th>Coach ID</th><th>Name</th><th>Academy</th><th>District</th><th>Phone</th><th>Players</th></tr></thead><tbody>'+
+        S.coaches.map(function(c){
+          var n=S.players.filter(function(p){return p.coachUid===c.id;}).length;
+          return '<tr><td>'+E(c.coachId||'—')+'</td><td style="color:#fff">'+E(c.name||'')+'</td><td>'+E(c.academy||'')+'</td><td>'+E(c.district||'')+'</td><td>'+E(c.phone||'')+'</td><td>'+n+'</td></tr>';
+        }).join('')+'</tbody></table></div>'
+      : '<div class="t-empty">No coaches registered.</div>';
+  }
+})();
+</script>
+</body>
+</html>
