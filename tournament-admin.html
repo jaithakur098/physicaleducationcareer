@@ -363,11 +363,12 @@
   var S = { tours: [], tid: '', players: [], coaches: [], results: [], refs: [], certs: [], draw: null, medalMode: 'academy', matchPick: null };
 
   (function injectPreviewStyles() {
+    if (!window.TFixture || !window.TPrint) return;
     var id = 'tournament-preview-styles';
     if (document.getElementById(id)) return;
     var s = document.createElement('style');
     s.id = id;
-    s.textContent = TF.printCSS() + TP.previewCSS();
+    s.textContent = window.TFixture.printCSS() + window.TPrint.previewCSS();
     document.head.appendChild(s);
   })();
 
@@ -387,6 +388,8 @@
   document.getElementById('btnLogout').onclick = function () { T.logout().then(function () { location.href = 'admin-login.html'; }); };
 
   window.__tBoot = function (u) {
+    if (window.__tBootDone) return;
+    window.__tBootDone = true;
     document.getElementById('setBrand').value = D.brandLine || '';
     document.getElementById('setOrganizer').value = D.organizerName || '';
     T.loadCategoryRules().then(function () { renderCatEditors(); fillAgeFilter(); buildReportBtns(); });
@@ -1014,6 +1017,8 @@
       };
     });
   }
+
+  if (window.__ADMIN_USER__) window.__tBoot(window.__ADMIN_USER__);
 })();
 </script>
 </body>
