@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Team Ultimate">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#061428"/>
+      <stop offset="100%" stop-color="#1a4a8a"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="url(#g)" stroke="#e4c65a" stroke-width="4"/>
+  <circle cx="60" cy="60" r="42" fill="none" stroke="#e4c65a" stroke-width="1.5" opacity="0.55"/>
+  <text x="60" y="54" text-anchor="middle" font-family="Georgia, serif" font-size="22" font-weight="700" fill="#e4c65a">TU</text>
+  <text x="60" y="76" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="700" letter-spacing="2" fill="#ffffff">ULTIMATE</text>
+</svg>

@@ -14,6 +14,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="config/firebase-init.js"></script>
   <script src="config/tournament-config.js"></script>
+  <script src="js/qrcode-generator.js"></script>
+  <script src="js/tournament-qr.js"></script>
   <script src="js/tournament-core.js"></script>
   <script src="js/tournament-fixture.js"></script>
   <script src="js/tournament-printables.js"></script>
@@ -202,6 +204,14 @@
 (function () {
   var T = window.TCore, TP = window.TPrint, E = T.esc, D = window.TOURNAMENT_DEFAULTS;
   var S = { user: null, coach: null, tournaments: [], players: [], results: [], resultFilter: '' };
+
+  (function injectPreviewStyles() {
+    if (!window.TPrint || document.getElementById('tournament-preview-styles')) return;
+    var s = document.createElement('style');
+    s.id = 'tournament-preview-styles';
+    s.textContent = TP.previewCSS();
+    document.head.appendChild(s);
+  })();
 
   document.querySelectorAll('[data-tab]').forEach(function (tab) {
     tab.onclick = function () {
@@ -574,10 +584,10 @@
   function printCert(c) {
     if (!c) return;
     var t = S.tournaments.filter(function (x) { return x.id === c.tournamentId; })[0] || {};
-    var html = c.type && c.type.indexOf('Merit') >= 0
-      ? TP.meritCertHTML(c, t, D)
-      : TP.participationCertHTML(c, t, D);
-    T.printHTML('Certificate — ' + (c.name || ''), html, TP.certCSS(), false);
+    var isMerit = c.type && c.type.indexOf('Merit') >= 0;
+    var html = isMerit ? TP.meritCertHTML(c, t, D) : TP.participationCertHTML(c, t, D);
+    var css = isMerit ? TP.meritCertCSS() : TP.participationCertCSS();
+    T.printHTML('Certificate — ' + (c.name || ''), html, css, true);
   }
 })();
 </script>

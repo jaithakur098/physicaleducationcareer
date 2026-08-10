@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificate &amp; ID Card Preview — 6th Alwar Cup 2026</title>
+  <script src="config/tournament-config.js"></script>
+  <script src="js/qrcode-generator.js"></script>
+  <script src="js/tournament-qr.js"></script>
+  <script src="js/tournament-printables.js"></script>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #12182b; color: #fff; }
+    h2 { padding: 16px 20px 8px; margin: 0; font-size: 15px; color: #e8c547; }
+    h3 { padding: 8px 20px; margin: 0; font-size: 12px; color: #9aa5b4; font-weight: 500; }
+    .section { margin-bottom: 28px; border-bottom: 1px solid #2a3348; padding-bottom: 20px; }
+    .cert-host { background: #0d1220; padding: 16px; margin: 0 16px; border-radius: 8px; overflow: auto; }
+    .id-host { background: #e8ecf4; padding: 16px; margin: 0 16px; border-radius: 8px; overflow: auto; }
+    .toolbar { padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .toolbar button { padding: 8px 14px; cursor: pointer; border: none; border-radius: 6px; background: #c9a227; color: #071428; font-weight: 700; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button type="button" id="btnPart">Print Participation</button>
+    <button type="button" id="btnMeritG">Print Merit Gold</button>
+    <button type="button" id="btnMeritS">Print Merit Silver</button>
+    <button type="button" id="btnMeritB">Print Merit Bronze</button>
+    <button type="button" id="btnIds">Print All ID Cards</button>
+  </div>
+
+  <div class="section">
+    <h2>Participation Certificate — A4 Landscape (no medal)</h2>
+    <div id="partHost" class="cert-host"></div>
+  </div>
+
+  <div class="section">
+    <h2>Participation Certificate — with Gold Medal result</h2>
+    <div id="partMedalHost" class="cert-host"></div>
+  </div>
+
+  <div class="section">
+    <h2>Merit Certificates — Gold / Silver / Bronze</h2>
+    <h3>Gold</h3>
+    <div id="meritGoldHost" class="cert-host"></div>
+    <h3>Silver</h3>
+    <div id="meritSilverHost" class="cert-host"></div>
+    <h3>Bronze (2nd bronze position)</h3>
+    <div id="meritBronzeHost" class="cert-host"></div>
+  </div>
+
+  <div class="section">
+    <h2>Age Categories — Participation preview samples</h2>
+    <div id="ageCatsHost" class="cert-host" style="display:flex;flex-direction:column;gap:24px"></div>
+  </div>
+
+  <div class="section">
+    <h2>Accreditation Passes — Athlete / Coach / Referee / VIP</h2>
+    <div id="idHost" class="id-host"></div>
+  </div>
+
+<script>
+(function () {
+  var TP = window.TPrint, D = window.TOURNAMENT_DEFAULTS;
+  var style = document.createElement('style');
+  style.textContent = TP.previewCSS();
+  document.head.appendChild(style);
+
+  var tournament = {
+    id: 'TEST2026',
+    name: '6th Alwar Cup Taekwondo Championship',
+    date: '2026-08-22',
+    venue: 'Alwar, Rajasthan'
+  };
+
+  var baseCert = {
+    id: 'cert-1', name: 'Rahul Sharma', regNo: 'ACC2026-0001',
+    academy: 'Ultimate TKD Academy', district: 'Alwar', school: 'Govt SR Sec School',
+    gender: 'male', ageCategory: 'Senior', weightCategory: '-54',
+    category: 'Senior Male -54 Kg', type: 'Participation Certificate',
+    certNo: 'ACC-2026-TEST-00001', date: '2026-08-22', tournamentName: tournament.name
+  };
+
+  var partNoMedal = Object.assign({}, baseCert);
+  var partWithGold = Object.assign({}, baseCert, { medal: 'gold', id: 'cert-1g' });
+
+  var meritGold = Object.assign({}, baseCert, {
+    id: 'cert-mg', type: 'Merit Certificate', medal: 'gold', certNo: 'ACC-2026-TEST-00002'
+  });
+  var meritSilver = Object.assign({}, baseCert, {
+    id: 'cert-ms', name: 'Priya Verma', ageCategory: 'Junior', weightCategory: '-45',
+    academy: 'Warriors Taekwondo', district: 'Jaipur', medal: 'silver', certNo: 'ACC-2026-TEST-00003'
+  });
+  var meritBronze = Object.assign({}, baseCert, {
+    id: 'cert-mb', name: 'Arjun Meena', ageCategory: 'Cadet', weightCategory: '-41',
+    academy: 'Champions Dojang', district: 'Bharatpur', medal: 'bronze2', certNo: 'ACC-2026-TEST-00004'
+  });
+
+  document.getElementById('partHost').innerHTML = TP.participationCertHTML(partNoMedal, tournament, D);
+  document.getElementById('partMedalHost').innerHTML = TP.participationCertHTML(partWithGold, tournament, D);
+  document.getElementById('meritGoldHost').innerHTML = TP.meritCertHTML(meritGold, tournament, D);
+  document.getElementById('meritSilverHost').innerHTML = TP.meritCertHTML(meritSilver, tournament, D);
+  document.getElementById('meritBronzeHost').innerHTML = TP.meritCertHTML(meritBronze, tournament, D);
+
+  var ageSamples = [
+    { age: 'Sub Junior', weight: '-23', name: 'Kavya Singh', category: 'Sub Junior Female -23 Kg' },
+    { age: 'Cadet', weight: '-41', name: 'Arjun Meena', category: 'Cadet Male -41 Kg' },
+    { age: 'Junior', weight: '-45', name: 'Priya Verma', category: 'Junior Female -45 Kg' },
+    { age: 'Senior', weight: '-54', name: 'Rahul Sharma', category: 'Senior Male -54 Kg' }
+  ];
+  document.getElementById('ageCatsHost').innerHTML = ageSamples.map(function (s, i) {
+  var c = Object.assign({}, baseCert, {
+      id: 'cert-age-' + i, name: s.name, ageCategory: s.age, weightCategory: s.weight,
+      category: s.category,
+      certNo: 'ACC-2026-AGE-' + String(i + 1).padStart(3, '0')
+    });
+    return '<div style="margin-bottom:8px;font-size:11px;color:#e8c547">' + s.age + ' · ' + s.weight + ' Kg</div>' +
+      TP.participationCertHTML(c, tournament, D);
+  }).join('');
+
+  var athlete = {
+    id: 'p1', name: 'Rahul Sharma', regNo: 'ACC2026-0001',
+    academy: 'Ultimate TKD Academy', district: 'Alwar', school: 'Govt SR Sec School',
+    gender: 'male', ageCategory: 'Senior', weightCategory: '-54',
+    coachName: 'Coach Vikram', status: 'approved'
+  };
+  var coach = {
+    id: 'coach1', name: 'Vikram Singh', coachId: 'COACH-2026-0007',
+    academy: 'Ultimate TKD Academy', district: 'Alwar',
+    phone: '+91 98765 43210', email: 'vikram@example.com',
+    registeredPlayers: 18, status: 'approved'
+  };
+  var referee = {
+    id: 'ref1', name: 'Col. Ramesh Kumar', refereeId: 'REF-2026-0003',
+    role: 'Technical Delegate', district: 'Alwar', status: 'approved'
+  };
+  var vip = {
+    id: 'vip1', name: 'Shri Ashok Gehlot', vipId: 'VIP-2026-001',
+    designation: 'Chief Guest', organization: 'Government of Rajasthan', status: 'approved'
+  };
+
+  document.getElementById('idHost').innerHTML =
+    TP.idCardHTML(athlete, tournament, D) +
+    TP.coachIdCardHTML(coach, tournament, D) +
+    TP.refereeIdCardHTML(referee, tournament, D) +
+    TP.vipIdCardHTML(vip, tournament, D);
+
+  function mockPrint(title, html, css, landscape) {
+    var w = window.open('', '_blank');
+    if (!w) return alert('Allow pop-ups to preview print');
+    var page = landscape ? '@page{size:A4 landscape;margin:0}' : '@page{size:A4 portrait;margin:0}';
+    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>' + page + css + '</style></head><body>' + html + '</body></html>');
+    w.document.close();
+    w.focus();
+    setTimeout(function () { w.print(); }, 600);
+  }
+
+  document.getElementById('btnPart').onclick = function () {
+    mockPrint('Participation', TP.participationCertHTML(partNoMedal, tournament, D), TP.participationCertCSS(), true);
+  };
+  document.getElementById('btnMeritG').onclick = function () {
+    mockPrint('Merit Gold', TP.meritCertHTML(meritGold, tournament, D), TP.meritCertCSS(), true);
+  };
+  document.getElementById('btnMeritS').onclick = function () {
+    mockPrint('Merit Silver', TP.meritCertHTML(meritSilver, tournament, D), TP.meritCertCSS(), true);
+  };
+  document.getElementById('btnMeritB').onclick = function () {
+    mockPrint('Merit Bronze', TP.meritCertHTML(meritBronze, tournament, D), TP.meritCertCSS(), true);
+  };
+  document.getElementById('btnIds').onclick = function () {
+    mockPrint('ID Cards', document.getElementById('idHost').innerHTML, TP.idCardCSS(), false);
+  };
+})();
+</script>
+</body>
+</html>

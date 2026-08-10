@@ -14,6 +14,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="config/firebase-init.js"></script>
   <script src="config/tournament-config.js"></script>
+  <script src="js/qrcode-generator.js"></script>
+  <script src="js/tournament-qr.js"></script>
   <script src="js/tournament-core.js"></script>
   <script src="js/tournament-fixture.js"></script>
   <script src="js/tournament-printables.js"></script>
@@ -143,6 +145,14 @@
 (function () {
   var T = window.TCore, TF = window.TFixture, E = T.esc, D = window.TOURNAMENT_DEFAULTS;
   var state = { tournaments: [], players: [], results: [], draws: [], medalMode: 'academy', tid: '' };
+
+  (function injectPreviewStyles() {
+    if (document.getElementById('tournament-preview-styles')) return;
+    var s = document.createElement('style');
+    s.id = 'tournament-preview-styles';
+    s.textContent = TF.printCSS();
+    document.head.appendChild(s);
+  })();
 
   function statusChip(s) {
     if (s === 'live') return '<span class="t-chip live">LIVE</span>';

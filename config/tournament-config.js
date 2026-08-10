@@ -40,8 +40,11 @@
     edition: '6th',
     sport: 'Taekwondo',
     brandLine: '6th ALWAR CUP TAEKWONDO CHAMPIONSHIP',
-    signatureImage: 'jai-thakur.PNG',
-    organizerName: 'Jai Thakur',
+    eventFullName: '6TH ALWAR CUP TAEKWONDO CHAMPIONSHIP 2026',
+    eventYear: '2026',
+    eventLocation: 'ALWAR, RAJASTHAN',
+    website: 'physicaleducationcareer.in',
+    logoImage: 'ultimate-logo.svg',
     ageRules: DEFAULT_AGE_RULES,
     weightRules: DEFAULT_WEIGHT_RULES,
     collections: {

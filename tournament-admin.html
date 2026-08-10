@@ -14,6 +14,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="config/firebase-init.js"></script>
   <script src="config/tournament-config.js"></script>
+  <script src="js/qrcode-generator.js"></script>
+  <script src="js/tournament-qr.js"></script>
   <script src="js/tournament-core.js"></script>
   <script src="js/tournament-fixture.js"></script>
   <script src="js/tournament-printables.js"></script>
@@ -269,7 +271,7 @@
           <button type="button" id="btnRenderCards" class="t-btn t-btn-ghost t-btn-sm">Refresh Preview</button>
           <button type="button" id="btnPrintCards" class="t-btn t-btn-gold t-btn-sm">Print All ID Cards</button>
         </div>
-        <div id="idCardPreview" class="t-idcard-grid"><div class="t-empty">No approved players.</div></div>
+        <div id="idCardPreview" class="t-idcard-grid t-idcard-preview-host"><div class="t-empty">No approved players.</div></div>
       </div>
     </section>
 
@@ -284,7 +286,7 @@
           <button type="button" id="btnRefCerts" class="t-btn t-btn-ghost t-btn-sm">Referee Certificates</button>
           <button type="button" id="btnCertCsv" class="t-btn t-btn-ghost t-btn-sm">Export List CSV</button>
         </div>
-        <div id="certPreview" style="margin-bottom:16px"></div>
+        <div id="certPreview" class="t-cert-preview-host" style="margin-bottom:16px"></div>
         <div id="certTable" class="t-table-wrap"><div class="t-empty">No certificates yet.</div></div>
       </div>
     </section>
@@ -359,6 +361,15 @@
 (function () {
   var T = window.TCore, TF = window.TFixture, TP = window.TPrint, E = T.esc, D = window.TOURNAMENT_DEFAULTS;
   var S = { tours: [], tid: '', players: [], coaches: [], results: [], refs: [], certs: [], draw: null, medalMode: 'academy', matchPick: null };
+
+  (function injectPreviewStyles() {
+    var id = 'tournament-preview-styles';
+    if (document.getElementById(id)) return;
+    var s = document.createElement('style');
+    s.id = id;
+    s.textContent = TF.printCSS() + TP.previewCSS();
+    document.head.appendChild(s);
+  })();
 
   /* tabs */
   document.querySelectorAll('[data-tab]').forEach(function (tab) {
@@ -686,12 +697,21 @@
   }
 
   /* fixtures */
+  function ageNameFromKey(key) {
+    var rules = T.getRules().ageRules || [];
+    for (var i = 0; i < rules.length; i++) {
+      if (rules[i].key === key) return rules[i].name;
+    }
+    return '';
+  }
+
   function fixtureOpts(cat, drawData) {
     return {
       drawData: enrichPlacements(drawData, cat.players),
-      tournament: tour(),
+      tournament: Object.assign({ id: S.tid }, tour()),
       brand: D,
       categoryLabel: cat.label,
+      ageCategory: ageNameFromKey(cat.ageKey),
       gender: cat.gender,
       weight: cat.weight,
       entries: cat.players.length,
@@ -924,9 +944,9 @@
     if (list.length) {
       var sample = list[0];
       document.getElementById('certPreview').innerHTML =
-        sample.type && sample.type.indexOf('Merit') >= 0
+        (sample.type && sample.type.indexOf('Merit') >= 0
           ? TP.meritCertHTML(sample, tour(), D)
-          : TP.participationCertHTML(sample, tour(), D);
+          : TP.participationCertHTML(sample, tour(), D));
     }
     document.getElementById('certTable').innerHTML = list.length
       ? '<table class="t-table"><thead><tr><th>Cert No</th><th>Name</th><th>Type</th><th>Medal</th><th>Category</th></tr></thead><tbody>' +
