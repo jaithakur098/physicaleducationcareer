@@ -1,71 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Verify — 🏆 Alwar Cup Championship</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="tournament.css">
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="config/firebase-init.js"></script>
-<script src="config/tournament-config.js"></script>
-<script src="js/tournament-core.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify — 6th Alwar Cup Taekwondo Championship</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tournament.css">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="config/firebase-init.js"></script>
+  <script src="config/tournament-config.js"></script>
+  <script src="js/tournament-core.js"></script>
+  <script src="js/tournament-fixture.js"></script>
+  <script src="js/tournament-printables.js"></script>
 </head>
 <body class="t-page">
-<header class="t-top"><div class="t-wrap t-top-in">
-  <a class="t-brand" href="tournament.html"><span class="t-brand-mark">🏆</span>
-    <span><b>ALWAR CUP CHAMPIONSHIP</b><small>Official Verification</small></span></a>
-  <nav class="t-topnav"><a href="tournament.html">Portal</a><a href="index.html">← Main Website</a></nav>
-</div></header>
 
-<section class="t-section"><div class="t-wrap" style="max-width:720px">
-  <div class="t-card">
-    <span class="t-eyebrow">Authenticity Check</span>
-    <h2 style="color:#fff;margin:12px 0 6px">Verify ID Card / Certificate</h2>
-    <p class="t-sub">Scan the QR code, or paste the ID below.</p>
-    <div class="t-row" style="margin-top:14px">
-      <select id="vType" class="t-select" style="max-width:190px"><option value="player">Player ID</option><option value="certificate">Certificate</option><option value="referee">Referee ID</option></select>
-      <input id="vId" class="t-input" style="flex:1;min-width:200px" placeholder="Enter ID">
-      <button class="t-btn t-btn-gold" id="vGo">Verify</button>
-    </div>
-    <div id="vOut" style="margin-top:18px"></div>
+<header class="t-top">
+  <div class="t-wrap t-top-in">
+    <a href="tournament.html" class="t-brand">
+      <div class="t-brand-mark">🥋</div>
+      <div>
+        <b>6th ALWAR CUP</b>
+        <small>Official Verification</small>
+      </div>
+    </a>
+    <nav class="t-topnav t-no-print">
+      <a href="tournament.html">Portal</a>
+      <a href="tournament-coach.html">Coach Login</a>
+      <a href="index.html">← Main Website</a>
+    </nav>
   </div>
-</div></section>
-<footer class="t-foot"><div class="t-wrap">🏆 Alwar Cup Championship · Verification Service</div></footer>
+</header>
+
+<main class="t-section">
+  <div class="t-wrap">
+    <div class="t-verify-card">
+      <span class="t-eyebrow">Authenticity Check</span>
+      <h2 style="margin:12px 0 8px;font-size:32px;color:#fff">Verify Player / Certificate / Referee</h2>
+      <p style="color:var(--t-ink-mute);font-size:14px;margin-bottom:24px">Scan the QR code on an ID card or certificate, or enter the ID below.</p>
+
+      <div class="t-card" style="text-align:left">
+        <div class="t-filters" style="margin-bottom:0">
+          <div class="t-field">
+            <label for="vType">Type</label>
+            <select id="vType" class="t-select">
+              <option value="player">Player ID</option>
+              <option value="certificate">Certificate</option>
+              <option value="referee">Referee ID</option>
+            </select>
+          </div>
+          <div class="t-field" style="flex:2">
+            <label for="vId">ID / Registration No / Cert No</label>
+            <input type="text" id="vId" class="t-input" placeholder="e.g. ACC2026-0042 or certificate ID">
+          </div>
+          <button type="button" id="vGo" class="t-btn t-btn-gold">Verify</button>
+        </div>
+      </div>
+
+      <div id="vOut" class="t-verify-result"></div>
+    </div>
+  </div>
+</main>
+
+<footer class="t-foot t-wrap">6th Alwar Cup Taekwondo Championship · Verification Service</footer>
 
 <script>
-(function(){
-  var T=window.TCore,E=T.esc;
-  function row(k,v){ return '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07)"><span style="color:var(--t-gold-3);min-width:150px;font-size:12.5px;font-weight:600">'+E(k)+'</span><span style="color:var(--t-ink-soft);font-size:13.5px">'+E(v||'—')+'</span></div>'; }
-  function bad(msg){ document.getElementById('vOut').innerHTML='<div class="t-card" style="border-color:rgba(255,92,122,.4)"><span class="t-chip bad">NOT VERIFIED</span><p style="color:var(--t-ink-soft);margin-top:10px">'+E(msg)+'</p></div>'; }
-  function go(){
-    var type=document.getElementById('vType').value, id=document.getElementById('vId').value.trim();
-    if(!id) return T.toast('Enter an ID','error');
-    document.getElementById('vOut').innerHTML='<div class="t-loader">Verifying…</div>';
-    var p = type==='certificate'? T.getCertificate(id) : (type==='referee'? T.getReferee(id) : T.getPlayer(id));
-    p.then(function(d){
-      if(!d) return bad('No official record found for this ID.');
-      var html='<div class="t-card" style="border-color:rgba(61,220,151,.4)"><span class="t-chip ok">VERIFIED · GENUINE</span><div style="margin-top:12px">';
-      if(type==='certificate'){
-        html+=row('Certificate No',d.certNo)+row('Holder',d.name)+row('Type',d.type)+row('Medal',(d.medal||'—').toUpperCase())+
-              row('Category',d.category)+row('Academy',d.academy)+row('Tournament',d.tournamentName)+row('Date',T.fmtDate(d.date));
-      } else if(type==='referee'){
-        html+=row('Referee ID',d.refereeId)+row('Name',d.name)+row('Role',d.role)+row('District',d.district);
-      } else {
-        if(d.status!=='approved') { return bad('This registration exists but is not approved yet.'); }
-        html+=row('Registration No',d.regNo)+row('Player',d.name)+row("Father's Name",d.fatherName)+row('Category',d.categoryLabel)+
-              row('Weight',(d.weight||'—')+' kg')+row('Academy',d.academy)+row('Coach',d.coachName)+
-              row('District',d.district)+row('Tournament',d.tournamentName);
-      }
-      document.getElementById('vOut').innerHTML=html+'</div></div>';
-    }).catch(function(e){ bad(e.message||'Verification failed'); });
+(function () {
+  var T = window.TCore, E = T.esc;
+
+  function row(k, v) {
+    return '<div class="t-verify-row"><span>' + E(k) + '</span><span>' + E(v || '—') + '</span></div>';
   }
-  document.getElementById('vGo').onclick=go;
-  document.getElementById('vId').addEventListener('keydown',function(e){ if(e.key==='Enter') go(); });
-  var q=new URLSearchParams(location.search);
-  if(q.get('id')){ document.getElementById('vType').value=q.get('type')||'player'; document.getElementById('vId').value=q.get('id'); go(); }
+
+  function bad(msg) {
+    document.getElementById('vOut').innerHTML =
+      '<div class="t-verify-result bad"><div class="t-card">' +
+      '<div style="text-align:center;margin-bottom:14px"><span class="t-chip bad" style="font-size:14px;padding:8px 16px">✕ NOT VERIFIED</span></div>' +
+      '<p style="text-align:center;color:var(--t-ink-mute)">' + E(msg) + '</p></div></div>';
+  }
+
+  function go() {
+    var type = document.getElementById('vType').value;
+    var id = document.getElementById('vId').value.trim();
+    if (!id) return T.toast('Enter an ID', 'error');
+    document.getElementById('vOut').innerHTML = '<div class="t-loader">Verifying…</div>';
+    var p = type === 'certificate' ? T.getCertificate(id) :
+      (type === 'referee' ? T.getReferee(id) : T.getPlayer(id));
+    p.then(function (d) {
+      if (!d) return bad('No official record found for this ID.');
+      var html = '<div class="t-verify-result ok"><div class="t-card">' +
+        '<div style="text-align:center;margin-bottom:18px"><span class="t-chip ok" style="font-size:14px;padding:8px 16px">✓ VERIFIED · GENUINE</span></div>';
+      if (type === 'certificate') {
+        html += row('Certificate No', d.certNo) + row('Holder', d.name) + row('Type', d.type) +
+          row('Medal', (d.medal || '—').toUpperCase()) + row('Category', d.category) +
+          row('Academy', d.academy) + row('Tournament', d.tournamentName) + row('Date', T.fmtDate(d.date));
+      } else if (type === 'referee') {
+        html += row('Referee ID', d.refereeId) + row('Name', d.name) + row('Role', d.role) + row('District', d.district);
+      } else {
+        if (d.status !== 'approved') return bad('This registration exists but is not approved yet.');
+        html += row('Registration No', d.regNo) + row('Player', d.name) + row("Father's Name", d.fatherName) +
+          row('Category', d.categoryLabel) + row('Weight', (d.weight || '—') + ' kg') +
+          row('Academy', d.academy) + row('Coach', d.coachName) + row('District', d.district) +
+          row('Tournament', d.tournamentName);
+      }
+      document.getElementById('vOut').innerHTML = html + '</div></div>';
+    }).catch(function (e) { bad(e.message || 'Verification failed'); });
+  }
+
+  document.getElementById('vGo').onclick = go;
+  document.getElementById('vId').addEventListener('keydown', function (e) { if (e.key === 'Enter') go(); });
+
+  var q = new URLSearchParams(location.search);
+  if (q.get('id')) {
+    document.getElementById('vType').value = q.get('type') || 'player';
+    document.getElementById('vId').value = q.get('id');
+    go();
+  }
 })();
 </script>
 </body>

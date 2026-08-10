@@ -1,8 +1,11 @@
 /* ============================================================================
-   FIREBASE INIT (compat CDN) — single source of truth for admin + student pages
-   Loads before any admin-data.js call.
-   Requires: firebase-app-compat.js, firebase-firestore-compat.js
-   ============================================================================ */
+ FIREBASE INIT (compat CDN) — single source of truth for admin + student pages
+ Loads before any admin-data.js call.
+ Requires: firebase-app-compat.js, firebase-firestore-compat.js
+
+ UNCHANGED copy from existing pe-exam-hub project for local tournament testing.
+ Do not create a second Firebase project. Tournament pages reuse this file.
+ ============================================================================ */
 (function (root) {
   'use strict';
 

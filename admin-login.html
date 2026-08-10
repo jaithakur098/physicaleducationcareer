@@ -63,9 +63,9 @@
     <div class="foot">Authorized administrators only. <a href="index.html">Back to Home</a></div>
   </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="config/firebase-init.js"></script>
 <script>
 (function(){
@@ -73,20 +73,28 @@
   var msg=document.getElementById('msg');
   var btn=document.getElementById('btn');
 
+  function redirectTarget(){
+    var next=new URLSearchParams(location.search).get('next');
+    if(!next||/^(https?:|\/\/)/i.test(next)) return 'admin.html';
+    if(!/^[\w.\-]+\.html$/.test(next)) return 'admin.html';
+    return next;
+  }
+
   function fail(text){
     msg.className='msg err';
     msg.textContent=text||'Access denied.';
     btn.disabled=false;
   }
 
-  // If already signed in as an authorized admin, jump straight to panel.
-  firebase.auth().onAuthStateChanged(async function(u){
-    if(!u) return;
+  async function goIfAdmin(user){
+    if(!user) return;
     try{
-      var d=await firebase.firestore().collection('admins').doc(u.uid).get();
-      if(d.exists){ location.replace('admin.html'); }
+      var d=await firebase.firestore().collection('admins').doc(user.uid).get();
+      if(d.exists){ location.replace(redirectTarget()); }
     }catch(_){}
-  });
+  }
+
+  firebase.auth().onAuthStateChanged(function(u){ goIfAdmin(u); });
 
   form.addEventListener('submit', async function(ev){
     ev.preventDefault();
@@ -94,12 +102,13 @@
     var d=Object.fromEntries(new FormData(form).entries());
     try{
       var cred=await firebase.auth().signInWithEmailAndPassword(d.email.trim(), d.password);
-      if (cred.user.email === "phe.edu08@gmail.com") {
-    location.replace("admin.html");
-} else {
-    await firebase.auth().signOut();
-    return fail("This account is not authorized as an admin.");
-}
+      var doc=await firebase.firestore().collection('admins').doc(cred.user.uid).get();
+      if(doc.exists){
+        location.replace(redirectTarget());
+      } else {
+        await firebase.auth().signOut();
+        return fail('This account is not authorized as an admin.');
+      }
     }catch(e){
       fail(e && e.message ? e.message : 'Sign-in failed.');
     }
