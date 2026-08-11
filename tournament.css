@@ -525,7 +525,7 @@ table.t-table tr:hover td { background: rgba(255, 255, 255, .035); }
   min-height: 200px;
 }
 
-.t-fixture-host .tf-sheet { min-width: 900px; }
+.t-fixture-host .tf-sheet { min-width: 1200px; }
 
 .t-fixture-toolbar {
   display: flex;

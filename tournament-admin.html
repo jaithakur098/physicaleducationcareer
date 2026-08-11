@@ -363,12 +363,13 @@
   var S = { tours: [], tid: '', players: [], coaches: [], results: [], refs: [], certs: [], draw: null, medalMode: 'academy', matchPick: null };
 
   (function injectPreviewStyles() {
-    if (!window.TFixture || !window.TPrint) return;
+    if (!window.TFixture) return;
+    if (window.TFixture.ensureStyles) window.TFixture.ensureStyles();
     var id = 'tournament-preview-styles';
     if (document.getElementById(id)) return;
     var s = document.createElement('style');
     s.id = id;
-    s.textContent = window.TFixture.printCSS() + window.TPrint.previewCSS();
+    s.textContent = (window.TPrint ? window.TPrint.previewCSS() : '');
     document.head.appendChild(s);
   })();
 
@@ -735,7 +736,7 @@
         S.matchPick = { r: r, m: m, side: side, match: match };
         document.getElementById('matchModalTitle').textContent = 'Match M' + (match.matchNo || '');
         document.getElementById('matchModalInfo').textContent =
-          'Blue: ' + (match.a ? match.a.name : 'BYE') + ' vs Red: ' + (match.b ? match.b.name : 'BYE');
+          'Blue: ' + TF.slotLabel(S.draw.data, r, m, 'a') + ' vs Red: ' + TF.slotLabel(S.draw.data, r, m, 'b');
         document.getElementById('matchScore').value = match.score || '';
         document.getElementById('matchModal').classList.add('open');
       };
@@ -763,7 +764,7 @@
   };
   document.getElementById('btnPrintDraw').onclick = function () {
     if (!S.draw) return T.toast('Generate a draw first', 'error');
-    var html = TF.renderSheet(fixtureOpts(S.draw.cat, S.draw.data));
+    var html = TF.renderPrintSheet(fixtureOpts(S.draw.cat, S.draw.data));
     T.printHTML('Draw — ' + S.draw.cat.label, html, TF.printCSS(), true);
   };
   document.getElementById('btnPublishMedals').onclick = function () {
@@ -813,7 +814,7 @@
           var ri = m.roundIndex, title = T.roundTitle(drawData.rounds.length, ri);
           var winner = m.winner === 'a' ? (m.a ? m.a.name : '—') : (m.winner === 'b' ? (m.b ? m.b.name : '—') : '—');
           return '<tr><td>M' + m.matchNo + '</td><td>' + E(title) + '</td>' +
-            '<td>' + E(m.a ? m.a.name : 'BYE') + '</td><td>' + E(m.b ? m.b.name : 'BYE') + '</td>' +
+            '<td>' + E(T.slotDisplayLabel(drawData, ri, m.matchIndex, 'a')) + '</td><td>' + E(T.slotDisplayLabel(drawData, ri, m.matchIndex, 'b')) + '</td>' +
             '<td>' + E(m.score || '—') + '</td><td>' + E(winner) + '</td><td>' + E(m.status || 'pending') + '</td>' +
             '<td><button type="button" class="t-btn t-btn-ghost t-btn-sm" data-mr="' + ri + '" data-mm="' + m.matchIndex + '">Enter</button></td></tr>';
         }).join('') + '</tbody></table>';

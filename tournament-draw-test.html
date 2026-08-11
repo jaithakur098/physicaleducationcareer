@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Draw Generator Test — Khiapp Style</title>
+  <style>
+    body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: #e8ecf2; color: #0a1633; }
+    .toolbar { position: sticky; top: 0; z-index: 10; background: #0a1633; color: #fff; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .toolbar h1 { margin: 0; font-size: 14px; font-weight: 700; flex: 1; min-width: 200px; }
+    .toolbar button { border: none; background: #d4af37; color: #0a1633; font-weight: 700; font-size: 12px; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+    .toolbar button:hover { filter: brightness(1.05); }
+    .toolbar button.active { outline: 2px solid #fff; }
+    #report { background: #fff; margin: 12px 16px; padding: 12px 16px; border-radius: 6px; border: 1px solid #c5cdd9; font-size: 13px; line-height: 1.5; }
+    #report .ok { color: #0a7c42; font-weight: 700; }
+    #report .fail { color: #c0392b; font-weight: 700; }
+    #report ul { margin: 6px 0 0; padding-left: 20px; }
+    #preview { margin: 0 16px 24px; background: #fff; border-radius: 6px; border: 1px solid #c5cdd9; overflow: auto; min-height: 400px; }
+    .t-fixture-host { padding: 8px; min-width: min(100%, 1400px); }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <h1>Draw Generator Test (Khiapp-style)</h1>
+    <button data-n="2">2</button>
+    <button data-n="3">3</button>
+    <button data-n="4">4</button>
+    <button data-n="6">6</button>
+    <button data-n="8">8</button>
+    <button data-n="16" class="active">16</button>
+    <button id="btnPrintPreview">Print Preview</button>
+    <button id="btnRunAll">Run all tests</button>
+  </div>
+  <div id="report"></div>
+  <div id="preview" class="t-fixture-host"></div>
+
+  <script src="config/tournament-config.js"></script>
+  <script src="js/tournament-core-stub.js"></script>
+  <script src="js/tournament-core.js"></script>
+  <script src="js/tournament-fixture.js"></script>
+  <script>
+  (function () {
+    var TF = window.TFixture;
+    TF.ensureStyles();
+
+    function makePlayers(n) {
+      var names = ['Aarav','Isha','Rohan','Priya','Kabir','Ananya','Vikram','Meera','Arjun','Sneha','Dev','Kavya','Rahul','Nisha','Aman','Zara'];
+      var schools = ['Ultimate TKD Academy','Rajasthan Sports School','Delhi Dojang','Jaipur Champions'];
+      var districts = ['Alwar','Jaipur','Delhi','Gurgaon'];
+      var out = [];
+      for (var i = 0; i < n; i++) {
+        out.push({
+          id: 'p' + (i + 1),
+          name: names[i % names.length] + ' ' + String.fromCharCode(65 + (i % 26)),
+          regNo: 'AC26-' + String(100 + i),
+          academy: schools[i % schools.length],
+          district: districts[i % districts.length],
+          country: 'INDIA'
+        });
+      }
+      return out;
+    }
+
+    function nextPow2(n) { var s = 1; while (s < n) s *= 2; return s; }
+
+    function countByesInRound(round) {
+      var c = 0;
+      (round || []).forEach(function (m) {
+        if (!m.a) c++;
+        if (!m.b) c++;
+      });
+      return c;
+    }
+
+    function countByeLabelsInHtml(html) {
+      return (html.match(/tf-bye-text/g) || []).length;
+    }
+
+    function collectPlayerIds(drawData) {
+      var ids = [];
+      (drawData.rounds[0] || []).forEach(function (m) {
+        if (m.a && m.a.id) ids.push(m.a.id);
+        if (m.b && m.b.id) ids.push(m.b.id);
+      });
+      return ids;
+    }
+
+    function validateLayout(n, drawData, html) {
+      var issues = [];
+      var cards = (html.match(/tf-match-card/g) || []).length;
+      var expectedMatches = nextPow2(n) - 1;
+      if (cards !== expectedMatches) issues.push('Expected ' + expectedMatches + ' match cards, found ' + cards);
+      if (html.indexOf('tf-bracket') < 0) issues.push('Missing bracket grid');
+      if (html.indexOf('tf-match-card') < 0) issues.push('Missing match cards');
+      if (html.indexOf('tf-corner-block') < 0 && html.indexOf('tf-bye') < 0) issues.push('Missing player corner blocks');
+      var rounds = drawData.rounds.length;
+      var roundCols = (html.match(/tf-round-label/g) || []).length;
+      if (roundCols !== rounds) issues.push('Expected ' + rounds + ' round columns, found ' + roundCols);
+      if (n === 16) {
+        if ((drawData.rounds[0] || []).length !== 8) issues.push('16 players should have 8 R1 matches');
+        if (drawData.rounds.length !== 4) issues.push('16 players should have 4 rounds');
+      }
+      return issues;
+    }
+
+    function validateDraw(n, drawData, html) {
+      var issues = [];
+      var expectedByes = nextPow2(n) - n;
+      if ((drawData.byes || 0) !== expectedByes) {
+        issues.push('Expected ' + expectedByes + ' byes, got ' + (drawData.byes || 0));
+      }
+      if (countByesInRound(drawData.rounds[0]) !== expectedByes) {
+        issues.push('Round 1 bye slot count wrong');
+      }
+      for (var ri = 1; ri < drawData.rounds.length; ri++) {
+        (drawData.rounds[ri] || []).forEach(function (m) {
+          if (m.status === 'bye') issues.push('R' + (ri + 1) + ' M' + m.matchNo + ' has bye status');
+        });
+      }
+      var ids = collectPlayerIds(drawData);
+      var unique = ids.filter(function (v, i, a) { return a.indexOf(v) === i; });
+      if (unique.length !== ids.length) issues.push('Duplicate players in round 1');
+      if (unique.length !== n) issues.push('Missing players: found ' + unique.length + ' of ' + n);
+
+      (drawData.rounds[0] || []).filter(function (m) { return m.status === 'bye'; }).forEach(function (m) {
+        var winner = m.winner === 'a' ? m.a : m.b;
+        var nextMi = Math.floor(m.matchIndex / 2);
+        var nextSide = (m.matchIndex % 2 === 0) ? 'a' : 'b';
+        var nextMatch = drawData.rounds[1][nextMi];
+        var advanced = nextSide === 'a' ? nextMatch.a : nextMatch.b;
+        if (!advanced || advanced.id !== winner.id) {
+          issues.push('M' + m.matchNo + ' bye winner not in semifinal slot');
+        }
+      });
+
+      if (countByeLabelsInHtml(html) !== expectedByes) {
+        issues.push('HTML BYE labels: expected ' + expectedByes);
+      }
+
+      var final = drawData.rounds[drawData.rounds.length - 1][0];
+      if (final && final.status === 'bye') issues.push('Final has bye status');
+
+      issues = issues.concat(validateLayout(n, drawData, html));
+      return issues;
+    }
+
+    function render(n) {
+      var players = makePlayers(n);
+      var drawData = window.TCore.generateDraw(players, 'random');
+      var opts = {
+        drawData: drawData,
+        tournament: { venue: 'Alwar, Rajasthan', startDate: '2026-03-15' },
+        brand: window.TOURNAMENT_DEFAULTS,
+        categoryLabel: 'Junior Girls +68 KG',
+        ageCategory: 'Junior',
+        gender: 'Girls',
+        weight: '+68',
+        entries: n,
+        byes: drawData.byes
+      };
+      var html = TF.renderSheet(opts);
+      var issues = validateDraw(n, drawData, html);
+      return { drawData: drawData, html: html, issues: issues, n: n };
+    }
+
+    var lastResult = null;
+
+    function show(result) {
+      lastResult = result;
+      document.getElementById('preview').innerHTML = result.html;
+      var report = document.getElementById('report');
+      var cls = result.issues.length ? 'fail' : 'ok';
+      var status = result.issues.length ? 'FAILED' : 'PASSED';
+      var r1 = (result.drawData.rounds[0] || []).length;
+      report.innerHTML = '<strong class="' + cls + '">' + result.n + ' players — ' + status + '</strong>' +
+        ' &nbsp;|&nbsp; R1 matches: ' + r1 +
+        ' &nbsp;|&nbsp; Total matches: ' + (nextPow2(result.n) - 1) +
+        ' &nbsp;|&nbsp; Byes: ' + result.drawData.byes +
+        (result.issues.length ? '<ul><li>' + result.issues.join('</li><li>') + '</li></ul>' :
+          '<div>Layout OK — horizontal bracket, match cards, connectors, correct BYE logic.</div>');
+
+      document.querySelectorAll('.toolbar button[data-n]').forEach(function (btn) {
+        btn.classList.toggle('active', parseInt(btn.dataset.n, 10) === result.n);
+      });
+    }
+
+    document.querySelectorAll('.toolbar button[data-n]').forEach(function (btn) {
+      btn.onclick = function () { show(render(parseInt(btn.dataset.n, 10))); };
+    });
+
+    document.getElementById('btnRunAll').onclick = function () {
+      var counts = [2, 3, 4, 6, 8, 16];
+      var allIssues = [];
+      counts.forEach(function (n) {
+        var r = render(n);
+        if (r.issues.length) allIssues.push(n + ' players: ' + r.issues.join('; '));
+      });
+      var report = document.getElementById('report');
+      if (!allIssues.length) {
+        report.innerHTML = '<strong class="ok">ALL TESTS PASSED</strong> for 2,3,4,6,8,16 players.';
+      } else {
+        report.innerHTML = '<strong class="fail">SOME TESTS FAILED</strong><ul><li>' + allIssues.join('</li><li>') + '</li></ul>';
+      }
+      show(render(16));
+    };
+
+    document.getElementById('btnPrintPreview').onclick = function () {
+      if (!lastResult) lastResult = render(16);
+      var opts = {
+        drawData: lastResult.drawData,
+        tournament: { venue: 'Alwar, Rajasthan', startDate: '2026-03-15' },
+        brand: window.TOURNAMENT_DEFAULTS,
+        categoryLabel: 'Junior Girls +68 KG',
+        ageCategory: 'Junior',
+        gender: 'Girls',
+        weight: '+68',
+        entries: lastResult.n,
+        byes: lastResult.drawData.byes
+      };
+      var html = TF.renderPrintSheet(opts);
+      window.TCore.printHTML('Draw Print — ' + lastResult.n + ' players', html, TF.printCSS(), true);
+    };
+
+    show(render(16));
+  })();
+  </script>
+</body>
+</html>

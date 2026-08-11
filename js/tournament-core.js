@@ -710,39 +710,89 @@
 
   function applyByes(drawData) {
     var rounds = drawData.rounds || [];
-    var changed = true;
-    while (changed) {
-      changed = false;
-      for (var ri = 0; ri < rounds.length; ri++) {
-        for (var mi = 0; mi < rounds[ri].length; mi++) {
-          var m = rounds[ri][mi];
-          if (m.status === 'complete' || m.status === 'bye') continue;
-          var hasA = !!m.a;
-          var hasB = !!m.b;
-          if (hasA && hasB) continue;
-          if (!hasA && !hasB) continue;
-          var side = hasA ? 'a' : 'b';
-          m.winner = side;
-          m.score = 'BYE';
-          m.locked = true;
-          m.status = 'bye';
-          advanceWinner(drawData, ri, mi, side);
-          changed = true;
-        }
-      }
+    var round1 = rounds[0];
+    if (!round1) return drawData;
+    for (var mi = 0; mi < round1.length; mi++) {
+      var m = round1[mi];
+      if (m.status === 'complete' || m.status === 'bye') continue;
+      var hasA = !!m.a;
+      var hasB = !!m.b;
+      if (hasA && hasB) continue;
+      if (!hasA && !hasB) continue;
+      var side = hasA ? 'a' : 'b';
+      m.winner = side;
+      m.score = 'BYE';
+      m.locked = true;
+      m.status = 'bye';
+      advanceWinner(drawData, 0, mi, side);
     }
     return drawData;
   }
 
-  function generateDraw(players, mode) {
+  function buildRoundOneMatches(players, mode) {
     var list = (mode === 'seeded')
       ? players.slice().sort(function (x, y) {
         return String(x.academy || '').localeCompare(String(y.academy || '')) ||
           String(x.district || '').localeCompare(String(y.district || ''));
       })
-      : shuffle(players);
+      : shuffle(players.slice());
 
     var n = list.length;
+    var size = 1;
+    while (size < n) size *= 2;
+    var byesCount = size - n;
+    var remaining = list.slice();
+    var matches = [];
+
+    for (var i = 0; i < byesCount; i++) {
+      matches.push({
+        a: remaining.length ? slimPlayer(remaining.shift()) : null,
+        b: null
+      });
+    }
+    while (remaining.length >= 2) {
+      matches.push({
+        a: slimPlayer(remaining.shift()),
+        b: slimPlayer(remaining.shift())
+      });
+    }
+    if (remaining.length === 1) {
+      matches.push({ a: slimPlayer(remaining.shift()), b: null });
+    }
+    if (mode !== 'seeded') matches = shuffle(matches);
+    return matches.map(function (pair, idx) {
+      return newMatch(0, idx, pair.a, pair.b);
+    });
+  }
+
+  function feederMatchRef(roundIndex, matchIndex, side) {
+    if (roundIndex <= 0) return null;
+    return {
+      roundIndex: roundIndex - 1,
+      matchIndex: side === 'a' ? matchIndex * 2 : matchIndex * 2 + 1
+    };
+  }
+
+  function slotDisplayLabel(drawData, roundIndex, matchIndex, side) {
+    var rounds = drawData.rounds || [];
+    var match = rounds[roundIndex] && rounds[roundIndex][matchIndex];
+    if (!match) return '—';
+    var player = side === 'a' ? match.a : match.b;
+    if (player && player.name) return player.name;
+    if (roundIndex === 0) return 'BYE';
+    var ref = feederMatchRef(roundIndex, matchIndex, side);
+    if (!ref) return '—';
+    var feeder = rounds[ref.roundIndex] && rounds[ref.roundIndex][ref.matchIndex];
+    if (!feeder) return '—';
+    if (feeder.status === 'bye' && feeder.winner) {
+      var w = feeder.winner === 'a' ? feeder.a : feeder.b;
+      if (w && w.name) return w.name;
+    }
+    return 'Winner M' + (feeder.matchNo || (ref.matchIndex + 1));
+  }
+
+  function generateDraw(players, mode) {
+    var n = players.length;
     if (!n) {
       return {
         rounds: [],
@@ -754,14 +804,7 @@
     var size = 1; while (size < n) size *= 2;
     var byesCount = size - n;
 
-    var slots = list.slice();
-    for (var i = 0; i < byesCount; i++) slots.push(null);
-    if (mode !== 'seeded') slots = shuffle(slots);
-
-    var round1 = [];
-    for (var k = 0; k < size; k += 2) {
-      round1.push(newMatch(0, k / 2, slots[k] ? slimPlayer(slots[k]) : null, slots[k + 1] ? slimPlayer(slots[k + 1]) : null));
-    }
+    var round1 = buildRoundOneMatches(players, mode);
 
     var rounds = [round1];
     var count = size / 2;
@@ -848,6 +891,7 @@
     m.score = '';
     m.locked = false;
     m.status = (m.a && m.b) ? 'pending' : ((m.a || m.b) ? 'bye' : 'pending');
+    if (roundIndex === 0) applyByes(drawData);
     recomputePlacements(drawData);
     return drawData;
   }
@@ -1110,6 +1154,7 @@
     generateCertificatesForCategory: generateCertificatesForCategory,
     generateStaffCertificate: generateStaffCertificate,
     generateDraw: generateDraw, applyByes: applyByes, slimPlayer: slimPlayer,
+    feederMatchRef: feederMatchRef, slotDisplayLabel: slotDisplayLabel,
     setMatchWinner: setMatchWinner, unlockMatch: unlockMatch, swapMatchSides: swapMatchSides,
     movePlayerInDraw: movePlayerInDraw, flattenMatches: flattenMatches,
     deriveMedalsFromDraw: deriveMedalsFromDraw, roundTitle: roundTitle,

@@ -147,10 +147,10 @@
   var state = { tournaments: [], players: [], results: [], draws: [], medalMode: 'academy', tid: '' };
 
   (function injectPreviewStyles() {
+    if (TF.ensureStyles) TF.ensureStyles();
     if (document.getElementById('tournament-preview-styles')) return;
     var s = document.createElement('style');
     s.id = 'tournament-preview-styles';
-    s.textContent = TF.printCSS();
     document.head.appendChild(s);
   })();
 
@@ -243,7 +243,7 @@
     if (!document.getElementById('dCat').value) return T.toast('Select a draw first', 'error');
     var id = document.getElementById('dCat').value;
     var d = (state.draws || []).filter(function (x) { return x.id === id; })[0];
-    var html = TF.renderSheet({
+    var html = TF.renderPrintSheet({
       drawData: { rounds: d.rounds, placements: d.placements, byes: d.byes, size: d.size },
       tournament: currentTour(),
       brand: D,
