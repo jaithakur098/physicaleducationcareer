@@ -198,10 +198,24 @@
     return verifyPlayerUrl(holder);
   }
 
+  function resolvePhotoSrc(holder) {
+    if (!holder) return '';
+    var keys = ['photo', 'photoUrl', 'photoURL', 'imageUrl', 'imageURL', 'avatar', 'image', 'profilePhoto'];
+    for (var i = 0; i < keys.length; i++) {
+      var v = holder[keys[i]];
+      if (v && typeof v === 'string' && v.trim()) return v.trim();
+    }
+    return '';
+  }
+
   function photoHtml(holder, cls) {
-    var src = holder.photo || holder.photoUrl || '';
+    var src = resolvePhotoSrc(holder);
     if (src) {
-      return '<div class="tp-photo-frame"><img src="' + esc(src) + '" alt="" class="' + cls + '" /></div>';
+      return '<div class="tp-photo-frame">' +
+        '<img src="' + esc(src) + '" alt="" class="' + cls + '" referrerpolicy="no-referrer" loading="eager" ' +
+        'onerror="this.style.display=\'none\';var p=this.nextSibling;if(p)p.style.display=\'flex\';" />' +
+        '<div class="' + cls + ' tp-photo-ph" style="display:none"><span>PHOTO</span></div>' +
+      '</div>';
     }
     return '<div class="tp-photo-frame"><div class="' + cls + ' tp-photo-ph"><span>PHOTO</span></div></div>';
   }

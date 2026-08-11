@@ -265,11 +265,13 @@
     <!-- ID CARDS -->
     <section id="tab-idcards" class="t-panel">
       <div class="t-card">
-        <h3>Player ID Cards</h3>
-        <p class="t-sub">Approved players only. QR links to verification page.</p>
+        <h3>Accreditation ID Cards</h3>
+        <p class="t-sub">Player, Coach and VIP / Official passes with photos and QR verification.</p>
         <div class="t-row t-no-print" style="margin-bottom:16px">
           <button type="button" id="btnRenderCards" class="t-btn t-btn-ghost t-btn-sm">Refresh Preview</button>
-          <button type="button" id="btnPrintCards" class="t-btn t-btn-gold t-btn-sm">Print All ID Cards</button>
+          <button type="button" id="btnPrintCards" class="t-btn t-btn-gold t-btn-sm">Print Player ID Cards</button>
+          <button type="button" id="btnPrintCoachCards" class="t-btn t-btn-ghost t-btn-sm">Print Coach ID Cards</button>
+          <button type="button" id="btnPrintVipCards" class="t-btn t-btn-ghost t-btn-sm">Print VIP / Official Cards</button>
         </div>
         <div id="idCardPreview" class="t-idcard-grid t-idcard-preview-host"><div class="t-empty">No approved players.</div></div>
       </div>
@@ -307,10 +309,25 @@
           <h3>Add Referee / Official</h3>
           <form id="refForm">
             <div class="t-field"><label>Name *</label><input class="t-input" name="name" required></div>
-            <div class="t-field"><label>Role</label><select class="t-select" name="role"><option>Referee</option><option>Judge</option><option>Chief Referee</option><option>Technical Official</option></select></div>
+            <div class="t-field"><label>Card Type</label>
+              <select class="t-select" name="holderType">
+                <option value="referee">Referee / Official</option>
+                <option value="vip">VIP Guest</option>
+              </select>
+            </div>
+            <div class="t-field"><label>Role / Designation</label>
+              <select class="t-select" name="role">
+                <option>Referee</option><option>Judge</option><option>Chief Referee</option>
+                <option>Technical Official</option><option>VIP Guest</option><option>Chief Guest</option>
+              </select>
+            </div>
             <div class="t-field"><label>Mobile</label><input class="t-input" name="phone"></div>
             <div class="t-field"><label>District</label><input class="t-input" name="district"></div>
-            <button type="submit" class="t-btn t-btn-gold">Add Referee</button>
+            <div class="t-field"><label>Organization</label><input class="t-input" name="organization" placeholder="Optional"></div>
+            <div class="t-field"><label>Photo</label><input type="file" name="photoFile" accept="image/*">
+              <img id="refPhotoPrev" class="t-photo-prev" style="margin-top:8px;display:none" alt="">
+            </div>
+            <button type="submit" class="t-btn t-btn-gold">Add Official / VIP</button>
           </form>
         </div>
         <div class="t-card">
@@ -348,9 +365,29 @@
     <div class="t-row">
       <button type="button" id="btnWinA" class="t-btn t-btn-gold">Blue Wins</button>
       <button type="button" id="btnWinB" class="t-btn t-btn-gold">Red Wins</button>
+      <button type="button" id="btnEditBlue" class="t-btn t-btn-ghost">Edit Blue</button>
+      <button type="button" id="btnEditRed" class="t-btn t-btn-ghost">Edit Red</button>
       <button type="button" id="btnSwapSides" class="t-btn t-btn-ghost">Swap Sides</button>
       <button type="button" id="btnUnlockMatch" class="t-btn t-btn-danger">Unlock Match</button>
       <button type="button" id="btnCloseModal" class="t-btn t-btn-ghost">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Fixture player edit modal -->
+<div id="playerEditModal" class="t-modal t-no-print">
+  <div class="t-modal-box" style="max-width:560px">
+    <h3>EDIT PLAYER</h3>
+    <p id="playerEditInfo" class="t-sub" style="margin-bottom:12px"></p>
+    <div class="t-field"><label>Search Player</label>
+      <input class="t-input" id="playerEditSearch" placeholder="Name, registration ID, academy, district…">
+    </div>
+    <div id="playerEditList" class="t-table-wrap" style="max-height:280px;overflow:auto;margin:10px 0"></div>
+    <div id="playerEditWarn" class="t-banner warn t-hide" style="margin-bottom:12px"></div>
+    <div class="t-row">
+      <button type="button" id="btnPlayerEditCancel" class="t-btn t-btn-ghost">Cancel</button>
+      <button type="button" id="btnPlayerEditMove" class="t-btn t-btn-gold t-hide">Move Player</button>
+      <button type="button" id="btnPlayerEditSave" class="t-btn t-btn-gold" disabled>Save Player</button>
     </div>
   </div>
 </div>
@@ -360,7 +397,7 @@
 <script>
 (function () {
   var T = window.TCore, TF = window.TFixture, TP = window.TPrint, E = T.esc, D = window.TOURNAMENT_DEFAULTS;
-  var S = { tours: [], tid: '', players: [], coaches: [], results: [], refs: [], certs: [], draw: null, medalMode: 'academy', matchPick: null };
+  var S = { tours: [], tid: '', players: [], coaches: [], results: [], refs: [], certs: [], draw: null, medalMode: 'academy', matchPick: null, playerEdit: null, refPhoto: '' };
 
   (function injectPreviewStyles() {
     if (!window.TFixture) return;
@@ -729,7 +766,8 @@
     }
     document.getElementById('drawBox').innerHTML = TF.renderEditable(fixtureOpts(S.draw.cat, S.draw.data));
     document.getElementById('drawBox').querySelectorAll('.tf-slot-editable, .tf-slot-bye').forEach(function (slot) {
-      slot.onclick = function () {
+      slot.onclick = function (ev) {
+        if (ev.target && ev.target.classList && ev.target.classList.contains('tf-edit-btn')) return;
         var r = parseInt(slot.dataset.r, 10), m = parseInt(slot.dataset.m, 10), side = slot.dataset.side;
         if (isNaN(r) || isNaN(m)) return;
         var match = S.draw.data.rounds[r][m];
@@ -741,7 +779,117 @@
         document.getElementById('matchModal').classList.add('open');
       };
     });
+    document.getElementById('drawBox').querySelectorAll('.tf-edit-btn').forEach(function (btn) {
+      btn.onclick = function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openPlayerEdit(parseInt(btn.dataset.editR, 10), parseInt(btn.dataset.editM, 10), btn.dataset.editSide);
+      };
+    });
   }
+
+  function openPlayerEdit(r, m, side) {
+    if (!S.draw || isNaN(r) || isNaN(m)) return;
+    if (r !== 0) return T.toast('Only Round 1 slots can be edited. Change results for later rounds.', 'error');
+    var match = S.draw.data.rounds[r][m];
+    S.playerEdit = { r: r, m: m, side: side, match: match, selected: null, conflict: null };
+    document.getElementById('playerEditInfo').textContent =
+      'Match: M' + (match.matchNo || '') + ' · Position: ' + (side === 'a' ? 'BLUE' : 'RED');
+    document.getElementById('playerEditSearch').value = '';
+    document.getElementById('playerEditWarn').classList.add('t-hide');
+    document.getElementById('btnPlayerEditMove').classList.add('t-hide');
+    document.getElementById('btnPlayerEditSave').disabled = true;
+    renderPlayerEditList();
+    document.getElementById('matchModal').classList.remove('open');
+    document.getElementById('playerEditModal').classList.add('open');
+  }
+
+  function categoryPlayersForEdit() {
+    var list = (S.draw && S.draw.cat && S.draw.cat.players) ? S.draw.cat.players.slice() : [];
+    var q = document.getElementById('playerEditSearch').value.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(function (p) {
+      return [p.name, p.regNo, p.academy, p.school, p.district, p.id]
+        .some(function (v) { return String(v || '').toLowerCase().indexOf(q) > -1; });
+    });
+  }
+
+  function renderPlayerEditList() {
+    var rows = categoryPlayersForEdit();
+    var box = document.getElementById('playerEditList');
+    if (!rows.length) {
+      box.innerHTML = '<div class="t-empty">No matching registered players in this category.</div>';
+      return;
+    }
+    box.innerHTML = '<table class="t-table"><thead><tr><th></th><th>Reg No</th><th>Name</th><th>Academy</th><th>District</th></tr></thead><tbody>' +
+      rows.map(function (p) {
+        var sel = S.playerEdit && S.playerEdit.selected && S.playerEdit.selected.id === p.id ? ' checked' : '';
+        return '<tr><td><input type="radio" name="pePick" value="' + E(p.id) + '"' + sel + '></td>' +
+          '<td>' + E(p.regNo || '—') + '</td><td><strong>' + E(p.name || '') + '</strong></td>' +
+          '<td>' + E(p.academy || '—') + '</td><td>' + E(p.district || '—') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+    box.querySelectorAll('input[name=pePick]').forEach(function (inp) {
+      inp.onchange = function () {
+        var p = rows.filter(function (x) { return x.id === inp.value; })[0];
+        selectEditPlayer(p);
+      };
+    });
+  }
+
+  function selectEditPlayer(p) {
+    if (!S.playerEdit || !p) return;
+    S.playerEdit.selected = p;
+    S.playerEdit.conflict = null;
+    document.getElementById('btnPlayerEditSave').disabled = false;
+    document.getElementById('btnPlayerEditMove').classList.add('t-hide');
+    document.getElementById('playerEditWarn').classList.add('t-hide');
+    var check = T.assignPlayerToSlot(JSON.parse(JSON.stringify(S.draw.data)), S.playerEdit.r, S.playerEdit.m, S.playerEdit.side, p, { unlock: true });
+    if (!check.ok && check.conflict) {
+      S.playerEdit.conflict = check.conflict;
+      var pos = check.conflict.side === 'a' ? 'Blue' : 'Red';
+      document.getElementById('playerEditWarn').classList.remove('t-hide');
+      document.getElementById('playerEditWarn').textContent =
+        'Player is already assigned to M' + check.conflict.matchNo + ' ' + pos +
+        '. Do you want to move this player from M' + check.conflict.matchNo + ' ' + pos +
+        ' to M' + S.playerEdit.match.matchNo + ' ' + (S.playerEdit.side === 'a' ? 'Blue' : 'Red') + '?';
+      document.getElementById('btnPlayerEditMove').classList.remove('t-hide');
+      document.getElementById('btnPlayerEditSave').disabled = true;
+    }
+  }
+
+  function applyPlayerEdit(forceMove) {
+    if (!S.playerEdit || !S.playerEdit.selected || !S.draw) return;
+    var pe = S.playerEdit;
+    var pos = pe.side === 'a' ? 'Blue' : 'Red';
+    if (!forceMove && !window.confirm('Replace player in M' + pe.match.matchNo + ' ' + pos + ' with ' + pe.selected.name + '?')) return;
+    var result = T.assignPlayerToSlot(S.draw.data, pe.r, pe.m, pe.side, pe.selected, { forceMove: !!forceMove, unlock: true });
+    if (!result.ok) {
+      if (result.conflict) {
+        selectEditPlayer(pe.selected);
+        return T.toast('Player already assigned elsewhere — use Move Player', 'error');
+      }
+      return T.toast(result.error || 'Could not assign player', 'error');
+    }
+    S.draw.data = result.drawData || S.draw.data;
+    document.getElementById('playerEditModal').classList.remove('open');
+    renderDrawEditable();
+    T.toast('Fixture player updated', 'success');
+  }
+
+  document.getElementById('playerEditSearch').oninput = renderPlayerEditList;
+  document.getElementById('btnPlayerEditCancel').onclick = function () {
+    document.getElementById('playerEditModal').classList.remove('open');
+  };
+  document.getElementById('btnPlayerEditSave').onclick = function () { applyPlayerEdit(false); };
+  document.getElementById('btnPlayerEditMove').onclick = function () { applyPlayerEdit(true); };
+  document.getElementById('btnEditBlue').onclick = function () {
+    if (!S.matchPick) return;
+    openPlayerEdit(S.matchPick.r, S.matchPick.m, 'a');
+  };
+  document.getElementById('btnEditRed').onclick = function () {
+    if (!S.matchPick) return;
+    openPlayerEdit(S.matchPick.r, S.matchPick.m, 'b');
+  };
   document.getElementById('btnDraw').onclick = function () {
     var id = document.getElementById('drawCat').value;
     if (!id) return T.toast('Select a category', 'error');
@@ -897,18 +1045,49 @@
 
   /* id cards */
   function approvedPlayers() { return S.players.filter(function (p) { return p.status === 'approved'; }); }
+  function participatingCoaches() {
+    var uids = {};
+    approvedPlayers().forEach(function (p) { if (p.coachUid) uids[p.coachUid] = 1; });
+    return S.coaches.filter(function (c) {
+      return uids[c.id] || T.normalizeCoachStatus(c.status) === 'approved';
+    });
+  }
   function renderIdCards() {
     var rows = approvedPlayers();
-    document.getElementById('idCardPreview').innerHTML = rows.length
-      ? rows.slice(0, 6).map(function (p) { return TP.idCardHTML(p, tour(), D); }).join('') +
-        (rows.length > 6 ? '<div class="t-empty">+' + (rows.length - 6) + ' more — use Print All</div>' : '')
-      : '<div class="t-empty">No approved players.</div>';
+    var coaches = participatingCoaches().slice(0, 2);
+    var vips = (S.refs || []).filter(function (r) { return r.holderType === 'vip'; }).slice(0, 2);
+    var html = '';
+    if (rows.length) {
+      html += rows.slice(0, 4).map(function (p) { return TP.idCardHTML(p, tour(), D); }).join('');
+    }
+    coaches.forEach(function (c) { html += TP.coachIdCardHTML(c, tour(), D); });
+    vips.forEach(function (v) { html += TP.vipIdCardHTML(v, tour(), D); });
+    if (!html) {
+      html = '<div class="t-empty">No approved players, coaches or VIP guests yet.</div>';
+    } else if (rows.length > 4) {
+      html += '<div class="t-empty">+' + (rows.length - 4) + ' more players — use Print Player ID Cards</div>';
+    }
+    document.getElementById('idCardPreview').innerHTML = html;
   }
   document.getElementById('btnRenderCards').onclick = renderIdCards;
   document.getElementById('btnPrintCards').onclick = function () {
     var rows = approvedPlayers();
     if (!rows.length) return T.toast('No approved players', 'error');
     T.printHTML('ID Cards', TP.idCardsSheetHTML(rows, tour(), D), TP.idCardCSS(), false);
+  };
+  document.getElementById('btnPrintCoachCards').onclick = function () {
+    var list = participatingCoaches();
+    if (!list.length) return T.toast('No coaches to print', 'error');
+    var html = list.map(function (c) { return TP.coachIdCardHTML(c, tour(), D); }).join('');
+    T.printHTML('Coach ID Cards', html, TP.idCardCSS(), false);
+  };
+  document.getElementById('btnPrintVipCards').onclick = function () {
+    var list = S.refs || [];
+    if (!list.length) return T.toast('No VIP / officials added', 'error');
+    var html = list.map(function (r) {
+      return r.holderType === 'vip' ? TP.vipIdCardHTML(r, tour(), D) : TP.refereeIdCardHTML(r, tour(), D);
+    }).join('');
+    T.printHTML('VIP / Official ID Cards', html, TP.idCardCSS(), false);
   };
 
   /* certificates */
@@ -996,25 +1175,68 @@
     });
   }
 
-  /* referees */
+  /* referees / VIP */
+  S.refPhoto = '';
+  document.querySelector('#refForm [name=photoFile]').onchange = function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    T.uploadImage(file, 'referees').then(function (url) {
+      S.refPhoto = url;
+      var img = document.getElementById('refPhotoPrev');
+      img.src = url; img.style.display = 'block';
+      T.toast('Photo uploaded', 'success');
+    }).catch(function (err) { T.toast(err.message || 'Upload failed', 'error'); });
+  };
   document.getElementById('refForm').onsubmit = function (e) {
     e.preventDefault();
     var f = e.target;
-    T.saveReferee({ name: f.name.value.trim(), role: f.role.value, phone: f.phone.value.trim(), district: f.district.value.trim() })
-      .then(function () { f.reset(); T.toast('Referee added', 'success'); return T.listReferees(); })
+    var holderType = f.holderType.value || 'referee';
+    var data = {
+      name: f.name.value.trim(),
+      role: f.role.value,
+      phone: f.phone.value.trim(),
+      district: f.district.value.trim(),
+      organization: f.organization.value.trim(),
+      photo: S.refPhoto || '',
+      holderType: holderType,
+      status: 'approved'
+    };
+    if (holderType === 'vip') {
+      data.vipId = data.vipId || '';
+      data.designation = data.role;
+    }
+    T.saveReferee(data)
+      .then(function () {
+        f.reset(); S.refPhoto = '';
+        document.getElementById('refPhotoPrev').style.display = 'none';
+        T.toast(holderType === 'vip' ? 'VIP guest added' : 'Referee added', 'success');
+        return T.listReferees();
+      })
       .then(function (r) { S.refs = r; renderRefs(); });
   };
   function renderRefs() {
     document.getElementById('refTable').innerHTML = S.refs.length
-      ? '<table class="t-table"><thead><tr><th>ID</th><th>Name</th><th>Role</th><th>District</th><th></th></tr></thead><tbody>' +
+      ? '<table class="t-table"><thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Role</th><th>District</th><th>Photo</th><th></th></tr></thead><tbody>' +
         S.refs.map(function (r) {
-          return '<tr><td>' + E(r.refereeId || '—') + '</td><td>' + E(r.name) + '</td><td>' + E(r.role || '') + '</td><td>' + E(r.district || '') + '</td>' +
-            '<td><button type="button" class="t-btn t-btn-danger t-btn-sm" data-dr="' + E(r.id) + '">Delete</button></td></tr>';
+          var typ = r.holderType === 'vip' ? 'VIP' : 'Official';
+          var photo = (r.photo || r.photoUrl) ? 'Yes' : '—';
+          return '<tr><td>' + E(r.refereeId || r.vipId || '—') + '</td><td>' + E(r.name) + '</td><td>' + typ + '</td>' +
+            '<td>' + E(r.role || r.designation || '') + '</td><td>' + E(r.district || '') + '</td><td>' + photo + '</td>' +
+            '<td><button type="button" class="t-btn t-btn-ghost t-btn-sm" data-pr="' + E(r.id) + '">Print ID</button> ' +
+            '<button type="button" class="t-btn t-btn-danger t-btn-sm" data-dr="' + E(r.id) + '">Delete</button></td></tr>';
         }).join('') + '</tbody></table>'
-      : '<div class="t-empty">No referees added.</div>';
+      : '<div class="t-empty">No referees or VIP guests added.</div>';
     document.querySelectorAll('[data-dr]').forEach(function (b) {
       b.onclick = function () {
         T.deleteReferee(b.dataset.dr).then(function () { return T.listReferees(); }).then(function (r) { S.refs = r; renderRefs(); T.toast('Deleted', 'success'); });
+      };
+    });
+    document.querySelectorAll('[data-pr]').forEach(function (b) {
+      b.onclick = function () {
+        var r = S.refs.filter(function (x) { return x.id === b.dataset.pr; })[0];
+        if (!r) return;
+        var html = r.holderType === 'vip' ? TP.vipIdCardHTML(r, tour(), D) : TP.refereeIdCardHTML(r, tour(), D);
+        T.printHTML('ID Card — ' + (r.name || ''), html, TP.idCardCSS(), false);
       };
     });
   }

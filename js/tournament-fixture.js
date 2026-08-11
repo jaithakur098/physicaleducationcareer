@@ -115,9 +115,16 @@
     }
     var slot = resolveSlot(drawData, r, m, side);
     var cornerIcon = side === 'a' ? '🔵' : '🔴';
+    var editBtn = '';
+    if (editable && !compact && r === 0) {
+      editBtn = '<button type="button" class="tf-edit-btn" data-edit-r="' + r + '" data-edit-m="' + m +
+        '" data-edit-side="' + side + '" title="Edit player">EDIT</button>';
+    }
 
     if (slot.type === 'bye') {
-      return '<div class="tf-corner-block tf-bye tf-slot-bye"' + attrs + '><span class="tf-bye-text">BYE</span></div>';
+      return '<div class="tf-corner-block tf-bye tf-slot-bye"' + attrs + '>' +
+        '<span class="tf-bye-text">BYE</span>' + editBtn +
+      '</div>';
     }
     if (slot.type === 'placeholder') {
       if (compact) {
@@ -129,6 +136,7 @@
       return '<div class="' + slotClass(match, side, editable, 'placeholder') + '"' + attrs + '>' +
         '<div class="tf-corner-tag">' + cornerIcon + ' ' + (side === 'a' ? 'BLUE' : 'RED') + '</div>' +
         '<div class="tf-player-name tf-pending-name">' + esc(slot.label) + '</div>' +
+        editBtn +
       '</div>';
     }
 
@@ -152,6 +160,7 @@
       '<div class="tf-corner-row">' +
         '<span class="tf-corner-tag">' + cornerIcon + ' ' + (side === 'a' ? 'BLUE' : 'RED') + '</span>' +
         scoreHtml +
+        editBtn +
       '</div>' +
       '<div class="tf-player-name">' + esc(player.name || '') + '</div>' +
       '<div class="tf-player-id">' + esc(player.regNo || '—') + '</div>' +
@@ -389,7 +398,11 @@
       '.tf-podium-meta { text-align: center; font-size: 8px; padding: 4px; border-top: 1px solid #dde3ef; color: #718096; }' +
       '.tf-empty { padding: 40px; text-align: center; color: #718096; }' +
       '.tf-sheet-editable .tf-slot-editable { cursor: pointer; }' +
-      '.tf-sheet-editable .tf-slot-editable:hover { outline: 2px solid ' + GOLD + '; outline-offset: -2px; }';
+      '.tf-sheet-editable .tf-slot-editable:hover { outline: 2px solid ' + GOLD + '; outline-offset: -2px; }' +
+      '.tf-edit-btn { margin-left: auto; border: 1px solid ' + NAVY + '; background: #fff; color: ' + NAVY + '; font-size: 8px; font-weight: 800; letter-spacing: 0.04em; padding: 1px 6px; border-radius: 2px; cursor: pointer; flex-shrink: 0; }' +
+      '.tf-edit-btn:hover { background: ' + GOLD + '; border-color: ' + GOLD + '; }' +
+      '.tf-bye .tf-edit-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); }' +
+      '.tf-bye { position: relative; }';
   }
 
   function printLayoutCSS() {
@@ -427,18 +440,18 @@
       '.draw-sheet .tf-conn-even { top: 50%; bottom: -50%; }' +
       '.draw-sheet .tf-conn-odd { top: -50%; bottom: 50%; }' +
       '.draw-sheet .tf-round:last-child .tf-connector { display: none; }' +
-      '.draw-sheet .tf-podium { width: 28mm; flex-shrink: 0; border: 1px solid ' + NAVY + '; border-radius: 2px; background: #fff; display: flex; flex-direction: column; align-self: flex-start; }' +
-      '.draw-sheet .tf-podium-heading { text-align: center; font-size: 6.5pt; font-weight: 800; text-transform: uppercase; background: ' + NAVY + '; color: #fff; padding: 1mm; flex-shrink: 0; }' +
-      '.draw-sheet .tf-podium-grid { padding: 1.5mm; display: grid; gap: 1.5mm; }' +
-      '.draw-sheet .tf-podium-box { border: 1px solid #c5cdd9; border-radius: 1px; padding: 1.5mm; background: #fff; font-size: 6pt; line-height: 1.2; word-wrap: break-word; min-height: 10mm; }' +
+      '.draw-sheet .tf-podium { width: 26mm; flex-shrink: 0; border: 1px solid ' + NAVY + '; border-radius: 2px; background: #fff; display: flex; flex-direction: column; align-self: flex-end; margin-top: 28mm; margin-left: 2mm; }' +
+      '.draw-sheet .tf-podium-heading { text-align: center; font-size: 6pt; font-weight: 800; text-transform: uppercase; background: ' + NAVY + '; color: #fff; padding: 0.6mm; flex-shrink: 0; }' +
+      '.draw-sheet .tf-podium-grid { padding: 1mm; display: grid; gap: 1mm; }' +
+      '.draw-sheet .tf-podium-box { border: 1px solid #c5cdd9; border-radius: 1px; padding: 0.8mm 1mm; background: #fff; font-size: 5.5pt; line-height: 1.15; word-wrap: break-word; min-height: 7mm; max-height: 12mm; overflow: hidden; }' +
       '.draw-sheet .tf-podium-1st { border-color: ' + GOLD + '; }' +
       '.draw-sheet .tf-podium-2nd { border-color: #9aa5b4; }' +
       '.draw-sheet .tf-podium-3rd { border-color: #cd7f32; }' +
-      '.draw-sheet .tf-podium-medal { font-weight: 800; font-size: 7pt; color: ' + NAVY + '; margin-bottom: 0.5mm; }' +
-      '.draw-sheet .tf-podium-name { font-weight: 700; font-size: 6.5pt; word-wrap: break-word; }' +
-      '.draw-sheet .tf-podium-academy { font-size: 5.5pt; color: #4a5568; word-wrap: break-word; }' +
-      '.draw-sheet .tf-podium-district { font-size: 5.5pt; color: #718096; }' +
-      '.draw-sheet .tf-podium-empty { color: #a0aec0; text-align: center; padding: 1mm 0; }' +
+      '.draw-sheet .tf-podium-medal { font-weight: 800; font-size: 6pt; color: ' + NAVY + '; margin-bottom: 0.3mm; }' +
+      '.draw-sheet .tf-podium-name { font-weight: 700; font-size: 5.5pt; word-wrap: break-word; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+      '.draw-sheet .tf-podium-academy { font-size: 5pt; color: #4a5568; word-wrap: break-word; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+      '.draw-sheet .tf-podium-district { font-size: 5pt; color: #718096; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+      '.draw-sheet .tf-podium-empty { color: #a0aec0; text-align: center; padding: 0.5mm 0; font-size: 5.5pt; }' +
       '.draw-sheet .tf-slot-winner { background: linear-gradient(90deg, rgba(212,175,55,0.12) 0%, transparent 100%) !important; }' +
       '.draw-sheet .tf-slot-loser { opacity: 0.55; }';
   }

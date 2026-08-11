@@ -474,9 +474,15 @@
   /* ------------------------------------------------------------- referees */
   function saveReferee(data, id) {
     data.updatedAt = Date.now();
+    if (data.holderType === 'vip') {
+      if (!data.vipId) data.vipId = 'VIP-' + new Date().getFullYear() + '-' + uid().slice(1, 6).toUpperCase();
+      data.cardRole = 'vip';
+    }
     if (id) return db.collection(C.referees).doc(id).set(data, { merge: true }).then(function () { return id; });
     data.createdAt = Date.now();
-    data.refereeId = 'REF-' + new Date().getFullYear() + '-' + uid().slice(1, 6).toUpperCase();
+    if (!data.refereeId && data.holderType !== 'vip') {
+      data.refereeId = 'REF-' + new Date().getFullYear() + '-' + uid().slice(1, 6).toUpperCase();
+    }
     return db.collection(C.referees).add(data).then(function (r) { return r.id; });
   }
   function listReferees() {
@@ -911,7 +917,7 @@
     var rounds = drawData.rounds;
     if (!rounds) return drawData;
     var src = rounds[fromRound] && rounds[fromRound][fromMatch];
-    var dst = rounds[toRound] && rounds[toMatch][toMatch];
+    var dst = rounds[toRound] && rounds[toRound][toMatch];
     if (!src || !dst) return drawData;
     if (src.locked || dst.locked) return drawData;
     var player = fromSide === 'a' ? src.a : src.b;
@@ -925,6 +931,68 @@
     dst.status = 'pending';
     applyByes(drawData);
     return drawData;
+  }
+
+  function findPlayerInDraw(drawData, playerId) {
+    var found = [];
+    if (!playerId || !drawData || !drawData.rounds) return found;
+    drawData.rounds.forEach(function (round, ri) {
+      round.forEach(function (m, mi) {
+        if (m.a && matchPlayerId(m.a) === playerId) {
+          found.push({ roundIndex: ri, matchIndex: mi, side: 'a', matchNo: m.matchNo });
+        }
+        if (m.b && matchPlayerId(m.b) === playerId) {
+          found.push({ roundIndex: ri, matchIndex: mi, side: 'b', matchNo: m.matchNo });
+        }
+      });
+    });
+    return found;
+  }
+
+  function assignPlayerToSlot(drawData, roundIndex, matchIndex, side, player, opts) {
+    opts = opts || {};
+    var rounds = drawData.rounds;
+    if (!rounds || !rounds[roundIndex] || !rounds[roundIndex][matchIndex]) {
+      return { ok: false, error: 'Match not found' };
+    }
+    var m = rounds[roundIndex][matchIndex];
+    if (m.locked && !opts.unlock) {
+      return { ok: false, error: 'Match is locked' };
+    }
+    var pid = matchPlayerId(player);
+    if (!pid) return { ok: false, error: 'Invalid player' };
+
+    /* Conflicts only matter in Round 1 — later rounds are progression copies. */
+    var conflicts = findPlayerInDraw(drawData, pid).filter(function (c) {
+      if (c.roundIndex !== 0) return false;
+      return !(c.roundIndex === roundIndex && c.matchIndex === matchIndex && c.side === side);
+    });
+    if (conflicts.length && !opts.forceMove) {
+      return { ok: false, conflict: conflicts[0], error: 'Player already assigned' };
+    }
+
+    if (conflicts.length && opts.forceMove) {
+      conflicts.forEach(function (c) {
+        var cm = rounds[c.roundIndex][c.matchIndex];
+        if (!cm) return;
+        if (c.side === 'a') cm.a = null; else cm.b = null;
+        cm.winner = null;
+        cm.score = '';
+        cm.status = 'pending';
+        cm.locked = false;
+        clearForwardFrom(drawData, c.roundIndex, c.matchIndex);
+      });
+    }
+
+    clearForwardFrom(drawData, roundIndex, matchIndex);
+    m[side] = slimPlayer(player);
+    m.winner = null;
+    m.score = '';
+    m.locked = false;
+    m.status = 'pending';
+    if (roundIndex === 0) applyByes(drawData);
+    recomputePlacements(drawData);
+    return { ok: true, drawData: drawData };
   }
 
   function flattenMatches(drawData) {
@@ -1156,7 +1224,8 @@
     generateDraw: generateDraw, applyByes: applyByes, slimPlayer: slimPlayer,
     feederMatchRef: feederMatchRef, slotDisplayLabel: slotDisplayLabel,
     setMatchWinner: setMatchWinner, unlockMatch: unlockMatch, swapMatchSides: swapMatchSides,
-    movePlayerInDraw: movePlayerInDraw, flattenMatches: flattenMatches,
+    movePlayerInDraw: movePlayerInDraw, findPlayerInDraw: findPlayerInDraw, assignPlayerToSlot: assignPlayerToSlot,
+    flattenMatches: flattenMatches,
     deriveMedalsFromDraw: deriveMedalsFromDraw, roundTitle: roundTitle,
     recomputePlacements: recomputePlacements,
     saveDraw: saveDraw, getDraw: getDraw, listDraws: listDraws, watchDraws: watchDraws, deleteDraw: deleteDraw,

@@ -100,6 +100,19 @@
           <div class="t-field" style="grid-column:1/-1"><button type="submit" class="t-btn t-btn-gold">Save Profile</button></div>
         </form>
       </div>
+
+      <div class="t-card" style="margin-top:16px">
+        <h3>Coach ID Card</h3>
+        <p class="t-sub">Status: <strong id="coachIdCardStatus">Not Generated</strong></p>
+        <div class="t-row t-no-print" style="margin:12px 0">
+          <button type="button" id="btnGenCoachIdCard" class="t-btn t-btn-gold t-btn-sm">Generate ID Card</button>
+          <button type="button" id="btnViewCoachIdCard" class="t-btn t-btn-ghost t-btn-sm">View ID Card</button>
+          <button type="button" id="btnPrintCoachIdCard" class="t-btn t-btn-ghost t-btn-sm">Print ID Card</button>
+        </div>
+        <div id="coachIdCardBox" class="t-idcard-grid">
+          <div class="t-empty">Generate your Coach ID card after saving your profile and photo.</div>
+        </div>
+      </div>
     </section>
 
     <!-- PLAYERS -->
@@ -306,11 +319,67 @@
       }
       if (!c || !c.academy) T.toast('Complete your coach profile first', 'info');
       document.getElementById('medalAcadName').textContent = (c && c.academy) ? c.academy : 'Your academy';
+      renderCoachIdCard();
     });
     watchMine();
     loadCerts();
     loadCoachResults();
   }
+
+  function activeTournament() {
+    return S.tournaments[0] || { name: D.brandLine || 'Tournament', venue: D.eventLocation || '' };
+  }
+
+  function renderCoachIdCard() {
+    var c = S.coach || {};
+    var statusEl = document.getElementById('coachIdCardStatus');
+    var box = document.getElementById('coachIdCardBox');
+    if (!statusEl || !box) return;
+    if (c.idCardGenerated) {
+      statusEl.textContent = 'Generated';
+      box.innerHTML = TP.coachIdCardHTML(Object.assign({}, c, { holderType: 'coach', status: c.status || 'approved' }), activeTournament(), D);
+    } else {
+      statusEl.textContent = 'Not Generated';
+      box.innerHTML = '<div class="t-empty">ID Card: Not Generated. Click Generate ID Card after saving your profile photo.</div>';
+    }
+  }
+
+  document.getElementById('btnGenCoachIdCard').onclick = function () {
+    if (!S.user) return;
+    if (!S.coach || !S.coach.name || !S.coach.academy) {
+      return T.toast('Save your coach profile first', 'error');
+    }
+    var data = Object.assign({}, S.coach, {
+      uid: S.user.uid,
+      photo: S.photoCoach || S.coach.photo || '',
+      idCardGenerated: true,
+      idCardGeneratedAt: Date.now(),
+      holderType: 'coach'
+    });
+    T.saveCoach(S.user.uid, data).then(function (saved) {
+      S.coach = Object.assign({}, S.coach, saved, {
+        idCardGenerated: true,
+        idCardGeneratedAt: data.idCardGeneratedAt,
+        photo: data.photo
+      });
+      renderCoachIdCard();
+      T.toast('Coach ID card generated', 'success');
+    }).catch(function (err) { T.toast(err.message || 'Failed to generate ID card', 'error'); });
+  };
+
+  document.getElementById('btnViewCoachIdCard').onclick = function () {
+    if (!S.coach || !S.coach.idCardGenerated) return T.toast('Generate the ID card first', 'error');
+    renderCoachIdCard();
+    goTab('profile');
+    var box = document.getElementById('coachIdCardBox');
+    if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  document.getElementById('btnPrintCoachIdCard').onclick = function () {
+    if (!S.coach || !S.coach.idCardGenerated) return T.toast('Generate the ID card first', 'error');
+    var html = TP.coachIdCardHTML(Object.assign({}, S.coach, { holderType: 'coach', status: S.coach.status || 'approved' }), activeTournament(), D);
+    T.printHTML('Coach ID Card — ' + (S.coach.name || ''), html, TP.idCardCSS(), false);
+  };
 
   document.querySelector('#coachForm [name=photoFile]').onchange = function (e) {
     var f = e.target.files[0]; if (!f) return;
@@ -326,11 +395,14 @@
       uid: S.user.uid, name: f.name.value.trim(), email: S.user.email || '', phone: f.phone.value.trim(),
       academy: f.academy.value.trim(), district: f.district.value.trim(), state: f.state.value.trim(),
       address: f.address.value.trim(), experience: Number(f.experience.value || 0), photo: S.photoCoach,
-      coachId: (S.coach && S.coach.coachId) || '', status: (S.coach && S.coach.status) || 'pending'
+      coachId: (S.coach && S.coach.coachId) || '', status: (S.coach && S.coach.status) || 'pending',
+      idCardGenerated: !!(S.coach && S.coach.idCardGenerated),
+      idCardGeneratedAt: (S.coach && S.coach.idCardGeneratedAt) || null
     };
     T.saveCoach(S.user.uid, data).then(function (saved) {
-      S.coach = saved;
+      S.coach = Object.assign({}, S.coach, saved);
       document.getElementById('coachIdLbl').textContent = saved.coachId;
+      renderCoachIdCard();
       T.toast('Profile saved', 'success');
     }).catch(function (err) { T.toast(err.message, 'error'); });
   };
