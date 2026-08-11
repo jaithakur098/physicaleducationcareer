@@ -75,7 +75,26 @@ counts.forEach(function (n) {
 
 var css = TF.printCSS();
 if (css.indexOf('A4 landscape') < 0) { console.log('CSS missing A4 landscape'); failed = true; }
-if (css.indexOf('198mm') < 0) { console.log('CSS missing 198mm height'); failed = true; }
-else console.log('Print CSS: A4 landscape + 198mm height OK');
+if (css.indexOf('200mm') < 0) { console.log('CSS missing 200mm height'); failed = true; }
+else console.log('Print CSS: A4 landscape + 200mm height OK');
+
+// Compact spacing check: 6-player R1 match units must be ~20mm (not page-stretched)
+var d6 = T.generateDraw(makePlayers(6), 'random');
+var h6 = TF.renderPrintSheet({ drawData: d6, entries: 6, byes: d6.byes, brand: ctx.TOURNAMENT_DEFAULTS, tournament: { venue: 'Alwar' }, ageCategory: 'Junior', gender: 'Girls', weight: '+68' });
+var r1Units = (h6.match(/tf-match-unit" style="height:([\d.]+)mm"/g) || []);
+var r1Heights = r1Units.map(function (s) {
+  var m = s.match(/height:([\d.]+)mm/);
+  return m ? parseFloat(m[1]) : 0;
+}).filter(function (h, i) { return i < 4; });
+console.log('6-player R1 unit heights:', r1Heights.join(', '));
+var stretched = r1Heights.some(function (h) { return h > 25; });
+if (stretched) {
+  console.log('FAIL: R1 still stretched');
+  failed = true;
+} else if (r1Heights.length === 4 && r1Heights.every(function (h) { return h <= 21; })) {
+  console.log('Compact R1 slot OK');
+} else {
+  console.log('WARN: unexpected R1 heights');
+}
 
 process.exit(failed ? 1 : 0);

@@ -12,7 +12,9 @@
   var STYLE_ID = 'tournament-fixture-styles';
   var BASE_UNIT = 92;
   var CARD_MIN_W = 280;
-  var PRINT_BODY_H = 182;
+  /* Compact print slot: never stretch R1 across the full page height. */
+  var PRINT_SLOT_MM = 20;
+  var PRINT_TRACK_MM = 168;
 
   function esc(s) {
     if (root.TCore && root.TCore.esc) return root.TCore.esc(s);
@@ -159,9 +161,13 @@
     '</div>';
   }
 
+  function printSlotMm(r1Count) {
+    var fit = PRINT_TRACK_MM / Math.max(r1Count, 1);
+    return Math.min(PRINT_SLOT_MM, fit);
+  }
+
   function printUnitMm(roundIndex, r1Count) {
-    var unit = PRINT_BODY_H / Math.max(r1Count, 1);
-    return (unit * Math.pow(2, roundIndex)).toFixed(2);
+    return (printSlotMm(r1Count) * Math.pow(2, roundIndex)).toFixed(2);
   }
 
   function renderMatchCard(drawData, match, roundIndex, totalRounds, editable, isLastRound, compact, r1Count) {
@@ -169,7 +175,7 @@
     var rs = roundShort(totalRounds, roundIndex);
     var unitStyle = '';
     if (compact) {
-      unitStyle = ' style="min-height:' + printUnitMm(roundIndex, r1Count) + 'mm"';
+      unitStyle = ' style="height:' + printUnitMm(roundIndex, r1Count) + 'mm"';
     } else {
       unitStyle = ' style="min-height:' + (BASE_UNIT * Math.pow(2, roundIndex)) + 'px"';
     }
@@ -201,7 +207,9 @@
       matchesHtml += renderMatchCard(drawData, round[i], roundIndex, totalRounds, editable, isLastRound, compact, r1Count);
     }
     var trackStyle = '';
-    if (!compact) {
+    if (compact) {
+      trackStyle = ' style="height:' + (printSlotMm(r1Count) * r1Count).toFixed(2) + 'mm"';
+    } else {
       var firstCount = drawData.rounds[0] ? drawData.rounds[0].length : round.length;
       trackStyle = ' style="min-height:' + (firstCount * BASE_UNIT) + 'px"';
     }
@@ -302,11 +310,11 @@
     var totalRounds = rounds.length;
     var r1Count = rounds[0] ? rounds[0].length : 1;
     var cols = [];
-    var minW = compact ? 58 : CARD_MIN_W;
+    var minW = compact ? 52 : CARD_MIN_W;
     for (var c = 0; c < totalRounds; c++) {
       cols.push('minmax(' + minW + (compact ? 'mm' : 'px') + ', 1fr)');
     }
-    var gap = compact ? '10mm' : '48px';
+    var gap = compact ? '8mm' : '48px';
     var html = '<div class="tf-bracket" data-r1="' + r1Count + '" style="grid-template-columns:' + cols.join(' ') + ';gap:' + gap + '">';
     for (var r = 0; r < totalRounds; r++) {
       html += renderRound(drawData, rounds[r], r, totalRounds, editable, compact, r1Count);
@@ -387,50 +395,50 @@
   function printLayoutCSS() {
     return '' +
       '.draw-sheet, .draw-sheet * { box-sizing: border-box; }' +
-      '.draw-sheet { width: 100%; max-width: 285mm; height: 198mm; max-height: 198mm; overflow: hidden; background: #fff; color: ' + NAVY + '; font-family: "Segoe UI", Arial, Helvetica, sans-serif; display: flex; flex-direction: column; }' +
-      '.draw-sheet .tf-header-print { flex-shrink: 0; text-align: center; padding: 0 0 2mm; border-bottom: 1px solid ' + NAVY + '; margin-bottom: 2mm; }' +
-      '.draw-sheet .tf-header-print .tf-header-name { font-size: 11pt; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: ' + NAVY + '; line-height: 1.2; }' +
-      '.draw-sheet .tf-header-print .tf-header-venue { font-size: 7pt; color: #4a5568; text-transform: uppercase; margin-top: 1mm; }' +
-      '.draw-sheet .tf-header-print .tf-header-category { font-size: 9pt; font-weight: 800; text-transform: uppercase; color: ' + NAVY + '; margin-top: 1.5mm; padding: 1mm 2mm; border: 1px solid ' + NAVY + '; display: inline-block; }' +
-      '.draw-sheet .tf-header-print .tf-header-stats { font-size: 7pt; color: #4a5568; margin-top: 1mm; display: flex; justify-content: center; gap: 8mm; }' +
-      '.draw-sheet .tf-body { display: flex; gap: 3mm; padding: 0; align-items: stretch; flex: 1; min-height: 0; overflow: hidden; }' +
-      '.draw-sheet .tf-bracket { display: grid; align-items: stretch; flex: 1; min-width: 0; min-height: 0; overflow: hidden; }' +
-      '.draw-sheet .tf-round { display: flex; flex-direction: column; min-width: 0; min-height: 0; }' +
-      '.draw-sheet .tf-round-label { text-align: center; font-size: 6.5pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #fff; background: ' + NAVY + '; padding: 1mm 1.5mm; margin-bottom: 1.5mm; flex-shrink: 0; }' +
-      '.draw-sheet .tf-round-track { display: flex; flex-direction: column; flex: 1; min-height: 0; position: relative; overflow: visible; }' +
-      '.draw-sheet .tf-match-unit { display: flex; align-items: center; position: relative; width: 100%; flex-shrink: 0; overflow: visible; }' +
-      '.draw-sheet .tf-match-card { width: 100%; border: 1px solid #b8c4d4; border-radius: 2px; background: #fff; overflow: hidden; flex-shrink: 0; display: block; page-break-inside: avoid; break-inside: avoid; }' +
-      '.draw-sheet .tf-match-head { padding: 0.8mm 2mm; background: #eef2f8; border-bottom: 1px solid #d5dde8; }' +
-      '.draw-sheet .tf-match-no { font-size: 7pt; font-weight: 800; color: ' + NAVY + '; }' +
-      '.draw-sheet .tf-corner-block { display: block; padding: 1mm 2mm 1mm 2.5mm; border-bottom: 1px solid #e8ecf2; overflow: hidden; word-wrap: break-word; overflow-wrap: break-word; min-height: 0; page-break-inside: avoid; break-inside: avoid; }' +
+      '.draw-sheet { width: 287mm; height: 200mm; max-height: 200mm; overflow: hidden; background: #fff; color: ' + NAVY + '; font-family: "Segoe UI", Arial, Helvetica, sans-serif; display: flex; flex-direction: column; }' +
+      '.draw-sheet .tf-header-print { flex-shrink: 0; text-align: center; padding: 0 0 1.5mm; border-bottom: 1px solid ' + NAVY + '; margin-bottom: 2mm; }' +
+      '.draw-sheet .tf-header-print .tf-header-name { font-size: 10pt; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: ' + NAVY + '; line-height: 1.15; }' +
+      '.draw-sheet .tf-header-print .tf-header-venue { font-size: 7pt; color: #4a5568; text-transform: uppercase; margin-top: 0.6mm; }' +
+      '.draw-sheet .tf-header-print .tf-header-category { font-size: 8.5pt; font-weight: 800; text-transform: uppercase; color: ' + NAVY + '; margin-top: 1mm; padding: 0.8mm 2mm; border: 1px solid ' + NAVY + '; display: inline-block; }' +
+      '.draw-sheet .tf-header-print .tf-header-stats { font-size: 7pt; color: #4a5568; margin-top: 0.8mm; display: flex; justify-content: center; gap: 6mm; }' +
+      '.draw-sheet .tf-body { display: flex; gap: 3mm; padding: 0; align-items: flex-start; flex: 1; min-height: 0; overflow: hidden; }' +
+      '.draw-sheet .tf-bracket { display: grid; align-items: start; flex: 1; min-width: 0; min-height: 0; overflow: visible; }' +
+      '.draw-sheet .tf-round { display: flex; flex-direction: column; min-width: 0; align-items: stretch; }' +
+      '.draw-sheet .tf-round-label { text-align: center; font-size: 6.5pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #fff; background: ' + NAVY + '; padding: 0.8mm 1.5mm; margin-bottom: 1.5mm; flex-shrink: 0; }' +
+      '.draw-sheet .tf-round-track { display: flex; flex-direction: column; position: relative; overflow: visible; flex: none; justify-content: flex-start; gap: 0; }' +
+      '.draw-sheet .tf-match-unit { display: flex; align-items: center; position: relative; width: 100%; flex: none; overflow: visible; }' +
+      '.draw-sheet .tf-match-card { width: calc(100% - 1mm); border: 1px solid #b8c4d4; border-radius: 2px; background: #fff; overflow: hidden; flex-shrink: 0; display: block; page-break-inside: avoid; break-inside: avoid; }' +
+      '.draw-sheet .tf-match-head { padding: 0.3mm 1.5mm; background: #eef2f8; border-bottom: 1px solid #d5dde8; line-height: 1; }' +
+      '.draw-sheet .tf-match-no { font-size: 6.5pt; font-weight: 800; color: ' + NAVY + '; }' +
+      '.draw-sheet .tf-corner-block { display: block; padding: 0.5mm 1.5mm 0.5mm 2mm; border-bottom: 1px solid #e8ecf2; overflow: hidden; word-wrap: break-word; overflow-wrap: break-word; min-height: 0; line-height: 1.1; }' +
       '.draw-sheet .tf-corner-block:last-child { border-bottom: none; }' +
-      '.draw-sheet .tf-blue { border-left: 3px solid ' + BLUE + '; background: #f7f9ff; }' +
-      '.draw-sheet .tf-red { border-left: 3px solid ' + RED + '; background: #fff7f7; }' +
-      '.draw-sheet .tf-bye { background: #f4f6fa; border-left: none; text-align: center; display: flex; align-items: center; justify-content: center; padding: 1.5mm; }' +
+      '.draw-sheet .tf-blue { border-left: 2.5px solid ' + BLUE + '; background: #f7f9ff; }' +
+      '.draw-sheet .tf-red { border-left: 2.5px solid ' + RED + '; background: #fff7f7; }' +
+      '.draw-sheet .tf-bye { background: #f4f6fa; border-left: none; text-align: center; display: flex; align-items: center; justify-content: center; padding: 1mm; min-height: 5mm; }' +
       '.draw-sheet .tf-bye-text { font-weight: 700; font-size: 7pt; color: #a0aec0; letter-spacing: 0.1em; }' +
-      '.draw-sheet .tf-print-icon { font-size: 7pt; line-height: 1; margin-bottom: 0.5mm; }' +
-      '.draw-sheet .tf-player-name { font-weight: 700; font-size: 7.5pt; line-height: 1.15; word-wrap: break-word; overflow-wrap: break-word; margin-bottom: 0.3mm; }' +
+      '.draw-sheet .tf-print-icon { font-size: 6.5pt; line-height: 1; margin-bottom: 0.2mm; }' +
+      '.draw-sheet .tf-player-name { font-weight: 800; font-size: 8pt; line-height: 1.1; word-wrap: break-word; overflow-wrap: break-word; margin-bottom: 0.2mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
       '.draw-sheet .tf-pending-name { font-style: italic; font-weight: 600; color: #718096; font-size: 7pt; }' +
-      '.draw-sheet .tf-player-academy { font-size: 6pt; font-weight: 400; color: #4a5568; line-height: 1.15; word-wrap: break-word; overflow-wrap: break-word; }' +
-      '.draw-sheet .tf-player-district { font-size: 6pt; font-weight: 400; color: #718096; line-height: 1.15; word-wrap: break-word; overflow-wrap: break-word; }' +
-      '.draw-sheet .tf-connector { position: absolute; right: -5mm; top: 0; bottom: 0; width: 5mm; pointer-events: none; }' +
-      '.draw-sheet .tf-conn-arm { position: absolute; top: 50%; left: 0; width: 2.5mm; height: 1px; background: ' + NAVY + '; transform: translateY(-50%); }' +
-      '.draw-sheet .tf-conn-vert { position: absolute; left: 2.4mm; width: 1px; background: ' + NAVY + '; }' +
+      '.draw-sheet .tf-player-academy { font-size: 6pt; font-weight: 400; color: #4a5568; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+      '.draw-sheet .tf-player-district { font-size: 6pt; font-weight: 400; color: #718096; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+      '.draw-sheet .tf-connector { position: absolute; right: -4mm; top: 0; bottom: 0; width: 4mm; pointer-events: none; }' +
+      '.draw-sheet .tf-conn-arm { position: absolute; top: 50%; left: 0; width: 2mm; height: 1px; background: ' + NAVY + '; transform: translateY(-50%); }' +
+      '.draw-sheet .tf-conn-vert { position: absolute; left: 1.9mm; width: 1px; background: ' + NAVY + '; }' +
       '.draw-sheet .tf-conn-even { top: 50%; bottom: -50%; }' +
       '.draw-sheet .tf-conn-odd { top: -50%; bottom: 50%; }' +
       '.draw-sheet .tf-round:last-child .tf-connector { display: none; }' +
-      '.draw-sheet .tf-podium { width: 24mm; flex-shrink: 0; border: 1px solid ' + NAVY + '; border-radius: 2px; background: #fff; display: flex; flex-direction: column; min-height: 0; }' +
-      '.draw-sheet .tf-podium-heading { text-align: center; font-size: 6pt; font-weight: 800; text-transform: uppercase; background: ' + NAVY + '; color: #fff; padding: 1mm; flex-shrink: 0; }' +
-      '.draw-sheet .tf-podium-grid { padding: 1mm; display: grid; gap: 1mm; flex: 1; min-height: 0; overflow: hidden; }' +
-      '.draw-sheet .tf-podium-box { border: 1px solid #c5cdd9; border-radius: 1px; padding: 1mm; background: #fff; font-size: 5.5pt; line-height: 1.2; word-wrap: break-word; overflow: hidden; }' +
+      '.draw-sheet .tf-podium { width: 28mm; flex-shrink: 0; border: 1px solid ' + NAVY + '; border-radius: 2px; background: #fff; display: flex; flex-direction: column; align-self: flex-start; }' +
+      '.draw-sheet .tf-podium-heading { text-align: center; font-size: 6.5pt; font-weight: 800; text-transform: uppercase; background: ' + NAVY + '; color: #fff; padding: 1mm; flex-shrink: 0; }' +
+      '.draw-sheet .tf-podium-grid { padding: 1.5mm; display: grid; gap: 1.5mm; }' +
+      '.draw-sheet .tf-podium-box { border: 1px solid #c5cdd9; border-radius: 1px; padding: 1.5mm; background: #fff; font-size: 6pt; line-height: 1.2; word-wrap: break-word; min-height: 10mm; }' +
       '.draw-sheet .tf-podium-1st { border-color: ' + GOLD + '; }' +
       '.draw-sheet .tf-podium-2nd { border-color: #9aa5b4; }' +
       '.draw-sheet .tf-podium-3rd { border-color: #cd7f32; }' +
-      '.draw-sheet .tf-podium-medal { font-weight: 800; font-size: 6pt; color: ' + NAVY + '; margin-bottom: 0.5mm; }' +
-      '.draw-sheet .tf-podium-name { font-weight: 700; font-size: 5.5pt; word-wrap: break-word; }' +
-      '.draw-sheet .tf-podium-academy { font-size: 5pt; color: #4a5568; word-wrap: break-word; }' +
-      '.draw-sheet .tf-podium-district { font-size: 5pt; color: #718096; }' +
-      '.draw-sheet .tf-podium-empty { color: #a0aec0; text-align: center; }' +
+      '.draw-sheet .tf-podium-medal { font-weight: 800; font-size: 7pt; color: ' + NAVY + '; margin-bottom: 0.5mm; }' +
+      '.draw-sheet .tf-podium-name { font-weight: 700; font-size: 6.5pt; word-wrap: break-word; }' +
+      '.draw-sheet .tf-podium-academy { font-size: 5.5pt; color: #4a5568; word-wrap: break-word; }' +
+      '.draw-sheet .tf-podium-district { font-size: 5.5pt; color: #718096; }' +
+      '.draw-sheet .tf-podium-empty { color: #a0aec0; text-align: center; padding: 1mm 0; }' +
       '.draw-sheet .tf-slot-winner { background: linear-gradient(90deg, rgba(212,175,55,0.12) 0%, transparent 100%) !important; }' +
       '.draw-sheet .tf-slot-loser { opacity: 0.55; }';
   }
@@ -484,12 +492,12 @@
   }
 
   function printCSS() {
-    return '@page { size: A4 landscape; margin: 6mm; }' +
+    return '@page { size: A4 landscape; margin: 5mm; }' +
       'html, body { margin: 0 !important; padding: 0 !important; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
       printLayoutCSS() +
       '@media print {' +
         'html, body { width: 297mm; height: 210mm; overflow: hidden; }' +
-        '.draw-sheet { width: 285mm; height: 198mm; max-height: 198mm; overflow: hidden; page-break-after: avoid; page-break-inside: avoid; }' +
+        '.draw-sheet { width: 287mm; height: 200mm; max-height: 200mm; overflow: hidden; page-break-after: avoid; page-break-inside: avoid; }' +
         '.draw-sheet .tf-match-card { break-inside: avoid; page-break-inside: avoid; }' +
         '.draw-sheet .tf-corner-block { break-inside: avoid; page-break-inside: avoid; }' +
         '.no-print { display: none !important; }' +
