@@ -1,5 +1,27 @@
 User-agent: *
 Allow: /
+Disallow: /admin.html
+Disallow: /admin-login.html
+Disallow: /admin-students.html
+Disallow: /practice-test-admin.html
+Disallow: /live-test-admin.html
+Disallow: /live-test.html
+Disallow: /live-tests.html
+Disallow: /student-
+Disallow: /tournament-admin.html
+Disallow: /tournament-coach.html
+Disallow: /tournament-preview-test.html
+Disallow: /tournament-draw-test.html
+Disallow: /tests/
+Disallow: /test.html
+Disallow: /coming-soon.html
+Disallow: /certificate.html
+Disallow: /class-selection.html
+Disallow: /student-details.html
+Disallow: /Ready.admission.html
+Disallow: /config/
+Disallow: /js/
+Disallow: /scripts/
 
 User-agent: Mediapartners-Google
 Allow: /
