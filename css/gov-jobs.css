@@ -1,0 +1,162 @@
+/* ============================================================================
+   Government Jobs & Career section — Physical Education Career
+   Reuses existing design tokens from style.css (--navy, --gold, --red, etc.)
+   Adds only job-section specific components. Does not override site core.
+   ============================================================================ */
+
+/* ---- Breadcrumb ---- */
+.breadcrumb{font-family:'Inter',system-ui,sans-serif;font-size:13px;color:var(--muted);
+  padding:16px 0 0}
+.breadcrumb a{color:var(--navy);text-decoration:none;font-weight:500}
+.breadcrumb a:hover{color:var(--red)}
+.breadcrumb .sep{margin:0 8px;color:#9aa3b5}
+.breadcrumb .cur{color:var(--muted)}
+
+/* ---- Inner page hero (lighter than homepage hero) ---- */
+.page-head{position:relative;color:#fff;padding:56px 0 64px;
+  background:linear-gradient(135deg,#0b1d3a 0%,#1a2f5a 60%,#7a2a1c 100%);overflow:hidden}
+.page-head::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at 82% 18%,rgba(230,179,37,.18),transparent 52%)}
+.page-head .container{position:relative;z-index:1}
+.page-head .eyebrow{display:inline-block;background:rgba(230,179,37,.18);color:var(--gold);
+  padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.05em;margin-bottom:14px}
+.page-head h1{font-size:clamp(28px,4vw,44px);color:#fff;margin-bottom:14px;line-height:1.15}
+.page-head p{font-size:17px;max-width:760px;color:rgba(255,255,255,.86);line-height:1.65}
+.page-head .ph-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+
+/* ---- Generic content blocks ---- */
+.gov-section{padding:54px 0}
+.gov-section.alt{background:#fff;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.gov-section h2{font-size:clamp(22px,3vw,30px);color:var(--navy);margin-bottom:14px;line-height:1.25}
+.gov-section h3{font-size:20px;color:var(--navy);margin:26px 0 10px}
+.gov-section p{color:#344054;line-height:1.75;margin-bottom:14px;font-size:15.5px}
+.gov-section ul,.gov-section ol{padding-left:22px;margin:0 0 16px;color:#344054;line-height:1.7}
+.gov-section li{margin-bottom:8px;font-size:15.5px}
+.gov-section a{color:#1d4ed8;text-decoration:none}
+.gov-section a:hover{text-decoration:underline}
+.lead-text{font-size:17px;color:#27324a;line-height:1.8}
+
+/* ---- Notice / warning boxes ---- */
+.note-box{background:#f4f7fb;border-left:4px solid var(--navy);padding:16px 18px;
+  border-radius:10px;margin:18px 0;font-size:15px;color:#27324a;line-height:1.7}
+.warn-box{background:#fff8e8;border-left:4px solid #c2410c;padding:16px 18px;
+  border-radius:10px;margin:18px 0;font-size:15px;color:#3a2a14;line-height:1.7}
+.note-box strong,.warn-box strong{color:var(--navy)}
+
+/* ---- Job category cards (hub) ---- */
+.cat-grid{display:grid;gap:22px;grid-template-columns:repeat(3,1fr)}
+.cat-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:26px 22px;
+  transition:.25s;text-decoration:none;display:flex;flex-direction:column;gap:10px}
+.cat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:rgba(37,99,235,.25)}
+.cat-card .cat-ico{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--navy),var(--navy-deep));color:var(--gold);font-size:26px}
+.cat-card h3{font-size:19px;color:var(--navy);margin:4px 0 0}
+.cat-card p{color:var(--muted);font-size:14px;line-height:1.6;margin:0}
+.cat-card .cat-link{margin-top:auto;color:var(--red);font-weight:600;font-size:14px}
+
+/* ---- Job cards (reusable component) ---- */
+.job-grid{display:grid;gap:22px;grid-template-columns:repeat(2,1fr)}
+.job-card{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;
+  display:flex;flex-direction:column;transition:.25s}
+.job-card:hover{box-shadow:var(--shadow);transform:translateY(-3px)}
+.job-card .job-top{padding:18px 20px;background:linear-gradient(135deg,var(--navy),var(--navy-deep));color:#fff;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.job-card .job-top h3{color:#fff;font-size:18px;margin:0 0 4px;line-height:1.3}
+.job-card .job-top .org{font-size:13px;color:rgba(255,255,255,.8)}
+.job-card .job-body{padding:18px 20px;flex:1;display:flex;flex-direction:column;gap:14px}
+.job-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
+.job-meta div{font-size:13.5px;line-height:1.4}
+.job-meta .lbl{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+.job-meta .val{color:var(--text);font-weight:600}
+.job-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+.job-actions .btn{padding:9px 16px;font-size:13px;justify-content:center}
+
+/* ---- Status badges ---- */
+.status{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;
+  padding:5px 10px;border-radius:999px;white-space:nowrap;letter-spacing:.02em}
+.status::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.status-active{background:rgba(61,220,151,.14);color:#0f9d63}
+.status-upcoming{background:rgba(90,169,255,.16);color:#1d6fd6}
+.status-closed{background:rgba(148,163,184,.18);color:#64748b}
+.status-info{background:rgba(230,179,37,.16);color:#9a7400}
+
+/* ---- FAQ ---- */
+.faq-list{display:grid;gap:14px;margin-top:8px}
+.faq-item{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px}
+.faq-item h3{font-size:16.5px;color:var(--navy);margin:0 0 8px;line-height:1.4}
+.faq-item p{margin:0;color:#344054;font-size:15px;line-height:1.7}
+
+/* ---- Disclaimer band ---- */
+.gov-disclaimer{background:#fff;border:1px solid var(--border);border-left:4px solid var(--red);
+  border-radius:12px;padding:18px 20px;margin:30px 0;font-size:14px;color:#3a4358;line-height:1.7}
+.gov-disclaimer strong{color:var(--red)}
+
+/* ---- Last updated ---- */
+.last-updated{font-family:'Inter',system-ui,sans-serif;font-size:13px;color:var(--muted);
+  margin-top:8px;display:inline-flex;align-items:center;gap:6px}
+
+/* ---- Mobile nav group label ---- */
+.m-label{padding:10px 0 4px;font-size:11px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--red)}
+
+/* ---- Desktop dropdown (hidden on mobile where .mobile-nav is used) ---- */
+.nav-item{position:relative}
+.has-dropdown{display:inline-flex;align-items:center}
+.has-dropdown > a{display:inline-flex;align-items:center;gap:5px}
+.caret{font-size:9px;transform:translateY(1px)}
+.dropdown{position:absolute;top:calc(100% + 8px);left:0;background:#fff;
+  border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);
+  padding:8px;min-width:236px;display:none;flex-direction:column;z-index:60}
+.has-dropdown:hover .dropdown,.has-dropdown:focus-within .dropdown{display:flex}
+.dropdown a{padding:10px 14px;font-size:14px;font-weight:500;color:#3a4358;border-radius:8px;white-space:nowrap}
+.dropdown a:hover{background:#eef1f7;color:var(--navy)}
+@media (max-width:1024px){ .dropdown{display:none !important} }
+
+/* ---- Responsive ---- */
+@media (max-width:900px){
+  .cat-grid{grid-template-columns:repeat(2,1fr)}
+  .job-grid{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .cat-grid{grid-template-columns:1fr}
+  .job-meta{grid-template-columns:1fr}
+  .page-head{padding:42px 0 48px}
+  .gov-section{padding:40px 0}
+}
+
+/* ---- Searchable hub: filter bar + search ---- */
+.gov-toolbar{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin:8px 0 26px;
+  display:flex;flex-direction:column;gap:14px}
+.gov-search{display:flex;gap:10px;flex-wrap:wrap}
+.gov-search input{flex:1;min-width:220px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit}
+.gov-search input:focus{outline:none;border-color:var(--navy)}
+.gov-filters{display:flex;flex-wrap:wrap;gap:8px}
+.filter-chip{padding:8px 14px;border:1px solid var(--border);background:#fff;border-radius:999px;font-size:13px;
+  font-weight:500;color:#3a4358;cursor:pointer;transition:.18s;font-family:inherit}
+.filter-chip:hover{border-color:var(--navy);color:var(--navy)}
+.filter-chip.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.gov-count{font-size:13px;color:var(--muted);font-family:'Inter',system-ui,sans-serif}
+.gov-empty{text-align:center;color:var(--muted);padding:40px 10px;font-size:15px}
+
+/* ---- Detail page layout ---- */
+.detail-grid{display:grid;grid-template-columns:1fr 320px;gap:28px;align-items:start}
+.detail-main .job-meta{grid-template-columns:1fr 1fr}
+.detail-side{position:sticky;top:96px;display:flex;flex-direction:column;gap:16px}
+.side-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px}
+.side-card h4{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--red);margin:0 0 12px}
+.side-link{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--border);border-radius:10px;
+  font-size:14px;font-weight:600;color:var(--navy);text-decoration:none;margin-bottom:10px;transition:.18s}
+.side-link:hover{border-color:var(--navy);background:#f4f7fb}
+.side-link.disabled{color:var(--muted);background:#f8fafc;cursor:not-allowed;border-style:dashed}
+.verify-banner{background:#fff8e8;border:1px solid #f0c36d;border-left:4px solid #c2410c;border-radius:12px;
+  padding:16px 18px;font-size:14px;color:#3a2a14;line-height:1.7;margin:18px 0}
+.verify-banner strong{color:var(--red)}
+.na{color:var(--muted);font-style:italic}
+.detail-section{margin:22px 0}
+.detail-section h2{font-size:20px;color:var(--navy);margin:0 0 10px}
+.detail-section ul{margin:0}
+@media (max-width:860px){
+  .detail-grid{grid-template-columns:1fr}
+  .detail-side{position:static}
+  .detail-main .job-meta{grid-template-columns:1fr}
+}
