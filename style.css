@@ -152,16 +152,6 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,.8);padding:60px 0 0}
 .site-notice a{color:#1e3a8a;text-decoration:none}
 .site-notice a:hover{text-decoration:underline}
 
-/* ---- Safe AdSense slot wrapper (reserve space, avoid layout shift) ---- */
-.ad-slot{
-  display:block;
-  margin:24px auto;
-  max-width:100%;
-  min-height:90px;
-  overflow:hidden;
-  text-align:center;
-}
-
 /* ---- Mobile responsiveness hardening ---- */
 img,video,iframe,svg{max-width:100%;height:auto}
 table{width:100%;border-collapse:collapse}

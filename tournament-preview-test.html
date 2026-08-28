@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -153,7 +153,7 @@
     var w = window.open('', '_blank');
     if (!w) return alert('Allow pop-ups to preview print');
     var page = landscape ? '@page{size:A4 landscape;margin:0}' : '@page{size:A4 portrait;margin:0}';
-    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>' + page + css + '</style></head><body>' + html + '  <script src="js/site-ads.js"></script>
+    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>' + page + css + '</style></head><body>' + html + '  
 </body></html>');
     w.document.close();
     w.focus();
