@@ -40,6 +40,17 @@ header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.95);backdro
 .hero p{font-size:18px;max-width:680px;color:rgba(255,255,255,.85);margin-bottom:28px}
 .hero-cta{display:flex;gap:12px;flex-wrap:wrap}
 
+/* Govt Jobs prominent button + dropdown (homepage hero) */
+.govt-dropdown{position:relative;display:inline-flex}
+.govt-dropdown .btn-primary{border-top-right-radius:0;border-bottom-right-radius:0}
+.govt-caret{border-top-left-radius:0;border-bottom-left-radius:0;padding-left:12px;padding-right:12px;margin-left:2px}
+.govt-menu{position:absolute;top:calc(100% + 8px);left:0;min-width:240px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:8px;display:none;flex-direction:column;z-index:60}
+.govt-dropdown.open .govt-menu,.govt-dropdown:hover .govt-menu,.govt-dropdown:focus-within .govt-menu{display:flex}
+.govt-menu a{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;color:var(--text);text-decoration:none;font-size:14px;font-weight:600;white-space:nowrap}
+.govt-menu a:hover{background:rgba(192,57,43,.08);color:var(--red)}
+.govt-menu a::before{content:"\2192";color:var(--gold);font-size:12px}
+@media (max-width:520px){.govt-menu{min-width:200px}}
+
 .stats{background:#fff;padding:50px 0;border-bottom:1px solid var(--border)}
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
 .stat-num{font-size:36px;font-weight:800;color:var(--navy);font-family:'Plus Jakarta Sans',sans-serif}
