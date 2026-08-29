@@ -126,6 +126,10 @@
 <a class="wa-float" href="https://wa.me/919828320688?text=Hi%2C%20I%20need%20admission%20guidance" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
 <script>document.getElementById('yr').textContent=new Date().getFullYear()</script>
 <script src="config/portal-catalog.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/portal-data.js"></script>
 <script>
 function goSearch(e){
   e.preventDefault();
@@ -133,15 +137,24 @@ function goSearch(e){
   location.href = 'portal-search.html' + (q ? '?q=' + encodeURIComponent(q) : '');
 }
 function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
-function renderCats(){
+async function renderCats(){
   var grid = document.getElementById('catGrid');
   if(!window.PORTAL_CATALOG){ grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">Catalog failed to load.</div>'; return; }
+  var byCat = {};
+  try{
+    if(window.PortalData){
+      var list = await PortalData.listPublished();
+      list.forEach(function(it){ if(it.category) byCat[it.category] = (byCat[it.category]||0)+1; });
+    }
+  }catch(e){ console.warn('Portal count fetch failed; using catalog fallback', e); }
   grid.innerHTML = PORTAL_CATALOG.CATEGORIES.map(function(c){
+    var n = byCat[c.id] || 0;
+    var label = n ? (n + (n===1?' published item':' published items')) : (c.topics.length + ' topics');
     return '<a class="cat-card" href="portal-category.html?cat='+encodeURIComponent(c.id)+'">'+
       '<div class="cat-ico">'+c.icon+'</div>'+
       '<h3>'+escapeHtml(c.name)+'</h3>'+
       '<p>'+escapeHtml(c.desc)+'</p>'+
-      '<div class="cat-foot"><span class="topics-count">'+c.topics.length+' topics</span>'+
+      '<div class="cat-foot"><span class="topics-count">'+escapeHtml(label)+'</span>'+
       '<span class="view-btn">Explore <i class="fa-solid fa-arrow-right"></i></span></div>'+
       '</a>';
   }).join('');

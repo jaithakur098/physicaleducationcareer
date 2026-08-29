@@ -129,7 +129,7 @@
 <div class="layout">
   <aside class="sidebar" id="sidebar">
     <a class="side-link" href="admin.html"><i class="fa-solid fa-gauge-high"></i> Main Dashboard</a>
-    <a class="side-link active"><i class="fa-solid fa-layer-group"></i> Content Manager</a>
+    <a class="side-link active"><i class="fa-solid fa-layer-group"></i> Student Portal Content Manager</a>
     <a class="side-link" href="admin-students.html"><i class="fa-solid fa-user-graduate"></i> Students</a>
     <a class="side-link" href="govt-jobs-list.html" target="_blank"><i class="fa-solid fa-briefcase"></i> Govt Jobs (legacy)</a>
     <div style="margin-top:auto;padding:12px;border-top:1px solid var(--glass-border);color:var(--ink-mute);font-size:12px">
@@ -151,7 +151,14 @@
         </select>
         <select id="cmFilterCat" style="background:rgba(10,22,51,.6);border:1px solid var(--glass-border);color:var(--ink);border-radius:12px;padding:9px 12px">
           <option value="">All Categories</option></select>
+        <select id="cmFilterType" style="background:rgba(10,22,51,.6);border:1px solid var(--glass-border);color:var(--ink);border-radius:12px;padding:9px 12px">
+          <option value="">All Types</option></select>
+        <select id="cmFilterFeatured" style="background:rgba(10,22,51,.6);border:1px solid var(--glass-border);color:var(--ink);border-radius:12px;padding:9px 12px">
+          <option value="">All / Featured</option><option value="featured">★ Featured only</option><option value="normal">Not featured</option></select>
+        <select id="cmSort" style="background:rgba(10,22,51,.6);border:1px solid var(--glass-border);color:var(--ink);border-radius:12px;padding:9px 12px">
+          <option value="updated">Recently updated</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select>
         <button class="btn btn-gold" onclick="openForm()"><i class="fa-solid fa-plus"></i> Create New Content</button>
+        <button class="btn btn-success" onclick="runSeed()" title="Import the bundled starter content (skips existing slugs). Admin only."><i class="fa-solid fa-seedling"></i> Seed Starter Content</button>
       </div>
       <div class="table-wrap">
         <table>
@@ -227,6 +234,7 @@
 
 <script src="config/portal-catalog.js"></script>
 <script src="config/portal-data.js"></script>
+<script src="config/portal-seed.js"></script>
 <script>
 /* ---------- helpers ---------- */
 function toast(m,kind){var t=document.getElementById('toast');t.textContent=m;t.className='toast show '+(kind||'');setTimeout(function(){t.className='toast'},2600)}
@@ -248,6 +256,8 @@ function renderTypeSpecific(type, data){
       f('Organization','ts_org',data.org)+
       f('Post Name','ts_post',data.postName)+
       f('Vacancies','ts_vac',data.vacancies)+
+      f('Application Start Date','ts_start',data.applicationStart)+
+      f('Last Date','ts_last',data.lastDate)+
       f('Age Limit','ts_age',data.ageLimit)+
       f('Qualification','ts_qual',data.qualification,'full')+
       f('Fee','ts_fee',data.fee)+
@@ -293,6 +303,7 @@ function readTypeSpecific(type){
   var o = {};
   if(type==='govt-job'){
     o.org=val('ts_org'); o.postName=val('ts_post'); o.vacancies=val('ts_vac');
+    o.applicationStart=val('ts_start'); o.lastDate=val('ts_last');
     o.ageLimit=val('ts_age'); o.qualification=val('ts_qual'); o.fee=val('ts_fee');
     o.selection=val('ts_sel'); o.salary=val('ts_sal');
     o.importantDates=parseKV(val('ts_dates'));
@@ -330,6 +341,7 @@ function fillStaticSelects(){
   document.getElementById('fType').innerHTML = PORTAL_CATALOG.CONTENT_TYPES.map(function(t){return '<option value="'+t.id+'">'+esc(t.label)+'</option>'}).join('');
   document.getElementById('fCat').innerHTML = PORTAL_CATALOG.CATEGORIES.map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>'}).join('');
   document.getElementById('cmFilterCat').innerHTML = '<option value="">All Categories</option>'+PORTAL_CATALOG.CATEGORIES.map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>'}).join('');
+  document.getElementById('cmFilterType').innerHTML = '<option value="">All Types</option>'+PORTAL_CATALOG.CONTENT_TYPES.map(function(t){return '<option value="'+t.id+'">'+esc(t.label)+'</option>'}).join('');
   onCatChange();
 }
 async function loadAll(){
@@ -342,11 +354,32 @@ function renderTable(){
   var q = val('cmSearch').toLowerCase();
   var st = val('cmFilterStatus');
   var cat = val('cmFilterCat');
+  var typ = val('cmFilterType');
+  var feat = val('cmFilterFeatured');
+  var sort = val('cmSort');
   var rows = allItems.filter(function(it){
     if(st && it.status!==st) return false;
     if(cat && it.category!==cat) return false;
-    if(q && (it.title+' '+it.shortDescription).toLowerCase().indexOf(q)===-1) return false;
+    if(typ && it.type!==typ) return false;
+    if(feat==='featured' && !it.featured) return false;
+    if(feat==='normal' && it.featured) return false;
+    if(q){
+      var hay = (it.title+' '+it.shortDescription+' '+(it.slug||'')+' '+(it.topic||'')+' '+(it.category||'')).toLowerCase();
+      if(hay.indexOf(q)===-1) return false;
+    }
     return true;
+  });
+  rows.sort(function(a,b){
+    function ts(x){
+      var v = x.lastUpdated||x.publishDate||x.createdAt;
+      if(v && v.seconds) return v.seconds*1000;
+      if(v && typeof v==='string') return new Date(v).getTime()||0;
+      if(v && v._iso) return new Date(v._iso).getTime()||0;
+      return 0;
+    }
+    if(sort==='newest') return ts(b)-ts(a);
+    if(sort==='oldest') return ts(a)-ts(b);
+    return ts(b)-ts(a); /* recently updated */
   });
   var body = document.getElementById('cmBody');
   if(!rows.length){ body.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--ink-mute)">No content found.</td></tr>'; return; }
@@ -471,13 +504,29 @@ async function downloadSitemap(){
 }
 
 /* ---------- init ---------- */
-document.getElementById('cmSearch').addEventListener('input', renderTable);
-document.getElementById('cmFilterStatus').addEventListener('change', renderTable);
-document.getElementById('cmFilterCat').addEventListener('change', renderTable);
-window.addEventListener('DOMContentLoaded', function(){
-  if(!window.PortalData){ toast('Firebase failed to load','danger'); return; }
-  fillStaticSelects(); loadAll();
-});
+  document.getElementById('cmSearch').addEventListener('input', renderTable);
+  document.getElementById('cmFilterStatus').addEventListener('change', renderTable);
+  document.getElementById('cmFilterCat').addEventListener('change', renderTable);
+  document.getElementById('cmFilterType').addEventListener('change', renderTable);
+  document.getElementById('cmFilterFeatured').addEventListener('change', renderTable);
+  document.getElementById('cmSort').addEventListener('change', renderTable);
+  window.addEventListener('DOMContentLoaded', function(){
+    if(!window.PortalData){ toast('Firebase failed to load','danger'); return; }
+    fillStaticSelects(); loadAll();
+  });
+
+  async function runSeed(){
+    if(!window.seedPortalContent){ toast('Seed module not loaded','danger'); return; }
+    if(!confirm('Import bundled starter content? Existing slugs are skipped. This writes to Firestore.')) return;
+    try{
+      var btn = event && event.target ? event.target : null;
+      if(btn){ btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Seeding…'; }
+      var res = await seedPortalContent();
+      toast('Seed done — '+res.created+' created, '+res.skipped+' skipped (of '+res.total+')','success');
+      await loadAll();
+      if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-seedling"></i> Seed Starter Content'; }
+    }catch(e){ toast('Seed failed: '+e.message,'danger'); }
+  }
 </script>
 </body>
 </html>
