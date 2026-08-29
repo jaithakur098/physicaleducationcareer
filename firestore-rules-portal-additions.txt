@@ -1,0 +1,47 @@
+============================================================================
+  STUDENT PORTAL — Firestore security rules (ADDITIVE / MERGE ONLY)
+============================================================================
+  IMPORTANT: This is NOT a complete firestore.rules file. The live
+  "pe-exam-hub" project already has rules for its existing collections
+  (questions, live_tests, students, classes, admins, etc.). Deploying this
+  snippet alone would REMOVE those rules and break the site.
+
+  >>> HOW TO APPLY <<<
+  1. Open your EXISTING firestore.rules (the one currently deployed).
+  2. Inside the top-level `match /databases/{db}/documents { ... }` block,
+     paste the two `match` blocks below (they override any generic
+     catch-all for portal data because Firestore uses the most specific
+     match).
+  3. Deploy:  firebase deploy --only firestore:rules
+
+  What this does:
+   - /portal_content  : PUBLIC can READ only documents with status=="published".
+                        ADMIN (auth user whose uid exists in /admins/{uid}) can
+                        read + write. Everyone else is denied.
+   - /portal_meta     : sitemap cache, public read, admin write only.
+  It does NOT change behaviour of any other existing collection.
+
+-------------------------------------------------------------------------- */
+
+    // ---- Student Portal: PUBLIC reads only PUBLISHED content ----
+    match /portal_content/{id} {
+      allow read: if resource.data.status == 'published'
+                  || (request.auth != null
+                      && exists(/databases/$(db)/documents/admins/$(request.auth.uid)));
+      allow write: if request.auth != null
+                   && exists(/databases/$(db)/documents/admins/$(request.auth.uid));
+    }
+
+    // ---- Student Portal: sitemap cache (admin write only) ----
+    match /portal_meta/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && exists(/databases/$(db)/documents/admins/$(request.auth.uid));
+    }
+
+/* --------------------------------------------------------------------------
+  If your existing rules do NOT already allow admin writes to other
+  collections, they are unaffected by the above. No secrets/credentials are
+  exposed in client code — the admin check reuses the existing
+  /admins/{uid} document pattern used by admin.html and student-data.js.
+========================================================================= */

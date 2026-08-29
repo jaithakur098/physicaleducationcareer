@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading… — Student Information Portal | Physical Education Career</title>
+<meta name="description" content="Student Information Portal content.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://physicaleducationcareer.in/student-portal.html">
+<link rel="icon" href="/ultimate-logo.PNG" type="image/png">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Physical Education Career">
+<meta property="og:locale" content="en_IN">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="style.css"/>
+<link rel="stylesheet" href="css/portal.css"/>
+</head>
+<body>
+<div class="topbar"><div class="container">
+<span>Admissions Open 2026-27 · NCTE Approved Universities</span>
+<div><a href="tel:+919828320688">📞 +91 98283 20688</a><a href="https://wa.me/919828320688" target="_blank">💬 WhatsApp</a></div>
+</div></div>
+
+<header><div class="container nav">
+<a href="index.html" class="logo">
+  <span class="logo-mark">PE</span>
+  <span class="logo-text">PHYSICAL EDUCATION<small>CAREER</small></span>
+</a>
+<nav class="nav-links">
+  <a href="index.html">Home</a>
+  <a href="admissions.html">Admissions</a>
+  <a href="cbse.html">CBSE PE</a>
+  <a href="downloads.html">Downloads</a>
+  <a href="student-portal.html" class="active">Student Portal</a>
+  <a href="pet-career.html">PET Career</a>
+  <a href="old-pyq.html">Old PYQ</a>
+  <a href="govt-pti.html">PTI Jobs</a>
+  <a href="govt-jobs.html">Govt Jobs</a>
+  <a href="success-stories.html">Success</a>
+  <a href="about.html">About</a>
+  <a href="#contact">Contact</a>
+</nav>
+<div class="nav-cta">
+  <a href="https://wa.me/919828320688" target="_blank" rel="noopener" class="btn btn-whatsapp">WhatsApp</a>
+  <a href="#contact" class="btn btn-primary">Apply Now</a>
+</div>
+<button class="menu-toggle" aria-label="Menu">☰</button>
+</div>
+<nav class="mobile-nav">
+  <a href="index.html">Home</a>
+  <a href="student-portal.html">Student Portal</a>
+  <a href="admissions.html">Admissions</a>
+  <a href="cbse.html">CBSE PE</a>
+  <a href="downloads.html">Downloads</a>
+  <a href="pet-career.html">PET Career</a>
+  <a href="old-pyq.html">Old PYQ Papers</a>
+  <a href="govt-pti.html">Government PTI Jobs</a>
+  <a href="govt-jobs.html">Govt Jobs</a>
+  <a href="success-stories.html">Success Stories</a>
+  <a href="about.html">About</a>
+  <a href="#contact">Contact</a>
+</nav>
+</header>
+
+<nav class="portal-crumbs container" aria-label="Breadcrumb" id="crumbs"></nav>
+
+<section class="portal-section">
+  <div class="container">
+    <a class="back-link" href="#" id="backTopic"><i class="fa-solid fa-arrow-left"></i> Back to Topic</a>
+    <div class="detail-wrap">
+      <div class="detail-main" id="detailMain">
+        <div class="empty-state"><span class="ico">⏳</span> Loading content…</div>
+      </div>
+      <aside class="detail-side" id="detailSide"></aside>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="logo"><span class="logo-mark">PE</span><span class="logo-text" style="color:#fff">PHYSICAL EDUCATION<small>CAREER</small></span></div>
+        <p style="margin-top:14px;font-size:14px">India's trusted platform for B.P.Ed., M.P.Ed., D.P.Ed. admissions, CBSE Physical Education notes and PET career guidance.</p>
+      </div>
+      <div><h4>Quick Links</h4>
+        <a href="index.html">Home</a><br><a href="student-portal.html">Student Portal</a><br>
+        <a href="govt-jobs.html">Govt Jobs</a><br><a href="admissions.html">Admissions</a><br>
+        <a href="about.html">About Us</a><br><a href="contact.html">Contact Us</a><br>
+      </div>
+      <div><h4>Courses</h4><a href="dped.html">D.P.Ed.</a><a href="bped.html">B.P.Ed.</a><a href="mped-admission-2026.html">M.P.Ed.</a><a href="phd.html">Ph.D. in PE</a></div>
+      <div><h4>Contact</h4><a href="tel:+919828320688">📞 +91 98283 20688</a><a href="mailto:info@physicaleducationcareer.in">✉ info@physicaleducationcareer.in</a><a href="https://wa.me/919828320688" target="_blank" rel="noopener">💬 WhatsApp Chat</a></div>
+    </div>
+    <div class="foot-bottom">© <span id="yr"></span> Physical Education Career · Founded by Jai Thakur (NIS | M.P.Ed.)</div>
+  </div>
+</footer>
+
+<a class="wa-float" href="https://wa.me/919828320688?text=Hi%2C%20I%20need%20admission%20guidance" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<script>document.getElementById('yr').textContent=new Date().getFullYear()</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script src="config/portal-catalog.js"></script>
+<script src="config/portal-data.js"></script>
+<script>
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
+function getParam(n){return new URLSearchParams(location.search).get(n)}
+
+/* ---------- SEO injection ---------- */
+function setMeta(name, content, isProp){
+  if(!content) return;
+  var sel = isProp ? 'meta[property="'+name+'"]' : 'meta[name="'+name+'"]';
+  var el = document.head.querySelector(sel);
+  if(!el){ el = document.createElement('meta'); if(isProp) el.setAttribute('property',name); else el.setAttribute('name',name); document.head.appendChild(el); }
+  el.setAttribute('content', content);
+}
+function injectSEO(it, cat, topic){
+  var title = it.seoTitle || it.title;
+  var desc = it.metaDescription || it.shortDescription || (it.title + ' — ' + cat.name + ' / ' + topic.name + ' on Physical Education Career.');
+  var url = PORTAL_CATALOG.contentUrl(it.slug || it.id);
+  document.title = title + ' | Physical Education Career';
+  setMeta('description', desc);
+  if(it.keywords) setMeta('keywords', it.keywords);
+  document.querySelector('link[rel="canonical"]').setAttribute('href', url);
+  setMeta('og:title', title, true);
+  setMeta('og:description', desc, true);
+  setMeta('og:url', url, true);
+  setMeta('og:type', 'article', true);
+  if(it.featuredImage) setMeta('og:image', it.featuredImage, true);
+  setMeta('twitter:title', title, true);
+  setMeta('twitter:description', desc, true);
+  if(it.featuredImage) setMeta('twitter:image', it.featuredImage, true);
+
+  // Breadcrumb JSON-LD
+  var crumb = {
+    "@context":"https://schema.org","@type":"BreadcrumbList",
+    "itemListElement":[
+      {"@type":"ListItem","position":1,"name":"Home","item":PORTAL_CATALOG.SITE+"/"},
+      {"@type":"ListItem","position":2,"name":"Student Portal","item":PORTAL_CATALOG.SITE+"/student-portal.html"},
+      {"@type":"ListItem","position":3,"name":cat.name,"item":PORTAL_CATALOG.categoryUrl(cat.id)},
+      {"@type":"ListItem","position":4,"name":topic.name,"item":PORTAL_CATALOG.topicUrl(cat.id, topic.id)},
+      {"@type":"ListItem","position":5,"name":it.title,"item":url}
+    ]
+  };
+  var graph = [crumb];
+  if(it.type === 'govt-job'){
+    var jp = {
+      "@context":"https://schema.org","@type":"JobPosting",
+      "title":it.title,"description":(it.shortDescription||''),
+      "datePosted":it.publishDate||undefined,
+      "employmentType":"FULL_TIME",
+      "hiringOrganization":{"@type":"Organization","name":it.org||cat.name},
+      "jobLocation":{"@type":"Place","address":{"@type":"PostalAddress","addressCountry":"IN"}}
+    };
+    if(it.vacancies) jp.totalJobOpenings = String(it.vacancies);
+    graph.push(jp);
+  } else if(it.type === 'article' || it.type === 'news'){
+    graph.push({
+      "@context":"https://schema.org","@type":"Article",
+      "headline":it.title,"description":desc,
+      "datePublished":it.publishDate||undefined,
+      "dateModified":it.lastUpdated||it.publishDate||undefined,
+      "author":{"@type":"Person","name":it.author||"Physical Education Career"},
+      "publisher":{"@type":"Organization","name":"Physical Education Career","logo":{ "@type":"ImageObject","url":PORTAL_CATALOG.SITE+"/ultimate-logo.PNG"}}
+    });
+  }
+  var s = document.createElement('script'); s.type='application/ld+json';
+  s.textContent = JSON.stringify(graph.length===1?graph[0]:graph);
+  document.head.appendChild(s);
+}
+
+/* ---------- Rendering helpers ---------- */
+function factRow(label, val, full){
+  var na = (val==null || val==='' || val==='Verify from official notification');
+  return '<div class="f-row'+(full?' full':'')+'">'+
+    '<div class="f-label">'+esc(label)+'</div>'+
+    '<div class="f-val'+(na?' na':'')+'">'+(na?'Verify from official notification':esc(val))+'</div></div>';
+}
+function linkButtons(it){
+  var btns = '';
+  if(it.applyUrl) btns += '<a class="btn-portal primary" href="'+esc(it.applyUrl)+'" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square"></i> Apply Online</a>';
+  if(it.resultUrl) btns += '<a class="btn-portal gold" href="'+esc(it.resultUrl)+'" target="_blank" rel="noopener"><i class="fa-solid fa-chart-line"></i> Check Result</a>';
+  if(it.admitUrl) btns += '<a class="btn-portal gold" href="'+esc(it.admitUrl)+'" target="_blank" rel="noopener"><i class="fa-solid fa-id-card"></i> Download Admit Card</a>';
+  if(it.downloadUrl) btns += '<a class="btn-portal primary" href="'+esc(it.downloadUrl)+'" target="_blank" rel="noopener"><i class="fa-solid fa-download"></i> Download</a>';
+  if(it.officialUrl) btns += '<a class="btn-portal ghost" href="'+esc(it.officialUrl)+'" target="_blank" rel="noopener"><i class="fa-solid fa-link"></i> Official Website</a>';
+  return btns ? '<div class="detail-links">'+btns+'</div>' : '';
+}
+function renderByType(it){
+  var html = '';
+  if(it.type === 'govt-job'){
+    html += '<div class="detail-facts">'+
+      factRow('Organization', it.org)+
+      factRow('Post', it.postName)+
+      factRow('Vacancies', it.vacancies)+
+      factRow('Age Limit', it.ageLimit)+
+      factRow('Qualification', it.qualification, true)+
+      factRow('Fee', it.fee)+
+      factRow('Selection', it.selection)+
+      factRow('Salary', it.salary)+
+      '</div>';
+    if(it.importantDates && Object.keys(it.importantDates).length){
+      html += '<h2>Important Dates</h2><div class="detail-facts">';
+      Object.keys(it.importantDates).forEach(function(k){
+        html += factRow(k, it.importantDates[k]);
+      });
+      html += '</div>';
+    }
+    if(it.howToApply && it.howToApply.length){
+      html += '<h2>How to Apply</h2><ul style="padding-left:20px;color:var(--muted);line-height:1.8">';
+      it.howToApply.forEach(function(s){ html += '<li>'+esc(s)+'</li>'; });
+      html += '</ul>';
+    }
+  } else if(it.type === 'result'){
+    html += '<div class="detail-facts">'+
+      factRow('Exam', it.exam)+
+      factRow('Result Date', it.resultDate)+
+      factRow('How to Check', it.howToCheck, true)+
+      factRow('Official Result Link', it.officialResultLink)+
+      '</div>';
+    if(it.fullContent) html += '<div class="detail-body">'+it.fullContent+'</div>';
+    if(it.instructions) html += '<h2>Important Information</h2><div class="detail-body">'+it.instructions+'</div>';
+  } else if(it.type === 'admit-card'){
+    html += '<div class="detail-facts">'+
+      factRow('Exam', it.exam)+
+      factRow('Release Date', it.releaseDate)+
+      factRow('How to Download', it.howToDownload, true)+
+      factRow('Official Download Link', it.officialDownloadLink)+
+      '</div>';
+    if(it.fullContent) html += '<div class="detail-body">'+it.fullContent+'</div>';
+    if(it.instructions) html += '<h2>Important Instructions</h2><div class="detail-body">'+it.instructions+'</div>';
+  } else {
+    // article / news / scholarship / admission / study-material / previous-paper / test
+    if(it.fullContent) html += '<div class="detail-body">'+it.fullContent+'</div>';
+    if(it.type === 'scholarship'){
+      html += '<div class="detail-facts">'+
+        factRow('Eligibility', it.qualification)+
+        factRow('Last Date', it.resultDate || it.releaseDate)+
+        '</div>';
+    }
+  }
+  // FAQ
+  if(it.faq && it.faq.length){
+    html += '<h2>FAQ</h2>';
+    it.faq.forEach(function(f){
+      if(f && (f.q||f.a)) html += '<div class="faq-item"><div class="q">'+(esc(f.q)||'')+'</div><div class="a">'+(esc(f.a)||'')+'</div></div>';
+    });
+  }
+  html += linkButtons(it);
+  return html;
+}
+
+function renderDetail(it){
+  var cat = PORTAL_CATALOG.getCategory(it.category), topic = PORTAL_CATALOG.getTopic(it.category, it.topic);
+  if(!cat || !topic){
+    document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">🚫</span> Invalid category/topic.</div>';
+    return;
+  }
+  injectSEO(it, cat, topic);
+  document.getElementById('crumbs').innerHTML =
+    '<a href="index.html">Home</a><span class="sep">›</span>'+
+    '<a href="student-portal.html">Student Portal</a><span class="sep">›</span>'+
+    '<a href="portal-category.html?cat='+encodeURIComponent(cat.id)+'">'+esc(cat.name)+'</a><span class="sep">›</span>'+
+    '<a href="portal-topic.html?cat='+encodeURIComponent(cat.id)+'&topic='+encodeURIComponent(topic.id)+'">'+esc(topic.name)+'</a><span class="sep">›</span>'+
+    '<span class="cur">'+esc(it.title)+'</span>';
+  document.getElementById('backTopic').setAttribute('href','portal-topic.html?cat='+encodeURIComponent(cat.id)+'&topic='+encodeURIComponent(topic.id));
+
+  var banner = it.featuredImage ? '<img src="'+esc(it.featuredImage)+'" alt="'+esc(it.title)+'"/>' : PORTAL_CATALOG.getContentTypeIcon(it.type);
+  var main = '<div class="detail-banner">'+banner+'<span class="d-type">'+esc(PORTAL_CATALOG.getContentTypeLabel(it.type))+'</span></div>'+
+    '<div class="detail-inner">'+
+    '<h1>'+esc(it.title)+'</h1>'+
+    '<div class="detail-meta">'+
+      '<span class="pill">'+esc(cat.name)+'</span>'+
+      '<span class="pill">'+esc(topic.name)+'</span>'+
+      (it.publishDate?'<span>📅 '+esc(it.publishDate)+'</span>':'')+
+      (it.author?'<span>✍️ '+esc(it.author)+'</span>':'')+
+    '</div>';
+  if(it.shortDescription) main += '<p style="font-size:15px;color:var(--muted);margin:0 0 14px">'+esc(it.shortDescription)+'</p>';
+  main += renderByType(it);
+  main += '</div>';
+  document.getElementById('detailMain').innerHTML = main;
+
+  // Related content
+  PortalData.listByTopic(it.category, it.topic).then(function(items){
+    var rel = items.filter(function(x){ return x.id !== it.id; }).slice(0,6);
+    if(rel.length < 6){
+      PortalData.listByCategory(it.category).then(function(catItems){
+        catItems.forEach(function(x){ if(x.id!==it.id && rel.indexOf(x)<0) rel.push(x); });
+        rel = rel.slice(0,6);
+        buildSide(rel, cat, topic);
+      });
+    } else buildSide(rel, cat, topic);
+  }).catch(function(){ document.getElementById('detailSide').innerHTML=''; });
+
+  function buildSide(rel, cat, topic){
+    var side = '';
+    if(rel.length){
+      side += '<div class="side-box"><h4>Related '+esc(topic.name)+'</h4>'+
+        rel.map(function(r){
+          return '<a class="rel-item" href="portal-content.html?slug='+encodeURIComponent(r.slug||r.id)+'">'+
+            '<span class="r-type">'+esc(PORTAL_CATALOG.getContentTypeLabel(r.type))+'</span>'+esc(r.title)+'</a>';
+        }).join('')+'</div>';
+    }
+    side += '<div class="side-box"><h4>More in '+esc(cat.name)+'</h4>'+
+      '<a class="rel-item" href="portal-category.html?cat='+encodeURIComponent(cat.id)+'"><span class="r-type">Category</span>All Topics</a>'+
+      '<a class="rel-item" href="portal-search.html?cat='+encodeURIComponent(cat.id)+'"><span class="r-type">Search</span>Search this category</a>'+
+      '</div>';
+    document.getElementById('detailSide').innerHTML = side;
+  }
+}
+
+(function(){
+  var slug = getParam('slug'), id = getParam('id'), preview = getParam('preview')==='1';
+  function showUnavailable(msg){
+    document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">🚫</span> '+msg+
+      '<br><a href="student-portal.html">Back to Student Portal</a></div>';
+  }
+  function isAdmin(){
+    return new Promise(function(res){
+      try{
+        firebase.auth().onAuthStateChanged(function(u){
+          if(!u) return res(false);
+          firebase.firestore().collection('admins').doc(u.uid).get()
+            .then(function(d){ res(!!d.exists); })
+            .catch(function(){ res(false); });
+        });
+      }catch(e){ res(false); }
+    });
+  }
+  if(!slug && !id){
+    showUnavailable('No content specified.');
+    return;
+  }
+  var p = slug ? PortalData.getBySlug(slug) : PortalData.getById(id);
+  p.then(async function(it){
+    if(!it){ showUnavailable('This content could not be found.'); return; }
+    if(it.status !== 'published'){
+      if(preview){
+        var ok = await isAdmin();
+        if(ok){ renderDetail(it); return; }
+        showUnavailable('Sign in as an admin to preview this draft.');
+        return;
+      }
+      showUnavailable('This content is not available.');
+      return;
+    }
+    renderDetail(it);
+  }).catch(function(e){
+    document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">⚠️</span> Failed to load content. '+esc(e.message)+'</div>';
+  });
+})();
+</script>
+</body>
+</html>

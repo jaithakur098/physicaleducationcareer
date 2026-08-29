@@ -69,8 +69,9 @@ style="color:white;font-weight:bold;text-decoration:none;" rel="noopener norefer
   <a href="index.html" class="active">Home</a>
   <a href="admissions.html">Admissions</a>
   <a href="cbse.html">CBSE PE</a>
-  <a href="downloads.html">Downloads</a>
-  <a href="pet-career.html">PET Career</a>
+      <a href="downloads.html">Downloads</a>
+      <a href="student-portal.html">Student Portal</a>
+      <a href="pet-career.html">PET Career</a>
   <a href="old-pyq.html">Old PYQ</a>
   <a href="govt-pti.html">PTI Jobs</a>
   <a href="success-stories.html">Success</a>
@@ -90,8 +91,9 @@ style="color:white;font-weight:bold;text-decoration:none;" rel="noopener norefer
 <a href="index.html">Home</a>
 <a href="admissions.html">Admissions</a>
 <a href="cbse.html">CBSE PE</a>
-<a href="downloads.html">Downloads</a>
-<a href="pet-career.html">PET Career</a>
+  <a href="downloads.html">Downloads</a>
+  <a href="student-portal.html">Student Portal</a>
+  <a href="pet-career.html">PET Career</a>
 <a href="old-pyq.html">Old PYQ Papers</a>
 <a href="govt-pti.html">Government PTI Jobs</a>
 <a href="success-stories.html">Success Stories</a>
@@ -411,6 +413,34 @@ style="border:6px solid #0d47a1;border-radius:25px;box-shadow:0 0 30px rgba(13,7
     </div>
   </div>
 </section>
+
+<section class="block" id="student-portal">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-eyebrow">Student Information Portal</div>
+      <h2>12 Categories for Every Student Need</h2>
+      <p>CBSE/RBSE results, admit cards, government &amp; teacher jobs, admissions, scholarships, study material, previous papers, online tests, education news and career guidance — all in one place.</p>
+    </div>
+    <div class="grid grid-3" id="portalHomeGrid">
+      <div class="course-card"><div class="course-body"><p>Loading categories…</p></div></div>
+    </div>
+    <div style="text-align:center;margin-top:26px"><a href="student-portal.html" class="btn btn-primary">Open Full Student Portal →</a></div>
+  </div>
+</section>
+
+<script src="config/portal-catalog.js"></script>
+<script>
+(function(){
+  var grid = document.getElementById('portalHomeGrid');
+  if(!window.PORTAL_CATALOG || !grid) return;
+  grid.innerHTML = PORTAL_CATALOG.CATEGORIES.map(function(c){
+    return '<a class="course-card" href="portal-category.html?cat='+encodeURIComponent(c.id)+'" style="text-decoration:none;color:inherit">'+
+      '<div class="course-head"><small>'+c.icon+' '+c.topics.length+' TOPICS</small><h3>'+c.name+'</h3></div>'+
+      '<div class="course-body"><p>'+c.desc+'</p>'+
+      '<span class="btn btn-primary">View Topics →</span></div></a>';
+  }).join('');
+})();
+</script>
 
 <section class="cta-band" id="contact">
   <div class="container">

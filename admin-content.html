@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex,nofollow">
+<title>Content Manager — Student Portal Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script>
+/* Admin guard — same pattern as admin.html */
+(function(){
+  var _s=document.createElement('style'); _s.id='__adminGuardStyle';
+  _s.textContent='html,body{visibility:hidden !important}';
+  document.documentElement.appendChild(_s);
+  function reject(){ location.replace('admin-login.html'); }
+  try{
+    firebase.auth().onAuthStateChanged(async function(user){
+      if(!user){ return reject(); }
+      try{
+        var doc = await firebase.firestore().collection('admins').doc(user.uid).get();
+        if(!doc.exists){ try{ await firebase.auth().signOut(); }catch(_){} return reject(); }
+        var st=document.getElementById('__adminGuardStyle'); if(st) st.parentNode.removeChild(st);
+      }catch(err){ console.error(err); reject(); }
+    });
+  }catch(e){ reject(); }
+})();
+</script>
+<style>
+  :root{
+    --navy-900:#050b1f; --navy-800:#0a1633; --navy-700:#0f2148; --navy-600:#152c5e;
+    --gold-500:#d4af37; --gold-400:#e6c458; --gold-300:#f2d97a;
+    --ink:#e9eefb; --ink-soft:#b8c2dc; --ink-mute:#8892b2;
+    --glass:rgba(255,255,255,0.06); --glass-strong:rgba(255,255,255,0.09);
+    --glass-border:rgba(212,175,55,0.22);
+    --danger:#ff5c7a; --success:#3ddc97; --info:#5aa9ff;
+    --radius:16px; --shadow:0 20px 60px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);
+    background:radial-gradient(1200px 700px at 85% -10%, rgba(212,175,55,.15), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(90,169,255,.12), transparent 60%),
+      linear-gradient(135deg,var(--navy-900),var(--navy-800) 45%,var(--navy-700));
+    min-height:100vh;overflow-x:hidden}
+  .topnav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;
+    background:linear-gradient(180deg, rgba(5,11,31,.85), rgba(5,11,31,.55));backdrop-filter:blur(18px);border-bottom:1px solid var(--glass-border)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--gold-500),var(--gold-300));display:grid;place-items:center;color:#1a1206;font-weight:800}
+  .brand-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700}
+  .brand-name span{color:var(--gold-400)}
+  .top-actions{display:flex;align-items:center;gap:12px}
+  .avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1c2d5a,#0a1633);border:1px solid var(--gold-500);display:grid;place-items:center;font-weight:700;color:var(--gold-300)}
+  .icon-btn{width:40px;height:40px;border-radius:12px;background:var(--glass);border:1px solid var(--glass-border);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+  .layout{display:grid;grid-template-columns:260px 1fr;gap:24px;padding:24px;position:relative;z-index:1}
+  .sidebar{position:sticky;top:88px;align-self:start;height:calc(100vh - 110px);background:var(--glass);border:1px solid var(--glass-border);
+    border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:6px}
+  .side-link{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:var(--ink-soft);text-decoration:none;cursor:pointer;font-weight:500;font-size:14px;border:1px solid transparent}
+  .side-link i{width:18px;text-align:center;color:var(--gold-400)}
+  .side-link:hover{background:var(--glass-strong);color:#fff}
+  .side-link.active{background:linear-gradient(135deg, rgba(212,175,55,.18), rgba(212,175,55,.05));border-color:var(--glass-border);color:#fff}
+  .main{display:flex;flex-direction:column;gap:20px;min-width:0}
+  .section-title h2{font-family:'Playfair Display',serif;font-size:26px;font-weight:700}
+  .section-title h2 span{color:var(--gold-400)}
+  .panel{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+  .panel h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:14px}
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+  .field label{font-size:12px;color:var(--ink-mute);letter-spacing:.5px}
+  .field input,.field select,.field textarea{background:rgba(10,22,51,.6);border:1px solid var(--glass-border);color:var(--ink);padding:11px 13px;border-radius:12px;font-size:14px;font-family:inherit;outline:none;width:100%}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold-400);box-shadow:0 0 0 3px rgba(212,175,55,.15)}
+  .field textarea{resize:vertical;min-height:80px}
+  .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .form-grid .full{grid-column:1/-1}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:12px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass);color:var(--ink);font-family:inherit}
+  .btn:hover{transform:translateY(-2px);background:var(--glass-strong)}
+  .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+  .btn-gold{background:linear-gradient(135deg,var(--gold-500),var(--gold-300));color:#1a1206;border-color:transparent}
+  .btn-danger{color:var(--danger);border-color:rgba(255,92,122,.35)}
+  .btn-success{color:var(--success);border-color:rgba(61,220,151,.35)}
+  .btn-info{color:var(--info);border-color:rgba(90,169,255,.35)}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .toolbar .search-box{display:flex;align-items:center;gap:8px;background:rgba(10,22,51,.6);border:1px solid var(--glass-border);padding:9px 14px;border-radius:12px;flex:1;min-width:220px}
+  .toolbar .search-box input{background:transparent;border:0;outline:0;color:var(--ink);width:100%;font-size:13px}
+  table{width:100%;border-collapse:collapse;min-width:760px}
+  thead th{background:rgba(10,22,51,.75);text-align:left;padding:13px 14px;font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--gold-300);font-weight:600;border-bottom:1px solid var(--glass-border)}
+  tbody td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.05);font-size:14px;color:var(--ink-soft)}
+  tbody tr:hover{background:rgba(212,175,55,.06)}
+  .table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--glass-border)}
+  .badge{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600}
+  .b-pub{background:rgba(61,220,151,.15);color:var(--success)}
+  .b-draft{background:rgba(255,193,7,.15);color:#e6c458}
+  .b-unpub{background:rgba(255,92,122,.15);color:var(--danger)}
+  .b-feat{background:rgba(212,175,55,.2);color:var(--gold-300)}
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .row-actions button{width:32px;height:32px;border-radius:9px;border:1px solid var(--glass-border);background:var(--glass);color:var(--ink-soft);cursor:pointer}
+  .row-actions button:hover{color:var(--gold-300)}
+  .modal{position:fixed;inset:0;background:rgba(2,6,20,.7);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:24px;overflow-y:auto}
+  .modal.open{display:flex}
+  .modal-card{background:linear-gradient(160deg,var(--navy-700),var(--navy-800));border:1px solid var(--glass-border);border-radius:var(--radius);max-width:920px;width:100%;padding:26px;box-shadow:var(--shadow);margin:auto}
+  .modal-card h3{font-family:'Playfair Display',serif;color:var(--gold-300);margin-bottom:14px}
+  .modal-close{float:right}
+  .hint{font-size:11px;color:var(--ink-mute);margin-top:4px}
+  .toast{position:fixed;bottom:24px;right:24px;z-index:200;background:linear-gradient(135deg,var(--navy-700),var(--navy-800));border:1px solid var(--gold-400);color:#fff;padding:14px 20px;border-radius:12px;box-shadow:var(--shadow);display:none;font-size:14px}
+  .toast.show{display:block}
+  .hidden{display:none}
+  @media (max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:fixed;top:0;left:0;bottom:0;width:78%;max-width:300px;z-index:80;transform:translateX(-102%);transition:transform .3s}.sidebar.open{transform:translateX(0)}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="topnav">
+  <div class="brand">
+    <button class="icon-btn menu-toggle" onclick="toggleSidebar()" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+    <div class="brand-logo"><i class="fa-solid fa-dumbbell"></i></div>
+    <div class="brand-name">PE<span>Engine</span> Admin</div>
+  </div>
+  <div class="top-actions">
+    <a class="icon-btn" href="admin.html" title="Main Admin"><i class="fa-solid fa-gauge-high"></i></a>
+    <a class="icon-btn" href="student-portal.html" title="View Portal" target="_blank"><i class="fa-solid fa-up-right-from-square"></i></a>
+    <div class="avatar">A</div>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <a class="side-link" href="admin.html"><i class="fa-solid fa-gauge-high"></i> Main Dashboard</a>
+    <a class="side-link active"><i class="fa-solid fa-layer-group"></i> Content Manager</a>
+    <a class="side-link" href="admin-students.html"><i class="fa-solid fa-user-graduate"></i> Students</a>
+    <a class="side-link" href="govt-jobs-list.html" target="_blank"><i class="fa-solid fa-briefcase"></i> Govt Jobs (legacy)</a>
+    <div style="margin-top:auto;padding:12px;border-top:1px solid var(--glass-border);color:var(--ink-mute);font-size:12px">
+      Student Information Portal — manage all categories, topics & content.
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="section-title"><div><h2>Content <span>Manager</span></h2>
+      <p style="color:var(--ink-mute);font-size:13px">Create, edit, publish & schedule student portal content. No HTML editing required.</p></div></div>
+
+    <section class="panel">
+      <div class="toolbar">
+        <div class="search-box"><i class="fa-solid fa-magnifying-glass" style="color:var(--ink-mute)"></i>
+          <input id="cmSearch" placeholder="Search content…"/></div>
+        <select id="cmFilterStatus" style="background:rgba(10,22,51,.6);border:1px solid var(--glass-border);color:var(--ink);border-radius:12px;padding:9px 12px">
+          <option value="">All Status</option><option value="published">Published</option>
+          <option value="draft">Draft</option><option value="unpublished">Unpublished</option>
+        </select>
+        <select id="cmFilterCat" style="background:rgba(10,22,51,.6);border:1px solid var(--glass-border);color:var(--ink);border-radius:12px;padding:9px 12px">
+          <option value="">All Categories</option></select>
+        <button class="btn btn-gold" onclick="openForm()"><i class="fa-solid fa-plus"></i> Create New Content</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Type</th><th>Category / Topic</th><th>Status</th><th>Updated</th><th style="width:220px">Actions</th></tr></thead>
+          <tbody id="cmBody"><tr><td colspan="6" style="text-align:center;padding:30px">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3><i class="fa-solid fa-sitemap"></i> Sitemap & SEO</h3>
+      <p style="color:var(--ink-mute);font-size:13px;margin-bottom:12px">
+        Publishing or unpublishing content automatically refreshes the sitemap cache. Download the content sitemap
+        and merge it into <code>sitemap.xml</code> (or host as <code>portal-content-sitemap.xml</code>) so search engines index new pages.
+      </p>
+      <div class="toolbar">
+        <button class="btn" onclick="regenSitemap()"><i class="fa-solid fa-rotate"></i> Refresh Sitemap Cache</button>
+        <button class="btn btn-gold" onclick="downloadSitemap()"><i class="fa-solid fa-file-code"></i> Download Content Sitemap</button>
+        <span id="smStatus" style="color:var(--ink-mute);font-size:13px"></span>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- FORM MODAL -->
+<div class="modal" id="formModal" onclick="if(event.target===this)closeForm()">
+  <div class="modal-card">
+    <button class="btn modal-close" onclick="closeForm()"><i class="fa-solid fa-xmark"></i></button>
+    <h3 id="formTitle"><i class="fa-solid fa-pen-to-square"></i> Create Content</h3>
+    <div class="form-grid">
+      <div class="field"><label>Content Type *</label><select id="fType" onchange="onTypeChange()"></select></div>
+      <div class="field"><label>Main Category *</label><select id="fCat" onchange="onCatChange()"></select></div>
+      <div class="field"><label>Topic / Subcategory *</label><select id="fTopic"></select></div>
+      <div class="field"><label>Title *</label><input id="fTitle" placeholder="e.g. Rajasthan PTI Recruitment 2026"/></div>
+      <div class="field"><label>Slug (auto)</label><input id="fSlug" placeholder="auto-from-title"/></div>
+      <div class="field"><label>Status</label><select id="fStatus">
+        <option value="draft">Draft</option><option value="published">Published</option><option value="unpublished">Unpublished</option></select></div>
+      <div class="field"><label><input type="checkbox" id="fFeatured" style="width:auto;display:inline;margin-right:8px">Featured</label></div>
+      <div class="field full"><label>Short Description</label><textarea id="fShort" placeholder="One-line summary shown in cards & meta description."></textarea></div>
+      <div class="field full"><label>Full Content (HTML allowed)</label><textarea id="fFull" style="min-height:160px" placeholder="Full article / details. You may use basic HTML tags."></textarea></div>
+
+      <!-- Media & links -->
+      <div class="field"><label>Featured Image URL</label><input id="fImage" placeholder="https://…"/></div>
+      <div class="field"><label>Thumbnail URL</label><input id="fThumb" placeholder="https://…"/></div>
+      <div class="field"><label>Official Website URL</label><input id="fOfficial" placeholder="https://…"/></div>
+      <div class="field"><label>Apply Online URL</label><input id="fApply" placeholder="https://…"/></div>
+      <div class="field"><label>Result URL</label><input id="fResult" placeholder="https://…"/></div>
+      <div class="field"><label>Admit Card URL</label><input id="fAdmit" placeholder="https://…"/></div>
+      <div class="field"><label>Download URL</label><input id="fDownload" placeholder="https://…"/></div>
+
+      <!-- Dates -->
+      <div class="field"><label>Publish Date</label><input id="fPubDate" type="date"/></div>
+      <div class="field"><label>Last Updated</label><input id="fUpdDate" type="date"/></div>
+
+      <!-- SEO -->
+      <div class="field"><label>SEO Title</label><input id="fSeoTitle" placeholder="Leave blank to use Title"/></div>
+      <div class="field"><label>Meta Description</label><input id="fMeta" placeholder="Leave blank to use Short Description"/></div>
+      <div class="field full"><label>Keywords (comma separated)</label><input id="fKeywords" placeholder="pti, rajasthan, recruitment"/></div>
+
+      <!-- Type-specific -->
+      <div class="field full" id="typeSpecific"></div>
+    </div>
+    <div class="toolbar" style="margin-top:16px">
+      <button class="btn btn-gold" onclick="save('published')"><i class="fa-solid fa-paper-plane"></i> Save & Publish</button>
+      <button class="btn" onclick="save('draft')"><i class="fa-solid fa-floppy-disk"></i> Save as Draft</button>
+      <button class="btn btn-info" onclick="previewCurrent()"><i class="fa-solid fa-eye"></i> Preview</button>
+      <button class="btn" onclick="closeForm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="config/portal-catalog.js"></script>
+<script src="config/portal-data.js"></script>
+<script>
+/* ---------- helpers ---------- */
+function toast(m,kind){var t=document.getElementById('toast');t.textContent=m;t.className='toast show '+(kind||'');setTimeout(function(){t.className='toast'},2600)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
+function val(id){return (document.getElementById(id).value||'').trim()}
+function setVal(id,v){var el=document.getElementById(id);if(el)el.value=v||''}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+
+function statusBadge(s){var c=s==='published'?'b-pub':s==='draft'?'b-draft':'b-unpub';return '<span class="badge '+c+'">'+esc(s)+'</span>'}
+
+/* ---------- type-specific fields ---------- */
+function renderTypeSpecific(type, data){
+  data = data || {};
+  var html = '<div style="border-top:1px solid var(--glass-border);padding-top:14px;margin-top:4px">'+
+    '<div style="font-size:12px;letter-spacing:.5px;color:var(--gold-300);text-transform:uppercase;margin-bottom:10px">'+esc(PORTAL_CATALOG.getContentTypeLabel(type))+' fields</div>'+
+    '<div class="form-grid">';
+  if(type==='govt-job'){
+    html +=
+      f('Organization','ts_org',data.org)+
+      f('Post Name','ts_post',data.postName)+
+      f('Vacancies','ts_vac',data.vacancies)+
+      f('Age Limit','ts_age',data.ageLimit)+
+      f('Qualification','ts_qual',data.qualification,'full')+
+      f('Fee','ts_fee',data.fee)+
+      f('Selection Process','ts_sel',data.selection)+
+      f('Salary','ts_sal',data.salary)+
+      area('Important Dates (one per line: Label = Value)','ts_dates',objToLines(data.importantDates),'full')+
+      area('How to Apply (one step per line)','ts_how',arrToLines(data.howToApply),'full')+
+      area('FAQ (one per line: Question => Answer)','ts_faq',faqToLines(data.faq),'full');
+  } else if(type==='result'){
+    html +=
+      f('Exam','ts_exam',data.exam)+
+      f('Result Date','ts_rdate',data.resultDate)+
+      f('How to Check','ts_howcheck',data.howToCheck,'full')+
+      f('Official Result Link','ts_oresult',data.officialResultLink)+
+      area('Important Information','ts_instr',data.instructions,'full');
+  } else if(type==='admit-card'){
+    html +=
+      f('Exam','ts_admexam',data.exam)+
+      f('Release Date','ts_release',data.releaseDate)+
+      f('How to Download','ts_howdown',data.howToDownload,'full')+
+      f('Official Download Link','ts_odown',data.officialDownloadLink)+
+      area('Important Instructions','ts_ainstr',data.instructions,'full');
+  } else if(type==='article'||type==='news'){
+    html += f('Author','ts_author',data.author)+
+      f('Qualification (optional)','ts_qual2',data.qualification);
+  } else if(type==='scholarship'){
+    html += f('Qualification / Eligibility','ts_squal',data.qualification,'full')+
+      f('Last Date','ts_slast',data.resultDate||data.releaseDate);
+  } else if(type==='admission' || type==='form'){
+    html += f('Eligibility','ts_aqual',data.qualification,'full')+
+      f('Last Date','ts_alast',data.releaseDate);
+  }
+  html += '</div></div>';
+  document.getElementById('typeSpecific').innerHTML = html;
+  function f(label,id,v,full){return '<div class="field '+(full||'')+'"><label>'+label+'</label><input id="'+id+'" value="'+esc(v)+'"/></div>'}
+  function area(label,id,v,full){return '<div class="field '+(full||'')+'"><label>'+label+'</label><textarea id="'+id+'">'+esc(v)+'</textarea></div>'}
+}
+function objToLines(o){if(!o)return '';return Object.keys(o).map(function(k){return k+' = '+o[k]}).join('\n')}
+function arrToLines(a){return (a||[]).join('\n')}
+function faqToLines(a){return (a||[]).map(function(x){return (x.q||'')+' => '+(x.a||'')}).join('\n')}
+
+function readTypeSpecific(type){
+  var o = {};
+  if(type==='govt-job'){
+    o.org=val('ts_org'); o.postName=val('ts_post'); o.vacancies=val('ts_vac');
+    o.ageLimit=val('ts_age'); o.qualification=val('ts_qual'); o.fee=val('ts_fee');
+    o.selection=val('ts_sel'); o.salary=val('ts_sal');
+    o.importantDates=parseKV(val('ts_dates'));
+    o.howToApply=parseLines(val('ts_how'));
+    o.faq=parseFaq(val('ts_faq'));
+  } else if(type==='result'){
+    o.exam=val('ts_exam'); o.resultDate=val('ts_rdate'); o.howToCheck=val('ts_howcheck');
+    o.officialResultLink=val('ts_oresult'); o.instructions=val('ts_instr');
+  } else if(type==='admit-card'){
+    o.exam=val('ts_admexam'); o.releaseDate=val('ts_release'); o.howToDownload=val('ts_howdown');
+    o.officialDownloadLink=val('ts_odown'); o.instructions=val('ts_ainstr');
+  } else if(type==='article'||type==='news'){
+    o.author=val('ts_author'); o.qualification=val('ts_qual2');
+  } else if(type==='scholarship'){
+    o.qualification=val('ts_squal'); o.resultDate=val('ts_slast');
+  } else if(type==='admission' || type==='form'){
+    o.qualification=val('ts_aqual'); o.releaseDate=val('ts_alast');
+  }
+  return o;
+}
+function parseKV(text){var o={};text.split('\n').forEach(function(l){l=l.trim();if(!l)return;var i=l.indexOf('=');if(i<0)i=l.indexOf(':');if(i<0){o[l]=l;return;}var k=l.slice(0,i).trim(),v=l.slice(i+1).trim();if(k)o[k]=v});return o}
+function parseLines(text){return text.split('\n').map(function(l){return l.trim()}).filter(Boolean)}
+function parseFaq(text){var a=[];text.split('\n').forEach(function(l){l=l.trim();if(!l)return;var i=l.indexOf('=>');if(i<0)i=l.indexOf('||');if(i<0)return;a.push({q:l.slice(0,i).trim(),a:l.slice(i+2).trim()})});return a}
+
+function onTypeChange(){ renderTypeSpecific(val('fType'), {}); }
+function onCatChange(){
+  var cat = PORTAL_CATALOG.getCategory(val('fCat'));
+  var ts = document.getElementById('fTopic');
+  ts.innerHTML = cat.topics.map(function(t){return '<option value="'+t.id+'">'+esc(t.name)+'</option>'}).join('');
+}
+
+/* ---------- load & render table ---------- */
+var allItems = [];
+function fillStaticSelects(){
+  document.getElementById('fType').innerHTML = PORTAL_CATALOG.CONTENT_TYPES.map(function(t){return '<option value="'+t.id+'">'+esc(t.label)+'</option>'}).join('');
+  document.getElementById('fCat').innerHTML = PORTAL_CATALOG.CATEGORIES.map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>'}).join('');
+  document.getElementById('cmFilterCat').innerHTML = '<option value="">All Categories</option>'+PORTAL_CATALOG.CATEGORIES.map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>'}).join('');
+  onCatChange();
+}
+async function loadAll(){
+  try{
+    allItems = await PortalData.listAll();
+    renderTable();
+  }catch(e){ toast('Load failed: '+e.message,'danger'); }
+}
+function renderTable(){
+  var q = val('cmSearch').toLowerCase();
+  var st = val('cmFilterStatus');
+  var cat = val('cmFilterCat');
+  var rows = allItems.filter(function(it){
+    if(st && it.status!==st) return false;
+    if(cat && it.category!==cat) return false;
+    if(q && (it.title+' '+it.shortDescription).toLowerCase().indexOf(q)===-1) return false;
+    return true;
+  });
+  var body = document.getElementById('cmBody');
+  if(!rows.length){ body.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--ink-mute)">No content found.</td></tr>'; return; }
+  body.innerHTML = rows.map(function(it){
+    var catN = PORTAL_CATALOG.getCategoryName(it.category);
+    var topN = PORTAL_CATALOG.getTopicName(it.category, it.topic);
+    return '<tr>'+
+      '<td><b style="color:#fff">'+esc(it.title)+'</b>'+(it.featured?' <span class="badge b-feat">★</span>':'')+'</td>'+
+      '<td>'+esc(PORTAL_CATALOG.getContentTypeLabel(it.type))+'</td>'+
+      '<td>'+esc(catN)+' / '+esc(topN)+'</td>'+
+      '<td>'+statusBadge(it.status)+'</td>'+
+      '<td>'+(it.updatedAt? (new Date(it.updatedAt.seconds?it.updatedAt.seconds*1000:it.updatedAt).toLocaleDateString()):'—')+'</td>'+
+      '<td><div class="row-actions">'+
+        '<button title="Edit" onclick="openFormById(\''+it.id+'\')"><i class="fa-solid fa-pen"></i></button>'+
+        '<button title="Preview" onclick="preview(\''+esc(it.slug||it.id)+'\')"><i class="fa-solid fa-eye"></i></button>'+
+        (it.status!=='published'?'<button title="Publish" class="btn-success" style="color:var(--success)" onclick="setSt(\''+it.id+'\',\'published\')"><i class="fa-solid fa-check"></i></button>':'')+
+        (it.status==='published'?'<button title="Unpublish" style="color:var(--ink-mute)" onclick="setSt(\''+it.id+'\',\'unpublished\')"><i class="fa-solid fa-eye-slash"></i></button>':'')+
+        '<button title="Duplicate" onclick="dup(\''+it.id+'\')"><i class="fa-solid fa-copy"></i></button>'+
+        '<button title="Delete" class="btn-danger" style="color:var(--danger)" onclick="del(\''+it.id+'\')"><i class="fa-solid fa-trash"></i></button>'+
+      '</div></td></tr>';
+  }).join('');
+}
+
+/* ---------- form open/save ---------- */
+var editingId = null;
+function openForm(id){
+  editingId = id || null;
+  document.getElementById('formTitle').innerHTML = id? '<i class="fa-solid fa-pen-to-square"></i> Edit Content' : '<i class="fa-solid fa-plus"></i> Create Content';
+  if(!id){ document.getElementById('fType').value='article'; document.getElementById('fStatus').value='draft';
+    document.getElementById('fCat').value=PORTAL_CATALOG.CATEGORIES[0].id; onCatChange();
+    ['fTitle','fSlug','fShort','fFull','fImage','fThumb','fOfficial','fApply','fResult','fAdmit','fDownload','fSeoTitle','fMeta','fKeywords','fPubDate','fUpdDate'].forEach(function(k){setVal(k,'')});
+    document.getElementById('fFeatured').checked=false;
+    renderTypeSpecific('article',{});
+  }
+  document.getElementById('formModal').classList.add('open');
+}
+async function openFormById(id){
+  var it = await PortalData.getById(id);
+  if(!it){ toast('Content not found','danger'); return; }
+  setVal('fType', it.type); setVal('fCat', it.category); onCatChange(); setVal('fTopic', it.topic);
+  setVal('fTitle', it.title); setVal('fSlug', it.slug); setVal('fStatus', it.status||'draft');
+  document.getElementById('fFeatured').checked = !!it.featured;
+  setVal('fShort', it.shortDescription); setVal('fFull', it.fullContent);
+  setVal('fImage', it.featuredImage); setVal('fThumb', it.thumbnail);
+  setVal('fOfficial', it.officialUrl); setVal('fApply', it.applyUrl); setVal('fResult', it.resultUrl);
+  setVal('fAdmit', it.admitUrl); setVal('fDownload', it.downloadUrl);
+  setVal('fPubDate', it.publishDate||''); setVal('fUpdDate', it.lastUpdated||'');
+  setVal('fSeoTitle', it.seoTitle); setVal('fMeta', it.metaDescription); setVal('fKeywords', it.keywords);
+  renderTypeSpecific(it.type, it);
+  document.getElementById('formModal').classList.add('open');
+}
+function closeForm(){ document.getElementById('formModal').classList.remove('open'); editingId=null; }
+
+async function save(status){
+  var type = val('fType');
+  if(!val('fTitle')) return toast('Title is required','danger');
+  if(!val('fCat')||!val('fTopic')) return toast('Category and Topic are required','danger');
+  var data = {
+    type:type, category:val('fCat'), topic:val('fTopic'), title:val('fTitle'),
+    slug: val('fSlug'), status: status, featured: document.getElementById('fFeatured').checked,
+    shortDescription: val('fShort'), fullContent: val('fFull'),
+    featuredImage: val('fImage'), thumbnail: val('fThumb'),
+    officialUrl: val('fOfficial'), applyUrl: val('fApply'), resultUrl: val('fResult'),
+    admitUrl: val('fAdmit'), downloadUrl: val('fDownload'),
+    publishDate: val('fPubDate')||new Date().toISOString().slice(0,10),
+    lastUpdated: val('fUpdDate')||new Date().toISOString().slice(0,10),
+    seoTitle: val('fSeoTitle'), metaDescription: val('fMeta'), keywords: val('fKeywords')
+  };
+  Object.assign(data, readTypeSpecific(type));
+  try{
+    if(editingId){ await PortalData.updateContent(editingId, data); toast('Saved ('+status+')','success'); }
+    else { await PortalData.createContent(data); toast('Created ('+status+')','success'); }
+    closeForm(); await loadAll();
+  }catch(e){ toast('Save failed: '+e.message,'danger'); }
+}
+
+function preview(slug){ window.open('portal-content.html?slug='+encodeURIComponent(slug)+'&preview=1','_blank'); }
+function previewCurrent(){
+  var slug = val('fSlug') || PORTAL_CATALOG.slugify(val('fTitle'));
+  preview(slug);
+}
+async function setSt(id, status){
+  try{ await PortalData.setStatus(id, status); toast('Status → '+status,'success'); await loadAll(); }
+  catch(e){ toast('Failed: '+e.message,'danger'); }
+}
+async function dup(id){
+  try{ await PortalData.duplicateContent(id); toast('Duplicated','success'); await loadAll(); }
+  catch(e){ toast('Failed: '+e.message,'danger'); }
+}
+async function del(id){
+  if(!confirm('Delete this content permanently?')) return;
+  try{ await PortalData.deleteContent(id); toast('Deleted','success'); await loadAll(); }
+  catch(e){ toast('Failed: '+e.message,'danger'); }
+}
+
+/* ---------- sitemap ---------- */
+async function regenSitemap(){
+  try{ var n = (await PortalData.refreshSitemapCache()).length; document.getElementById('smStatus').textContent='Cache refreshed: '+n+' URLs.'; toast('Sitemap cache refreshed','success'); }
+  catch(e){ toast('Failed: '+e.message,'danger'); }
+}
+async function downloadSitemap(){
+  try{
+    var items = await PortalData.listPublished();
+    var lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'];
+    PORTAL_CATALOG.CATEGORIES.forEach(function(c){
+      lines.push('  <url><loc>'+PORTAL_CATALOG.categoryUrl(c.id)+'</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>');
+      c.topics.forEach(function(t){ lines.push('  <url><loc>'+PORTAL_CATALOG.topicUrl(c.id,t.id)+'</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>'); });
+    });
+    items.forEach(function(it){
+      if(it.slug){
+        var lm = it.lastUpdated||it.publishDate;
+        lines.push('  <url><loc>'+PORTAL_CATALOG.contentUrl(it.slug)+'</loc>'+(lm?'<lastmod>'+lm+'</lastmod>':'')+'<changefreq>monthly</changefreq><priority>0.6</priority></url>');
+      }
+    });
+    lines.push('</urlset>');
+    var blob = new Blob([lines.join('\n')], {type:'application/xml'});
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'portal-content-sitemap.xml'; a.click();
+    document.getElementById('smStatus').textContent='Downloaded portal-content-sitemap.xml with '+items.length+' content URLs.';
+  }catch(e){ toast('Failed: '+e.message,'danger'); }
+}
+
+/* ---------- init ---------- */
+document.getElementById('cmSearch').addEventListener('input', renderTable);
+document.getElementById('cmFilterStatus').addEventListener('change', renderTable);
+document.getElementById('cmFilterCat').addEventListener('change', renderTable);
+window.addEventListener('DOMContentLoaded', function(){
+  if(!window.PortalData){ toast('Firebase failed to load','danger'); return; }
+  fillStaticSelects(); loadAll();
+});
+</script>
+</body>
+</html>

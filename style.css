@@ -121,8 +121,8 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,.8);padding:60px 0 0}
 .fade-up{opacity:0;transform:translateY(20px);transition:.6s ease}
 .fade-up.visible{opacity:1;transform:none}
 
-@media (max-width:1024px){
- .nav-links{display:none}.menu-toggle{display:block}
+@media (max-width:1300px){
+ .nav-links{display:none}.menu-toggle{display:block}.nav-cta{display:none}
  .mobile-nav{display:none;flex-direction:column;background:#fff;border-top:1px solid var(--border);padding:10px 20px}
  .mobile-nav.open{display:flex}
  .mobile-nav a{padding:10px 0;font-size:15px;color:var(--text);border-bottom:1px solid var(--border)}
