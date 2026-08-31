@@ -257,10 +257,30 @@ function renderByType(it){
 
 function renderDetail(it){
   var cat = PORTAL_CATALOG.getCategory(it.category), topic = PORTAL_CATALOG.getTopic(it.category, it.topic);
-  if(!cat || !topic){
-    document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">🚫</span> Invalid category/topic.</div>';
+  if(!cat){
+    document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">🚫</span> Invalid category.</div>';
     return;
   }
+  // If topic not in static catalog, try custom topics
+  if(!topic){
+    PortalData.getCustomTopics(it.category).then(function(customTopics){
+      for(var i=0;i<customTopics.length;i++){
+        if(customTopics[i].topicId === it.topic){
+          topic = { id: customTopics[i].topicId, name: customTopics[i].name };
+          renderDetailInner(it, cat, topic);
+          return;
+        }
+      }
+      document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">🚫</span> Invalid topic.</div>';
+    }).catch(function(){
+      document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">🚫</span> Invalid topic.</div>';
+    });
+    return;
+  }
+  renderDetailInner(it, cat, topic);
+}
+
+function renderDetailInner(it, cat, topic){
   injectSEO(it, cat, topic);
   document.getElementById('crumbs').innerHTML =
     '<a href="index.html">Home</a><span class="sep">›</span>'+

@@ -140,8 +140,13 @@ function getParam(n){return new URLSearchParams(location.search).get(n)}
 
   // Counts from published content (single query)
   var counts = {};
-  function render(countMap){
-    document.getElementById('topicGrid').innerHTML = cat.topics.map(function(t){
+  function render(countMap, customTopicsList){
+    // merge static + custom topics
+    var allTopics = cat.topics.slice();
+    var seen = {};
+    cat.topics.forEach(function(t){ seen[t.id]=true; });
+    (customTopicsList||[]).forEach(function(t){ if(!seen[t.topicId]){ allTopics.push({id:t.topicId, name:t.name}); seen[t.topicId]=true; } });
+    document.getElementById('topicGrid').innerHTML = allTopics.map(function(t){
       var n = countMap[t.id] || 0;
       return '<a class="topic-card" href="portal-topic.html?cat='+encodeURIComponent(catId)+'&topic='+encodeURIComponent(t.id)+'">'+
         '<div><div class="t-name">'+esc(t.name)+'</div>'+
@@ -149,12 +154,19 @@ function getParam(n){return new URLSearchParams(location.search).get(n)}
         '<span class="t-arrow">›</span></a>';
     }).join('');
   }
-  render(counts);
+  render(counts, []);
   if(window.PortalData){
-    PortalData.listPublished().then(function(items){
+    var publishedPromise = PortalData.listPublished().then(function(items){
       items.forEach(function(it){ if(it.category===catId){ counts[it.topic]=(counts[it.topic]||0)+1; } });
-      render(counts);
-    }).catch(function(){ /* keep zero counts */ });
+    }).catch(function(){});
+    var customPromise = PortalData.getCustomTopics(catId).then(function(customTopics){
+      render(counts, customTopics);
+    }).catch(function(){ render(counts, []); });
+    Promise.all([publishedPromise, customPromise]).then(function(){
+      render(counts, []);
+      // re-render with custom topics after counts load
+      PortalData.getCustomTopics(catId).then(function(ct){ render(counts, ct); }).catch(function(){});
+    });
   }
 })();
 </script>

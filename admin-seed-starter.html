@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex,nofollow">
+<title>Seed Starter Content — Student Portal Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="config/firebase-init.js"></script>
+<script>
+/* Admin guard — same pattern as admin-content.html */
+(function(){
+  var _s=document.createElement('style'); _s.id='__guard';
+  _s.textContent='html,body{visibility:hidden !important}';
+  document.documentElement.appendChild(_s);
+  function reject(){ location.replace('admin-login.html?next=admin-seed-starter.html'); }
+  try{
+    firebase.auth().onAuthStateChanged(async function(user){
+      if(!user){ return reject(); }
+      try{
+        var doc = await firebase.firestore().collection('admins').doc(user.uid).get();
+        if(!doc.exists){ try{ await firebase.auth().signOut(); }catch(_){} return reject(); }
+        var st=document.getElementById('__guard'); if(st) st.parentNode.removeChild(st);
+        boot();
+      }catch(err){ console.error(err); reject(); }
+    });
+  }catch(e){ reject(); }
+})();
+</script>
+<style>
+  :root{
+    --navy-900:#050b1f; --navy-800:#0a1633; --navy-700:#0f2148;
+    --gold-500:#d4af37; --gold-400:#e6c458; --gold-300:#f2d97a;
+    --ink:#e9eefb; --ink-soft:#b8c2dc; --ink-mute:#8892b2;
+    --glass:rgba(255,255,255,0.06); --glass-border:rgba(212,175,55,0.22);
+    --danger:#ff5c7a; --success:#3ddc97; --info:#5aa9ff;
+    --radius:16px; --shadow:0 20px 60px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);
+    background:radial-gradient(1200px 700px at 85% -10%, rgba(212,175,55,.15), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(90,169,255,.12), transparent 60%),
+      linear-gradient(135deg,var(--navy-900),var(--navy-800) 45%,var(--navy-700));
+    min-height:100vh;overflow-x:hidden;padding:28px}
+  .wrap{max-width:960px;margin:0 auto}
+  .topnav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--gold-500),var(--gold-300));display:grid;place-items:center;color:#1a1206;font-weight:800}
+  .brand-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700}
+  .brand-name span{color:var(--gold-400)}
+  .top-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:12px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid var(--glass-border);background:var(--glass);color:var(--ink);font-family:inherit;text-decoration:none}
+  .btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.09)}
+  .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+  .btn-gold{background:linear-gradient(135deg,var(--gold-500),var(--gold-300));color:#1a1206;border-color:transparent}
+  .btn-success{color:var(--success);border-color:rgba(61,220,151,.35)}
+  .panel{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:20px}
+  .panel h2{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:6px}
+  .panel h2 span{color:var(--gold-400)}
+  .panel p.sub{color:var(--ink-mute);font-size:13px;margin-bottom:16px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:18px}
+  .stat{background:rgba(10,22,51,.5);border:1px solid var(--glass-border);border-radius:14px;padding:16px;text-align:center}
+  .stat .n{font-family:'Playfair Display',serif;font-size:30px;font-weight:800;color:var(--gold-300);line-height:1}
+  .stat .l{font-size:11px;color:var(--ink-mute);margin-top:6px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+  .prog{margin:16px 0;color:var(--ink-soft);font-size:14px;line-height:1.7;white-space:pre-wrap}
+  .bar{height:10px;border-radius:999px;background:rgba(10,22,51,.6);border:1px solid var(--glass-border);overflow:hidden;margin:10px 0}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-500),var(--gold-300));transition:width .2s}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;padding:10px 12px;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--gold-300);font-weight:600;border-bottom:1px solid var(--glass-border)}
+  td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.05);font-size:14px;color:var(--ink-soft)}
+  tr:hover td{background:rgba(212,175,55,.06)}
+  .badge{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600}
+  .b-ok{background:rgba(61,220,151,.15);color:var(--success)}
+  .b-warn{background:rgba(255,193,7,.15);color:#e6c458}
+  .muted{color:var(--ink-mute);font-size:12px}
+  @media (max-width:600px){ .stats{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topnav">
+    <div class="brand"><div class="brand-logo"><i class="fa-solid fa-seedling"></i></div>
+      <div class="brand-name">PE<span>Engine</span> · Seed Starter</div></div>
+    <div class="top-actions">
+      <a class="btn" href="admin-content.html"><i class="fa-solid fa-layer-group"></i> Content Manager</a>
+      <a class="btn" href="admin.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+      <a class="btn" href="student-portal.html" target="_blank"><i class="fa-solid fa-up-right-from-square"></i> View Portal</a>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Student Portal <span>Starter Content</span></h2>
+    <p class="sub">Imports the 62 verified starter items into the existing <b>portal_content</b> collection (Firestore project <b>pe-exam-hub</b>). Existing slugs are skipped, so it is safe to run more than once. Nothing is overwritten, and no existing collections are touched.</p>
+    <div class="stats">
+      <div class="stat"><div class="n" id="stSeed">62</div><div class="l">Starter items</div></div>
+      <div class="stat"><div class="n" id="stCreated">—</div><div class="l">Created</div></div>
+      <div class="stat"><div class="n" id="stSkipped">—</div><div class="l">Skipped</div></div>
+      <div class="stat"><div class="n" id="stPubLive">—</div><div class="l">Published (live)</div></div>
+    </div>
+    <div class="toolbar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-gold" id="seedBtn" onclick="runSeed()"><i class="fa-solid fa-seedling"></i> Seed Starter Content</button>
+      <button class="btn btn-success" onclick="verifyLive()"><i class="fa-solid fa-rotate"></i> Re-read live published counts</button>
+      <a class="btn" href="admin-login.html" id="loginHint" style="display:none"><i class="fa-solid fa-right-to-bracket"></i> You are not signed in — go to Admin Login</a>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="prog" id="prog">Ready. Click <b>Seed Starter Content</b> to populate Firestore, then the counts below verify it live.</div>
+  </div>
+
+  <div class="panel">
+    <h2>Live verification — <span>Published counts per category</span></h2>
+    <p class="sub">Read back directly from the <b>portal_content</b> collection. Every one of the 12 categories must show a non-zero count after seeding.</p>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>Category</th><th>Published (live)</th><th>Status</th></tr></thead>
+      <tbody id="catBody"><tr><td colspan="3" style="text-align:center;padding:18px" class="muted">Run the seed, then click "Re-read live published counts".</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
+<script src="config/portal-catalog.js"></script>
+<script src="config/portal-data.js"></script>
+<script src="config/portal-seed.js"></script>
+<script>
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]}); }
+
+async function boot(){
+  if(!window.PortalData || !window.seedPortalContent){ $('prog').textContent='Error: portal data/seed module not loaded.'; return; }
+  $('stSeed').textContent = (window.PORTAL_SEED||[]).length;
+  verifyLive();
+}
+
+async function runSeed(){
+  if(!window.seedPortalContent){ $('prog').textContent='Seed module not loaded.'; return; }
+  if(!confirm('Import all '+((window.PORTAL_SEED||[]).length)+' starter items into Firestore portal_content? Existing slugs are skipped.')) return;
+  var btn=$('seedBtn'); btn.disabled=true;
+  btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Seeding…';
+  $('prog').innerHTML='Starting import…';
+  try{
+    var total=(window.PORTAL_SEED||[]).length;
+    var created=0, skipped=0;
+    for(var i=0;i<total;i++){
+      var item=window.PORTAL_SEED[i];
+      try{
+        var existing = await PortalData.getBySlug(item.slug);
+        if(existing){ skipped++; }
+        else { await PortalData.createContent(item); created++; }
+      }catch(e){ console.error('Seed error', item.slug, e); }
+      $('barFill').style.width = Math.round(((i+1)/total)*100)+'%';
+      $('prog').textContent='Importing '+ (i+1) +' of '+total+' ('+created+' created, '+skipped+' skipped)…';
+    }
+    $('stCreated').textContent=created;
+    $('stSkipped').textContent=skipped;
+    $('prog').innerHTML='<span style="color:var(--success)">✔ Seed complete:</span> '+created+' created, '+skipped+' skipped (of '+total+'). Now verifying live counts…';
+    await verifyLive();
+    $('barFill').style.width='100%';
+  }catch(e){
+    $('prog').innerHTML='<span style="color:var(--danger)">✖ Seed failed:</span> '+esc(e.message);
+  }finally{
+    btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-seedling"></i> Seed Starter Content';
+  }
+}
+
+async function verifyLive(){
+  $('prog').innerHTML='Reading live published counts from Firestore…';
+  try{
+    var published = await PortalData.listPublished();
+    var map={};
+    published.forEach(function(it){ if(it.category && it.status==='published') map[it.category]=(map[it.category]||0)+1; });
+    $('stPubLive').textContent = published.length;
+    var rows='';
+    var zero=0, nonzero=0;
+    PORTAL_CATALOG.CATEGORIES.forEach(function(c){
+      var n=map[c.id]||0;
+      if(n>0) nonzero++; else zero++;
+      rows+='<tr><td>'+esc(c.icon)+' '+esc(c.name)+'</td>'+
+            '<td><b style="color:'+(n>0?'var(--gold-300)':'var(--danger)')+'">'+n+'</b></td>'+
+            '<td>'+(n>0?'<span class="badge b-ok">Populated</span>':'<span class="badge b-warn">0 — seed needed</span>')+'</td></tr>';
+    });
+    $('catBody').innerHTML=rows;
+    $('prog').innerHTML='✔ Verified live: <b>'+published.length+'</b> published items · <b>'+nonzero+'</b>/12 categories populated'+
+      (zero?' (<span style="color:var(--danger)">'+zero+' still 0 — run Seed again</span>)':' — <span style="color:var(--success)">all populated</span>')+
+      '<br><span class="muted">Open the public Student Portal (View Portal) to see these counts reflected live.</span>';
+  }catch(e){
+    $('prog').innerHTML='<span style="color:var(--danger)">✖ Could not read live counts:</span> '+esc(e.message)+
+      '<br><span class="muted">If this is a permission error, the Firestore rules for portal_content may not be deployed yet. See firestore-rules-portal-additions.txt and deploy with: firebase deploy --only firestore:rules</span>';
+    $('catBody').innerHTML='<tr><td colspan="3" style="text-align:center;padding:18px;color:var(--danger)">'+esc(e.message)+'</td></tr>';
+  }
+}
+</script>
+</body>
+</html>

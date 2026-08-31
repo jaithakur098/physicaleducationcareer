@@ -109,6 +109,10 @@
   .toast{position:fixed;bottom:24px;right:24px;z-index:200;background:linear-gradient(135deg,var(--navy-700),var(--navy-800));border:1px solid var(--gold-400);color:#fff;padding:14px 20px;border-radius:12px;box-shadow:var(--shadow);display:none;font-size:14px}
   .toast.show{display:block}
   .hidden{display:none}
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+  .stat-card{background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:20px;text-align:center;box-shadow:var(--shadow)}
+  .stat-num{font-family:'Playfair Display',serif;font-size:32px;font-weight:800;color:var(--gold-300);line-height:1}
+  .stat-label{font-size:12px;color:var(--ink-mute);margin-top:8px;letter-spacing:.5px;text-transform:uppercase;font-weight:600}
   @media (max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:fixed;top:0;left:0;bottom:0;width:78%;max-width:300px;z-index:80;transform:translateX(-102%);transition:transform .3s}.sidebar.open{transform:translateX(0)}.form-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -140,6 +144,16 @@
   <main class="main">
     <div class="section-title"><div><h2>Content <span>Manager</span></h2>
       <p style="color:var(--ink-mute);font-size:13px">Create, edit, publish & schedule student portal content. No HTML editing required.</p></div></div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num" id="stTotal">0</div><div class="stat-label">Total Articles</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--success)" id="stPublished">0</div><div class="stat-label">Published</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#e6c458" id="stDrafts">0</div><div class="stat-label">Drafts</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--danger)" id="stUnpub">0</div><div class="stat-label">Unpublished</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--gold-300)" id="stFeatured">0</div><div class="stat-label">Featured</div></div>
+      <div class="stat-card"><div class="stat-num" id="stCats">12</div><div class="stat-label">Categories</div></div>
+    </div>
 
     <section class="panel">
       <div class="toolbar">
@@ -178,6 +192,39 @@
         <button class="btn" onclick="regenSitemap()"><i class="fa-solid fa-rotate"></i> Refresh Sitemap Cache</button>
         <button class="btn btn-gold" onclick="downloadSitemap()"><i class="fa-solid fa-file-code"></i> Download Content Sitemap</button>
         <span id="smStatus" style="color:var(--ink-mute);font-size:13px"></span>
+      </div>
+    </section>
+
+    <!-- TOPIC MANAGEMENT -->
+    <section class="panel" id="topicPanel">
+      <h3><i class="fa-solid fa-folder-tree"></i> Topic Management</h3>
+      <p style="color:var(--ink-mute);font-size:13px;margin-bottom:14px">
+        Create, edit and manage topics under each category. Topics are used across the portal for content organization.
+      </p>
+      <div class="toolbar">
+        <select id="tmCat" style="background:rgba(10,22,51,.6);border:1px solid var(--glass-border);color:var(--ink);border-radius:12px;padding:9px 12px">
+        </select>
+        <button class="btn btn-gold" onclick="openTopicForm()"><i class="fa-solid fa-plus"></i> Add New Topic</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Topic Name</th><th>Topic ID</th><th>Published Content</th><th>Actions</th></tr></thead>
+          <tbody id="tmBody"><tr><td colspan="4" style="text-align:center;padding:20px">Select a category</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CATEGORY MANAGEMENT -->
+    <section class="panel" id="catPanel">
+      <h3><i class="fa-solid fa-folder-open"></i> Category Management</h3>
+      <p style="color:var(--ink-mute);font-size:13px;margin-bottom:14px">
+        Edit category descriptions, icons, display order and active status. The 12 categories cannot be deleted to preserve the portal structure.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Icon</th><th>Category Name</th><th>ID</th><th>Topics</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="catBody"></tbody>
+        </table>
       </div>
     </section>
   </main>
@@ -231,6 +278,45 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- TOPIC FORM MODAL -->
+<div class="modal" id="topicModal" onclick="if(event.target===this)closeTopicForm()">
+  <div class="modal-card" style="max-width:560px">
+    <button class="btn modal-close" onclick="closeTopicForm()"><i class="fa-solid fa-xmark"></i></button>
+    <h3 id="topicFormTitle"><i class="fa-solid fa-folder-plus"></i> Add Topic</h3>
+    <div class="form-grid">
+      <div class="field"><label>Category *</label><select id="tfCat"></select></div>
+      <div class="field"><label>Topic Name *</label><input id="tfName" placeholder="e.g. SSC CGL 2026"/></div>
+      <div class="field"><label>Topic ID (auto)</label><input id="tfId" placeholder="auto-from-name"/></div>
+    </div>
+    <div class="toolbar" style="margin-top:16px">
+      <button class="btn btn-gold" onclick="saveTopic()"><i class="fa-solid fa-floppy-disk"></i> Save Topic</button>
+      <button class="btn" onclick="closeTopicForm()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY EDIT MODAL -->
+<div class="modal" id="catEditModal" onclick="if(event.target===this)closeCatEdit()">
+  <div class="modal-card" style="max-width:560px">
+    <button class="btn modal-close" onclick="closeCatEdit()"><i class="fa-solid fa-xmark"></i></button>
+    <h3><i class="fa-solid fa-pen-to-square"></i> Edit Category</h3>
+    <div class="form-grid">
+      <div class="field"><label>Category Name</label><input id="ceName" readonly style="opacity:.7"/></div>
+      <div class="field"><label>Category ID</label><input id="ceId" readonly style="opacity:.7"/></div>
+      <div class="field"><label>Icon / Emoji</label><input id="ceIcon" placeholder="📘"/></div>
+      <div class="field full"><label>Description</label><textarea id="ceDesc" style="min-height:60px"></textarea></div>
+      <div class="field"><label>SEO Title</label><input id="ceSeoTitle" placeholder="Leave blank to use category name"/></div>
+      <div class="field"><label>Meta Description</label><input id="ceMeta" placeholder="Leave blank to use description"/></div>
+      <div class="field"><label>Display Order</label><input id="ceOrder" type="number" min="1" max="99" placeholder="1"/></div>
+      <div class="field"><label><input type="checkbox" id="ceActive" style="width:auto;display:inline;margin-right:8px" checked> Active (visible on portal)</label></div>
+    </div>
+    <div class="toolbar" style="margin-top:16px">
+      <button class="btn btn-gold" onclick="saveCatEdit()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+      <button class="btn" onclick="closeCatEdit()">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <script src="config/portal-catalog.js"></script>
 <script src="config/portal-data.js"></script>
@@ -348,7 +434,24 @@ async function loadAll(){
   try{
     allItems = await PortalData.listAll();
     renderTable();
+    renderStats();
   }catch(e){ toast('Load failed: '+e.message,'danger'); }
+}
+function renderStats(){
+  var total = allItems.length;
+  var pub = 0, draft = 0, unpub = 0, feat = 0;
+  allItems.forEach(function(it){
+    if(it.status==='published') pub++;
+    else if(it.status==='draft') draft++;
+    else if(it.status==='unpublished') unpub++;
+    if(it.featured) feat++;
+  });
+  document.getElementById('stTotal').textContent = total;
+  document.getElementById('stPublished').textContent = pub;
+  document.getElementById('stDrafts').textContent = draft;
+  document.getElementById('stUnpub').textContent = unpub;
+  document.getElementById('stFeatured').textContent = feat;
+  document.getElementById('stCats').textContent = PORTAL_CATALOG.CATEGORIES.length;
 }
 function renderTable(){
   var q = val('cmSearch').toLowerCase();
@@ -527,6 +630,257 @@ async function downloadSitemap(){
       if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-seedling"></i> Seed Starter Content'; }
     }catch(e){ toast('Seed failed: '+e.message,'danger'); }
   }
+
+  /* =========================================================================
+     TOPIC MANAGEMENT
+     Uses a Firestore collection 'portal_topics' for dynamic topics.
+     Falls back to the static catalog if no custom topics exist.
+     ========================================================================= */
+  var customTopics = {};  // { catId: [{id, name}] }
+
+  async function loadCustomTopics(){
+    try{
+      var snap = await db.collection('portal_topics').get();
+      customTopics = {};
+      snap.forEach(function(doc){
+        var d = doc.data();
+        if(!customTopics[d.category]) customTopics[d.category] = [];
+        customTopics[d.category].push({ id: d.topicId || d.id, name: d.name, docId: doc.id });
+      });
+    }catch(e){ console.warn('Could not load custom topics:', e); }
+  }
+
+  function getTopicsForCat(catId){
+    var staticTopics = [];
+    var cat = PORTAL_CATALOG.getCategory(catId);
+    if(cat) staticTopics = cat.topics.slice();
+    var custom = customTopics[catId] || [];
+    // merge: custom topics added after static ones, skip duplicates
+    var ids = {};
+    staticTopics.forEach(function(t){ ids[t.id] = true; });
+    custom.forEach(function(t){ if(!ids[t.id]){ staticTopics.push(t); ids[t.id]=true; } });
+    return staticTopics;
+  }
+
+  function populateTopicManagerCatSelect(){
+    var sel = document.getElementById('tmCat');
+    sel.innerHTML = PORTAL_CATALOG.CATEGORIES.map(function(c){
+      return '<option value="'+c.id+'">'+esc(c.icon)+' '+esc(c.name)+'</option>';
+    }).join('');
+    sel.addEventListener('change', renderTopicTable);
+    renderTopicTable();
+  }
+
+  async function renderTopicTable(){
+    var catId = val('tmCat');
+    if(!catId) return;
+    var topics = getTopicsForCat(catId);
+    // Get published counts per topic
+    var counts = {};
+    try{
+      var items = await PortalData.listByCategory(catId);
+      items.forEach(function(it){ if(it.status==='published') counts[it.topic]=(counts[it.topic]||0)+1; });
+    }catch(e){}
+
+    var isCustom = {};
+    (customTopics[catId]||[]).forEach(function(t){ isCustom[t.id] = true; });
+
+    var body = document.getElementById('tmBody');
+    if(!topics.length){
+      body.innerHTML='<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--ink-mute)">No topics in this category.</td></tr>';
+      return;
+    }
+    body.innerHTML = topics.map(function(t){
+      var n = counts[t.id]||0;
+      return '<tr>'+
+        '<td><b style="color:#fff">'+esc(t.name)+'</b>'+
+          (isCustom[t.id]?' <span class="badge b-feat" style="font-size:10px">Custom</span>':'')+'</td>'+
+        '<td style="color:var(--ink-mute);font-size:13px">'+esc(t.id)+'</td>'+
+        '<td><span class="badge '+(n>0?'b-pub':'b-draft')+'">'+n+' published</span></td>'+
+        '<td><div class="row-actions">'+
+          (isCustom[t.id]?
+            '<button title="Edit" onclick="editCustomTopic(\''+esc(catId)+'\',\''+esc(t.id)+'\')"><i class="fa-solid fa-pen"></i></button>'+
+            '<button title="Delete" class="btn-danger" style="color:var(--danger)" onclick="deleteCustomTopic(\''+esc(catId)+'\',\''+esc(t.id)+'\')"><i class="fa-solid fa-trash"></i></button>'
+            :'<button title="Static topic (managed in portal-catalog.js)" style="opacity:.4" disabled><i class="fa-solid fa-lock"></i></button>')+
+        '</div></td></tr>';
+    }).join('');
+  }
+
+  function openTopicForm(catId){
+    document.getElementById('topicFormTitle').innerHTML = '<i class="fa-solid fa-folder-plus"></i> Add Topic';
+    document.getElementById('tfCat').innerHTML = PORTAL_CATALOG.CATEGORIES.map(function(c){
+      return '<option value="'+c.id+'"'+((catId&&c.id===catId)?' selected':'')+'>'+esc(c.icon)+' '+esc(c.name)+'</option>';
+    }).join('');
+    setVal('tfName',''); setVal('tfId','');
+    document.getElementById('tfName').oninput = function(){
+      if(!document.getElementById('tfId').dataset.manual){
+        setVal('tfId', PORTAL_CATALOG.slugify(val('tfName')));
+      }
+    };
+    document.getElementById('tfId').oninput = function(){
+      document.getElementById('tfId').dataset.manual = '1';
+    };
+    document.getElementById('topicModal').classList.add('open');
+  }
+  function closeTopicForm(){
+    document.getElementById('topicModal').classList.remove('open');
+    window._editTopicMode = false;
+    window._editTopicDocId = null;
+    document.getElementById('tfCat').disabled = false;
+    document.getElementById('tfId').disabled = false;
+  }
+
+  async function saveTopic(){
+    if(window._editTopicMode && window._editTopicDocId){
+      var name = val('tfName');
+      if(!name) return toast('Topic name is required','danger');
+      try{
+        await db.collection('portal_topics').doc(window._editTopicDocId).update({ name: name });
+        toast('Topic updated','success');
+        closeTopicForm();
+        await loadCustomTopics();
+        renderTopicTable();
+      }catch(e){ toast('Failed: '+e.message,'danger'); }
+      return;
+    }
+    var catId = val('tfCat');
+    var name = val('tfName');
+    var topicId = val('tfId') || PORTAL_CATALOG.slugify(name);
+    if(!name) return toast('Topic name is required','danger');
+    if(!topicId) return toast('Topic ID is required','danger');
+    // Check for duplicates
+    var existing = getTopicsForCat(catId);
+    for(var i=0;i<existing.length;i++){
+      if(existing[i].id===topicId) return toast('A topic with this ID already exists in this category','danger');
+    }
+    try{
+      await db.collection('portal_topics').add({
+        category: catId,
+        topicId: topicId,
+        name: name,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      toast('Topic "'+name+'" created','success');
+      closeTopicForm();
+      await loadCustomTopics();
+      renderTopicTable();
+    }catch(e){ toast('Failed: '+e.message,'danger'); }
+  }
+
+  async function deleteCustomTopic(catId, topicId){
+    if(!confirm('Delete topic "'+topicId+'"? Content under this topic will become orphaned.')) return;
+    try{
+      var topics = customTopics[catId]||[];
+      for(var i=0;i<topics.length;i++){
+        if(topics[i].id===topicId){
+          await db.collection('portal_topics').doc(topics[i].docId).delete();
+          toast('Topic deleted','success');
+          break;
+        }
+      }
+      await loadCustomTopics();
+      renderTopicTable();
+    }catch(e){ toast('Failed: '+e.message,'danger'); }
+  }
+
+  async function editCustomTopic(catId, topicId){
+    var topics = customTopics[catId]||[];
+    var topic = null;
+    for(var i=0;i<topics.length;i++){ if(topics[i].id===topicId){ topic=topics[i]; break; } }
+    if(!topic) return toast('Topic not found','danger');
+    document.getElementById('topicFormTitle').innerHTML = '<i class="fa-solid fa-pen"></i> Edit Topic';
+    document.getElementById('tfCat').innerHTML = '<option value="'+catId+'">'+esc(catId)+'</option>';
+    document.getElementById('tfCat').disabled = true;
+    setVal('tfName', topic.name);
+    setVal('tfId', topic.id);
+    document.getElementById('tfId').disabled = true;
+    document.getElementById('topicModal').classList.add('open');
+    window._editTopicDocId = topic.docId;
+    window._editTopicMode = true;
+  }
+
+  /* =========================================================================
+     CATEGORY MANAGEMENT
+     Stores custom category metadata in Firestore 'portal_categories' collection.
+     Static catalog categories are the baseline; admins can override description,
+     icon, SEO fields, display order and active status.
+     ========================================================================= */
+  var catMeta = {};
+
+  async function loadCatMeta(){
+    try{
+      var snap = await db.collection('portal_categories').get();
+      catMeta = {};
+      snap.forEach(function(doc){ catMeta[doc.id] = doc.data(); });
+    }catch(e){ console.warn('Could not load category meta:', e); }
+  }
+
+  function renderCatTable(){
+    var body = document.getElementById('catBody');
+    body.innerHTML = PORTAL_CATALOG.CATEGORIES.map(function(c){
+      var meta = catMeta[c.id] || {};
+      var active = meta.active !== false; // default active
+      var order = meta.displayOrder || '—';
+      return '<tr>'+
+        '<td style="font-size:28px">'+esc(meta.icon||c.icon)+'</td>'+
+        '<td><b style="color:#fff">'+esc(meta.name||c.name)+'</b></td>'+
+        '<td style="color:var(--ink-mute);font-size:13px">'+esc(c.id)+'</td>'+
+        '<td><span class="badge b-pub">'+c.topics.length+' topics</span></td>'+
+        '<td>'+(active?'<span class="badge b-pub">Active</span>':'<span class="badge b-unpub">Inactive</span>')+'</td>'+
+        '<td><div class="row-actions">'+
+          '<button title="Edit Category" onclick="openCatEdit(\''+esc(c.id)+'\')"><i class="fa-solid fa-pen"></i></button>'+
+        '</div></td></tr>';
+    }).join('');
+  }
+
+  function openCatEdit(catId){
+    var cat = PORTAL_CATALOG.getCategory(catId);
+    if(!cat) return;
+    var meta = catMeta[catId] || {};
+    setVal('ceName', cat.name);
+    setVal('ceId', cat.id);
+    setVal('ceIcon', meta.icon || cat.icon);
+    setVal('ceDesc', meta.description || cat.desc);
+    setVal('ceSeoTitle', meta.seoTitle || '');
+    setVal('ceMeta', meta.metaDescription || '');
+    setVal('ceOrder', meta.displayOrder || '');
+    document.getElementById('ceActive').checked = meta.active !== false;
+    document.getElementById('catEditModal').classList.add('open');
+    window._editCatId = catId;
+  }
+  function closeCatEdit(){ document.getElementById('catEditModal').classList.remove('open'); window._editCatId=null; }
+
+  async function saveCatEdit(){
+    var catId = window._editCatId;
+    if(!catId) return;
+    var data = {
+      name: val('ceName'),
+      icon: val('ceIcon'),
+      description: val('ceDesc'),
+      seoTitle: val('ceSeoTitle'),
+      metaDescription: val('ceMeta'),
+      displayOrder: parseInt(val('ceOrder')) || 0,
+      active: document.getElementById('ceActive').checked,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    try{
+      await db.collection('portal_categories').doc(catId).set(data, { merge: true });
+      catMeta[catId] = data;
+      toast('Category updated','success');
+      closeCatEdit();
+      renderCatTable();
+    }catch(e){ toast('Failed: '+e.message,'danger'); }
+  }
+
+  /* =========================================================================
+     INIT — Topic & Category Management
+     ========================================================================= */
+  (async function(){
+    await loadCustomTopics();
+    await loadCatMeta();
+    populateTopicManagerCatSelect();
+    renderCatTable();
+  })();
 </script>
 </body>
 </html>

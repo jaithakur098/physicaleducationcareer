@@ -161,6 +161,26 @@
       });
     },
 
+    /* ---------- TOPIC / CATEGORY HELPERS ---------- */
+    getCustomTopics: async function(catId) {
+      var snap = await db.collection('portal_topics').where('category', '==', catId).get();
+      return snap.docs.map(toItem);
+    },
+    getAllCustomTopics: async function() {
+      var snap = await db.collection('portal_topics').get();
+      return snap.docs.map(toItem);
+    },
+    getCatMeta: async function(catId) {
+      var snap = await db.collection('portal_categories').doc(catId).get();
+      return snap.exists ? snap.data() : null;
+    },
+    getAllCatMeta: async function() {
+      var snap = await db.collection('portal_categories').get();
+      var map = {};
+      snap.forEach(function(doc) { map[doc.id] = doc.data(); });
+      return map;
+    },
+
     /* ---------- SITEMAP CACHE ---------- */
     async refreshSitemapCache() {
       try {

@@ -133,35 +133,60 @@ function contentCard(it){
 (function(){
   var catId = getParam('cat'), topicId = getParam('topic');
   var cat = PORTAL_CATALOG.getCategory(catId), topic = PORTAL_CATALOG.getTopic(catId, topicId);
-  if(!cat || !topic){
+
+  function showNotFound(){
+    document.getElementById('topicName').textContent='Topic not found';
+    document.getElementById('topicDesc').textContent='The requested topic does not exist.';
     document.getElementById('contentList').innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ico">🚫</span> Topic not found. <a href="student-portal.html">Back to portal</a></div>';
+  }
+
+  if(!cat){ showNotFound(); return; }
+
+  // If topic not in static catalog, check custom topics from Firestore
+  if(!topic && window.PortalData){
+    PortalData.getCustomTopics(catId).then(function(customTopics){
+      for(var i=0;i<customTopics.length;i++){
+        if(customTopics[i].topicId === topicId){
+          topic = { id: customTopics[i].topicId, name: customTopics[i].name };
+          renderTopicPage(cat, topic, catId, topicId);
+          return;
+        }
+      }
+      showNotFound();
+    }).catch(function(){ showNotFound(); });
     return;
   }
-  document.title = topic.name + ' — ' + cat.name + ' | Physical Education Career';
-  document.querySelector('link[rel="canonical"]').setAttribute('href', PORTAL_CATALOG.topicUrl(catId, topicId));
-  document.getElementById('catIcon').textContent = cat.icon;
-  document.getElementById('topicName').textContent = topic.name;
-  document.getElementById('topicDesc').textContent = 'Browse ' + topic.name + ' under ' + cat.name + '.';
-  document.getElementById('listTitle').textContent = topic.name;
-  document.getElementById('listSub').textContent = 'Published ' + PORTAL_CATALOG.getContentTypeLabel('article') + 's, jobs, results and updates in ' + topic.name + '.';
-  document.getElementById('backCat').setAttribute('href','portal-category.html?cat='+encodeURIComponent(catId));
-  document.getElementById('crumbs').innerHTML =
-    '<a href="index.html">Home</a><span class="sep">›</span>'+
-    '<a href="student-portal.html">Student Portal</a><span class="sep">›</span>'+
-    '<a href="portal-category.html?cat='+encodeURIComponent(catId)+'">'+esc(cat.name)+'</a><span class="sep">›</span>'+
-    '<span class="cur">'+esc(topic.name)+'</span>';
 
-  var list = document.getElementById('contentList');
-  if(!window.PortalData){ list.innerHTML='<div class="empty-state" style="grid-column:1/-1">Content service unavailable.</div>'; return; }
-  PortalData.listByTopic(catId, topicId).then(function(items){
-    if(!items.length){
-      list.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ico">📭</span> No published content yet in this topic.<br>Check back soon or <a href="portal-search.html">search the portal</a>.</div>';
-      return;
-    }
-    list.innerHTML = items.map(contentCard).join('');
-  }).catch(function(e){
-    list.innerHTML='<div class="empty-state" style="grid-column:1/-1">Failed to load content. '+esc(e.message)+'</div>';
-  });
+  if(!topic){ showNotFound(); return; }
+  renderTopicPage(cat, topic, catId, topicId);
+
+  function renderTopicPage(cat, topic, catId, topicId){
+    document.title = topic.name + ' — ' + cat.name + ' | Physical Education Career';
+    document.querySelector('link[rel="canonical"]').setAttribute('href', PORTAL_CATALOG.topicUrl(catId, topicId));
+    document.getElementById('catIcon').textContent = cat.icon;
+    document.getElementById('topicName').textContent = topic.name;
+    document.getElementById('topicDesc').textContent = 'Browse ' + topic.name + ' under ' + cat.name + '.';
+    document.getElementById('listTitle').textContent = topic.name;
+    document.getElementById('listSub').textContent = 'Published items in ' + topic.name + '.';
+    document.getElementById('backCat').setAttribute('href','portal-category.html?cat='+encodeURIComponent(catId));
+    document.getElementById('crumbs').innerHTML =
+      '<a href="index.html">Home</a><span class="sep">›</span>'+
+      '<a href="student-portal.html">Student Portal</a><span class="sep">›</span>'+
+      '<a href="portal-category.html?cat='+encodeURIComponent(catId)+'">'+esc(cat.name)+'</a><span class="sep">›</span>'+
+      '<span class="cur">'+esc(topic.name)+'</span>';
+
+    var list = document.getElementById('contentList');
+    if(!window.PortalData){ list.innerHTML='<div class="empty-state" style="grid-column:1/-1">Content service unavailable.</div>'; return; }
+    PortalData.listByTopic(catId, topicId).then(function(items){
+      if(!items.length){
+        list.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ico">📭</span> No published content yet in this topic.<br>Check back soon or <a href="portal-search.html">search the portal</a>.</div>';
+        return;
+      }
+      list.innerHTML = items.map(contentCard).join('');
+    }).catch(function(e){
+      list.innerHTML='<div class="empty-state" style="grid-column:1/-1">Failed to load content. '+esc(e.message)+'</div>';
+    });
+  }
 })();
 </script>
 </body>
