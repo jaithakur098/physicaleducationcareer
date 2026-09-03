@@ -347,7 +347,8 @@
       loadTournamentData(live.id);
     }
   });
-  loadStats();
+   loadStats();
+   if (window.PECAds) PECAds.triggerAction('tournament_entry');
 })();
 </script>
   

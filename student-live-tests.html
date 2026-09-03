@@ -45,9 +45,11 @@ Student.onChange(async function(u){
       '<p class="meta">Marks/Q: '+(t.marksPerQuestion||1)+' • Negative: '+(t.negativeMarks||0)+'</p>'+
       (done
         ? '<span class="badge warn" style="margin-top:10px">Already attempted</span>'
-        : '<a class="btn primary" style="margin-top:12px" href="student-attempt.html?id='+t.id+'"><i class="fa-solid fa-play"></i> Start Test</a>')+
+         : '<a class="btn primary" style="margin-top:12px" href="student-attempt.html?id='+t.id+'" onclick="if(window.PECAds)PECAds.triggerAction(\'exam_entry\');"><i class="fa-solid fa-play"></i> Start Test</a>')+
       '</article>';
   }).join('');
 });
-</script>  
+ </script>  
+
+<script src="/js/site-ads.js"></script>
 </body></html>

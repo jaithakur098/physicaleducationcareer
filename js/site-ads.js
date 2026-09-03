@@ -6,7 +6,15 @@
  *
  * Each public HTML page includes:  <script src="/js/site-ads.js"></script>
  *
- * On denied pages the script exits immediately — no ad code is injected.
+ * On denied pages automatic banner/popunder injection is suppressed, but
+ * the action-trigger API (window.PECAds.triggerAction) is still available
+ * so that action-based ads can fire after login, download, etc.
+ *
+ * RESTRICTED AREAS (Student Portal + Live/Practice Tests + Coach Portal):
+ *   These areas receive ONLY visible in-page banner ads.
+ *   No popunder, no smartlink, no external redirect, no new tab/window.
+ *   Action triggers on these pages show a visible banner ad instead of
+ *   a popunder. Students and coaches always remain on physicaleducationcareer.in.
  */
 (function () {
   "use strict";
@@ -29,30 +37,14 @@
     "tournament-coach.html",
     "tournament-draw-test.html",
     "tournament-preview-test.html",
-    "tournament-verify.html",
     "certificate.html",
-    "certificate-verify.html",
     "student-login.html",
     "student-register.html",
     "student-forgot.html",
-    "student-dashboard.html",
-    "student-analytics.html",
     "student-attempt.html",
-    "student-details.html",
-    "student-leaderboard.html",
-    "student-live-tests.html",
-    "student-my-results.html",
     "student-practice-attempt.html",
-    "student-practice-leaderboard.html",
-    "student-practice-result.html",
-    "student-practice-tests.html",
-    "student-profile.html",
-    "student-result.html",
-    "student-review.html",
     "test.html",
     "class-selection.html",
-    "live-test.html",
-    "live-tests.html",
     "yoga-day-quiz.html",
     "yoga-test.html",
     "404.html",
@@ -68,13 +60,36 @@
       if (FNAME === DENY_FILES[i]) return true;
     }
 
-    if (FNAME.indexOf("student-") === 0 && FNAME !== "student-portal.html") return true;
     if (PATH.indexOf("/config/") !== -1) return true;
+    if (PATH.indexOf("/cert/") !== -1) return true;
 
     return false;
   }
 
-  if (isDenied()) return;
+  var DENIED = isDenied();
+
+  /* ================================================================
+     AD RESTRICTION POLICY
+     Student Portal + Live/Practice Tests + Coach Portal = BANNERS ONLY
+     No popunder, no smartlink, no external redirect, no new tab/window.
+     ================================================================ */
+  function isStudentPortal() {
+    return FNAME.indexOf("student-") === 0;
+  }
+
+  function isExamArea() {
+    /* Live test entry page + live exam attempt pages (already denied) */
+    return FNAME === "live-test.html" ||
+           FNAME === "student-attempt.html" ||
+           FNAME === "student-practice-attempt.html";
+  }
+
+  function isCoachPortal() {
+    /* 6th Alwar Cup Coach Portal */
+    return FNAME === "tournament-coach.html";
+  }
+
+  var RESTRICTED = isStudentPortal() || isExamArea() || isCoachPortal();
 
   /* ================================================================
      2. AD CODES — exact values from provided codes
@@ -167,8 +182,55 @@
   }
 
   /* ================================================================
-     5. AD INJECTION
-     ================================================================ */
+     5. ACTION-BASED POPUNDER (always available, even on denied pages)
+      ================================================================ */
+
+  /* Deduplication map — each action fires at most once per page */
+  var firedActions = {};
+
+  function firePopunder() {
+    var container = document.createElement("div");
+    container.id = POP_CONTAINER_ID;
+    var s = document.createElement("script");
+    s.src = POP_SRC;
+    s.async = true;
+    s.setAttribute("data-cfasync", "false");
+    container.appendChild(s);
+    insertAtBodyEnd(container);
+  }
+
+  function fireBanner() {
+    /* Inject a visible 300x250 banner ad in-page (for RESTRICTED pages). */
+    var wrapper = createWrapper("pec-ad-action");
+    wrapper.style.margin = "20px auto";
+    wrapper.style.padding = "10px 0";
+    wrapper.style.borderTop = "1px dashed rgba(255,255,255,0.1)";
+    wrapper.style.borderBottom = "1px dashed rgba(255,255,255,0.1)";
+    window.atOptions = BANNER_300.atOptions;
+    var s = document.createElement("script");
+    s.src = BANNER_300.src;
+    s.async = false;
+    wrapper.appendChild(s);
+    insertAtBodyEnd(wrapper);
+  }
+
+  function triggerActionAd(actionName) {
+    if (!actionName) return;
+    if (firedActions[actionName]) return;
+    firedActions[actionName] = true;
+
+    if (RESTRICTED) {
+      /* Student Portal / Exam / Coach Portal: show visible banner, never popunder */
+      fireBanner();
+    } else {
+      /* Public site: fire popunder */
+      firePopunder();
+    }
+  }
+
+  /* ================================================================
+     6. BANNER AD INJECTION (suppressed on denied pages)
+      ================================================================ */
   function loadBannerAdsSequential(topDesktop, topMobile, middle) {
     /* Sequential loader for atOptions-based banners.
        Must set window.atOptions before each invoke.js loads. */
@@ -180,10 +242,13 @@
 
     function loadNext(idx) {
       if (idx >= ads.length) {
-        /* All banners done — load the additional script */
-        var extra = document.createElement("script");
-        extra.src = EXTRA_SRC;
-        document.body.appendChild(extra);
+        /* All banners done — load the additional script
+           RESTRICTED (Student Portal / Exam / Coach Portal): NOT loaded */
+        if (!RESTRICTED) {
+          var extra = document.createElement("script");
+          extra.src = EXTRA_SRC;
+          document.body.appendChild(extra);
+        }
         return;
       }
       var ad = ads[idx];
@@ -224,28 +289,35 @@
       insertAtBodyEnd(middleWrapper);
     }
 
-    /* Popunder: container + async script (exact attributes) */
-    var popWrapper = createWrapper("pec-popunder");
-    var popContainer = document.createElement("div");
-    popContainer.id = POP_CONTAINER_ID;
-    var popScript = document.createElement("script");
-    popScript.async = true;
-    popScript.setAttribute("data-cfasync", "false");
-    popScript.src = POP_SRC;
-    popWrapper.appendChild(popContainer);
-    popWrapper.appendChild(popScript);
-    insertAtBodyEnd(popWrapper);
+    /* Popunder: container + async script (exact attributes)
+       RESTRICTED (Student Portal / Exam / Coach Portal): NEVER injected */
+    if (!RESTRICTED) {
+      var popWrapper = createWrapper("pec-popunder");
+      var popContainer = document.createElement("div");
+      popContainer.id = POP_CONTAINER_ID;
+      var popScript = document.createElement("script");
+      popScript.async = true;
+      popScript.setAttribute("data-cfasync", "false");
+      popScript.src = POP_SRC;
+      popWrapper.appendChild(popContainer);
+      popWrapper.appendChild(popScript);
+      insertAtBodyEnd(popWrapper);
+    }
 
     /* Banner ads (sequential due to shared atOptions global) */
     loadBannerAdsSequential(desktop728, mobile320, middleWrapper);
   }
 
   /* ================================================================
-     6. BOOTSTRAP
+     7. BOOTSTRAP — expose API, then inject banners if not denied
      ================================================================ */
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", injectAds);
-  } else {
-    injectAds();
+  window.PECAds = { triggerAction: triggerActionAd };
+
+  if (!DENIED) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", injectAds);
+    } else {
+      injectAds();
+    }
   }
 })();

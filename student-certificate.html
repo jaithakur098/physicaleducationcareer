@@ -193,6 +193,7 @@
       testName:    await resolveTestName(attempt)
     };
     render(cert, attempt, profile, rank, names);
+    if (window.PECAds) PECAds.triggerAction('certificate_view');
     window.__cert = cert;
     fitCert();
   }
@@ -245,6 +246,8 @@
   }
   document.getElementById('downloadPdf').addEventListener('click', downloadPdf);
   document.getElementById('downloadPng').addEventListener('click', downloadPng);
+  document.getElementById('downloadPdf').addEventListener('click', function(){ if(window.PECAds) PECAds.triggerAction('certificate_download'); });
+  document.getElementById('downloadPng').addEventListener('click', function(){ if(window.PECAds) PECAds.triggerAction('certificate_download'); });
   document.getElementById('shareBtn').addEventListener('click', share);
 
   Student.onChange(function(u){
@@ -254,5 +257,7 @@
     renderFor(id);
   });
 })();
-</script>  
+ </script>  
+
+<script src="/js/site-ads.js"></script>
 </body></html>

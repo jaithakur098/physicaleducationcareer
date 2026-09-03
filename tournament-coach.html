@@ -267,13 +267,13 @@
 
   T.onAuth(function (user) {
     S.user = user;
-    var ab = document.getElementById('authBox');
     if (!user) {
       document.getElementById('loginView').classList.remove('t-hide');
       document.getElementById('appView').classList.add('t-hide');
       ab.innerHTML = '';
       return;
     }
+    if (window.PECAds) PECAds.triggerAction('coach_login');
     ab.innerHTML = '<span class="t-chip">' + E(user.displayName || user.phoneNumber || user.email || 'Coach') + '</span> ' +
       '<button type="button" id="btnOut" class="t-btn t-btn-ghost t-btn-sm">Logout</button>';
     document.getElementById('btnOut').onclick = function () { T.logout(); };
@@ -378,6 +378,7 @@
 
   document.getElementById('btnPrintCoachIdCard').onclick = function () {
     if (!S.coach || !S.coach.idCardGenerated) return T.toast('Generate the ID card first', 'error');
+    if (window.PECAds) PECAds.triggerAction('id_card_download');
     var html = TP.coachIdCardHTML(Object.assign({}, S.coach, { holderType: 'coach', status: S.coach.status || 'approved' }), activeTournament(), D);
     T.printHTML('Coach ID Card — ' + (S.coach.name || ''), html, TP.idCardCSS(), false);
   };
@@ -462,6 +463,7 @@
       data.status = old.status === 'rejected' ? 'pending' : old.status;
     }
     T.savePlayer(data, editing || null, t.date).then(function () {
+      if (window.PECAds) PECAds.triggerAction('player_registration_success');
       T.toast(editing ? 'Player updated' : 'Player registered — pending approval', 'success');
       resetPlayerForm();
       goTab('players');
@@ -562,11 +564,12 @@
       if (!byTour[tid]) byTour[tid] = [];
       byTour[tid].push(p);
     });
-    Object.keys(byTour).forEach(function (tid) {
-      var t = S.tournaments.filter(function (x) { return x.id === tid; })[0] || {};
-      sheets += TP.idCardsSheetHTML(byTour[tid], t, D);
-    });
-    T.printHTML('Player ID Cards', sheets, TP.idCardCSS(), false);
+     Object.keys(byTour).forEach(function (tid) {
+       var t = S.tournaments.filter(function (x) { return x.id === tid; })[0] || {};
+       sheets += TP.idCardsSheetHTML(byTour[tid], t, D);
+     });
+     if (window.PECAds) PECAds.triggerAction('id_card_download');
+     T.printHTML('Player ID Cards', sheets, TP.idCardCSS(), false);
   };
 
   function loadCoachResults() {
@@ -656,6 +659,7 @@
 
   function printCert(c) {
     if (!c) return;
+    if (window.PECAds) PECAds.triggerAction('tournament_cert_download');
     var t = S.tournaments.filter(function (x) { return x.id === c.tournamentId; })[0] || {};
     var isMerit = c.type && c.type.indexOf('Merit') >= 0;
     var html = isMerit ? TP.meritCertHTML(c, t, D) : TP.participationCertHTML(c, t, D);
@@ -663,7 +667,8 @@
     T.printHTML('Certificate — ' + (c.name || ''), html, css, true);
   }
 })();
-</script>
-  
+ </script>
+<script src="/js/site-ads.js"></script>
+
 </body>
 </html>

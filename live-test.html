@@ -131,13 +131,14 @@ function render(){
         <div class="cell"><div class="n">${c.s}</div><div class="l">S</div></div>
       </div>
       <div style="margin-top:14px">
-        <button class="btn primary" ${btnDisabled?"disabled":""}
-          onclick="location.href='${url}${url.includes('?')?'&':'?'}liveId=${encodeURIComponent(t.id)}'">${btnLabel}</button>
+         <button class="btn primary" ${btnDisabled?"disabled":""}
+           onclick="if(window.PECAds)PECAds.triggerAction('exam_entry');location.href='${url}${url.includes('?')?'&':'?'}liveId=${encodeURIComponent(t.id)}'">${btnLabel}</button>
       </div>
     </div>`;
   }).join("");
 }
-</script>
-  
+ </script>
+
+<script src="/js/site-ads.js"></script>
 </body>
 </html>

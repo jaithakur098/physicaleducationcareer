@@ -53,6 +53,7 @@ Student.onChange(async function(u){
   if(!u) return;
   var rs = await Student.myResults(u.uid);
   CURRENT = rs;
+  if (window.PECAds) PECAds.triggerAction('records_view');
   var w=document.getElementById('wrap');
   if(!rs.length){ w.innerHTML='<p class="empty">No attempts yet.</p>'; return; }
   w.innerHTML='<table><thead><tr><th>Test</th><th>Type</th><th>Score</th><th>%</th><th>Correct</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody>'+
@@ -129,4 +130,6 @@ document.getElementById('dlPdf').addEventListener('click', function(){
   doc.save('my-results.pdf');
 });
 </script>  
+
+<script src="/js/site-ads.js"></script>
 </body></html>

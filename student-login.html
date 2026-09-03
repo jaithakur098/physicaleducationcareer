@@ -39,8 +39,11 @@ document.getElementById('f').addEventListener('submit', async function(ev){
   var d=Object.fromEntries(new FormData(ev.target).entries());
   try{
     await Student.login(d.email, d.password);
+    if (window.PECAds) PECAds.triggerAction('student_login');
     location.href='student-dashboard.html';
   }catch(e){ msg.innerHTML='<div class="msg err">'+(e.message||e)+'</div>'; }
 });
-</script>  
+ </script>  
+
+<script src="/js/site-ads.js"></script>
 </body></html>

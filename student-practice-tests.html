@@ -42,12 +42,14 @@ Student.onChange(async function(u){
         '<p class="meta">Questions: '+(t.totalQuestions||'—')+' • Duration: '+(t.durationMin||'—')+' min</p>'+
         '<p class="meta">Marks/Q: '+(t.marksPerQuestion||1)+' • Negative: '+(t.negativeMarks||0)+'</p>'+
         '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'+
-          '<a class="btn primary" href="student-practice-attempt.html?id='+t.id+'"><i class="fa-solid fa-play"></i> Start Practice</a>'+
+          '<a class="btn primary" href="student-practice-attempt.html?id='+t.id+'" onclick="if(window.PECAds)PECAds.triggerAction(\'exam_entry\');"><i class="fa-solid fa-play"></i> Start Practice</a>'+
           '<a class="btn" href="student-practice-leaderboard.html?id='+t.id+'"><i class="fa-solid fa-trophy"></i> Leaderboard</a>'+
         '</div>'+
       '</article>';
     }).join('');
   }catch(e){ list.innerHTML='<div class="empty">Failed to load: '+esc(e.message||e)+'</div>'; }
 });
-</script>  
+ </script>  
+
+<script src="/js/site-ads.js"></script>
 </body></html>
