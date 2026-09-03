@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Topics — Student Information Portal | Physical Education Career</title>
+<title>Topics â€” Student Information Portal | Physical Education Career</title>
 <meta name="description" content="Browse student portal topics by category.">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://physicaleducationcareer.in/student-portal.html">
@@ -19,8 +19,8 @@
 </head>
 <body>
 <div class="topbar"><div class="container">
-<span>Admissions Open 2026-27 · NCTE Approved Universities</span>
-<div><a href="tel:+919828320688">📞 +91 98283 20688</a><a href="https://wa.me/919828320688" target="_blank">💬 WhatsApp</a></div>
+<span>Admissions Open 2026-27 Â· NCTE Approved Universities</span>
+<div><a href="tel:+919828320688">ðŸ“ž +91 98283 20688</a><a href="https://wa.me/919828320688" target="_blank">ðŸ’¬ WhatsApp</a></div>
 </div></div>
 
 <header><div class="container nav">
@@ -46,7 +46,7 @@
   <a href="https://wa.me/919828320688" target="_blank" rel="noopener" class="btn btn-whatsapp">WhatsApp</a>
   <a href="#contact" class="btn btn-primary">Apply Now</a>
 </div>
-<button class="menu-toggle" aria-label="Menu">☰</button>
+<button class="menu-toggle" aria-label="Menu">â˜°</button>
 </div>
 <nav class="mobile-nav">
   <a href="index.html">Home</a>
@@ -68,7 +68,7 @@
 
 <section class="portal-hero">
   <div class="container">
-    <span class="eyebrow" id="catIcon">📂</span>
+    <span class="eyebrow" id="catIcon">ðŸ“‚</span>
     <h1 id="catName">Topics</h1>
     <p id="catDesc">Select a topic to view the latest content.</p>
   </div>
@@ -82,7 +82,7 @@
       <p>Click any topic to see its articles, jobs, results and updates.</p>
     </div>
     <div class="topic-grid" id="topicGrid">
-      <div class="empty-state" style="grid-column:1/-1"><span class="ico">⏳</span> Loading topics…</div>
+      <div class="empty-state" style="grid-column:1/-1"><span class="ico">â³</span> Loading topicsâ€¦</div>
     </div>
   </div>
 </section>
@@ -100,13 +100,13 @@
         <a href="about.html">About Us</a><br><a href="contact.html">Contact Us</a><br>
       </div>
       <div><h4>Courses</h4><a href="dped.html">D.P.Ed.</a><a href="bped.html">B.P.Ed.</a><a href="mped-admission-2026.html">M.P.Ed.</a><a href="phd.html">Ph.D. in PE</a></div>
-      <div><h4>Contact</h4><a href="tel:+919828320688">📞 +91 98283 20688</a><a href="mailto:info@physicaleducationcareer.in">✉ info@physicaleducationcareer.in</a><a href="https://wa.me/919828320688" target="_blank" rel="noopener">💬 WhatsApp Chat</a></div>
+      <div><h4>Contact</h4><a href="tel:+919828320688">ðŸ“ž +91 98283 20688</a><a href="mailto:info@physicaleducationcareer.in">âœ‰ info@physicaleducationcareer.in</a><a href="https://wa.me/919828320688" target="_blank" rel="noopener">ðŸ’¬ WhatsApp Chat</a></div>
     </div>
-    <div class="foot-bottom">© <span id="yr"></span> Physical Education Career · Founded by Jai Thakur (NIS | M.P.Ed.)</div>
+    <div class="foot-bottom">Â© <span id="yr"></span> Physical Education Career Â· Founded by Jai Thakur (NIS | M.P.Ed.)</div>
   </div>
 </footer>
 
-<a class="wa-float" href="https://wa.me/919828320688?text=Hi%2C%20I%20need%20admission%20guidance" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<a class="wa-float" href="https://wa.me/919828320688?text=Hi%2C%20I%20need%20admission%20guidance" target="_blank" rel="noopener" aria-label="WhatsApp">ðŸ’¬</a>
 <script>document.getElementById('yr').textContent=new Date().getFullYear()</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -124,18 +124,18 @@ function getParam(n){return new URLSearchParams(location.search).get(n)}
   if(!cat){
     document.getElementById('catName').textContent='Category not found';
     document.getElementById('catDesc').textContent='The requested category does not exist.';
-    document.getElementById('topicGrid').innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ico">🚫</span> Unknown category. <a href="student-portal.html">Back to portal</a></div>';
+    document.getElementById('topicGrid').innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ico">ðŸš«</span> Unknown category. <a href="student-portal.html">Back to portal</a></div>';
     return;
   }
-  document.title = cat.name + ' — Student Information Portal | Physical Education Career';
+  document.title = cat.name + ' â€” Student Information Portal | Physical Education Career';
   var cano = PORTAL_CATALOG.categoryUrl(catId);
   document.querySelector('link[rel="canonical"]').setAttribute('href', cano);
   document.getElementById('catIcon').textContent = cat.icon;
   document.getElementById('catName').textContent = cat.name;
   document.getElementById('catDesc').textContent = cat.desc;
   document.getElementById('crumbs').innerHTML =
-    '<a href="index.html">Home</a><span class="sep">›</span>'+
-    '<a href="student-portal.html">Student Portal</a><span class="sep">›</span>'+
+    '<a href="index.html">Home</a><span class="sep">â€º</span>'+
+    '<a href="student-portal.html">Student Portal</a><span class="sep">â€º</span>'+
     '<span class="cur">'+esc(cat.name)+'</span>';
 
   // Counts from published content (single query)
@@ -151,7 +151,7 @@ function getParam(n){return new URLSearchParams(location.search).get(n)}
       return '<a class="topic-card" href="portal-topic.html?cat='+encodeURIComponent(catId)+'&topic='+encodeURIComponent(t.id)+'">'+
         '<div><div class="t-name">'+esc(t.name)+'</div>'+
         '<div class="t-count">'+n+' published item'+(n===1?'':'s')+'</div></div>'+
-        '<span class="t-arrow">›</span></a>';
+        '<span class="t-arrow">â€º</span></a>';
     }).join('');
   }
   render(counts, []);
@@ -170,5 +170,8 @@ function getParam(n){return new URLSearchParams(location.search).get(n)}
   }
 })();
 </script>
+
+<script src="/js/site-ads.js"></script>
 </body>
 </html>
+

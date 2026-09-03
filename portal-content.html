@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Loading… — Student Information Portal | Physical Education Career</title>
+<title>Loadingâ€¦ â€” Student Information Portal | Physical Education Career</title>
 <meta name="description" content="Student Information Portal content.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="canonical" href="https://physicaleducationcareer.in/student-portal.html">
@@ -21,8 +21,8 @@
 </head>
 <body>
 <div class="topbar"><div class="container">
-<span>Admissions Open 2026-27 · NCTE Approved Universities</span>
-<div><a href="tel:+919828320688">📞 +91 98283 20688</a><a href="https://wa.me/919828320688" target="_blank">💬 WhatsApp</a></div>
+<span>Admissions Open 2026-27 Â· NCTE Approved Universities</span>
+<div><a href="tel:+919828320688">ðŸ“ž +91 98283 20688</a><a href="https://wa.me/919828320688" target="_blank">ðŸ’¬ WhatsApp</a></div>
 </div></div>
 
 <header><div class="container nav">
@@ -48,7 +48,7 @@
   <a href="https://wa.me/919828320688" target="_blank" rel="noopener" class="btn btn-whatsapp">WhatsApp</a>
   <a href="#contact" class="btn btn-primary">Apply Now</a>
 </div>
-<button class="menu-toggle" aria-label="Menu">☰</button>
+<button class="menu-toggle" aria-label="Menu">â˜°</button>
 </div>
 <nav class="mobile-nav">
   <a href="index.html">Home</a>
@@ -73,7 +73,7 @@
     <a class="back-link" href="#" id="backTopic"><i class="fa-solid fa-arrow-left"></i> Back to Topic</a>
     <div class="detail-wrap">
       <div class="detail-main" id="detailMain">
-        <div class="empty-state"><span class="ico">⏳</span> Loading content…</div>
+        <div class="empty-state"><span class="ico">â³</span> Loading contentâ€¦</div>
       </div>
       <aside class="detail-side" id="detailSide"></aside>
     </div>
@@ -93,13 +93,13 @@
         <a href="about.html">About Us</a><br><a href="contact.html">Contact Us</a><br>
       </div>
       <div><h4>Courses</h4><a href="dped.html">D.P.Ed.</a><a href="bped.html">B.P.Ed.</a><a href="mped-admission-2026.html">M.P.Ed.</a><a href="phd.html">Ph.D. in PE</a></div>
-      <div><h4>Contact</h4><a href="tel:+919828320688">📞 +91 98283 20688</a><a href="mailto:info@physicaleducationcareer.in">✉ info@physicaleducationcareer.in</a><a href="https://wa.me/919828320688" target="_blank" rel="noopener">💬 WhatsApp Chat</a></div>
+      <div><h4>Contact</h4><a href="tel:+919828320688">ðŸ“ž +91 98283 20688</a><a href="mailto:info@physicaleducationcareer.in">âœ‰ info@physicaleducationcareer.in</a><a href="https://wa.me/919828320688" target="_blank" rel="noopener">ðŸ’¬ WhatsApp Chat</a></div>
     </div>
-    <div class="foot-bottom">© <span id="yr"></span> Physical Education Career · Founded by Jai Thakur (NIS | M.P.Ed.)</div>
+    <div class="foot-bottom">Â© <span id="yr"></span> Physical Education Career Â· Founded by Jai Thakur (NIS | M.P.Ed.)</div>
   </div>
 </footer>
 
-<a class="wa-float" href="https://wa.me/919828320688?text=Hi%2C%20I%20need%20admission%20guidance" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<a class="wa-float" href="https://wa.me/919828320688?text=Hi%2C%20I%20need%20admission%20guidance" target="_blank" rel="noopener" aria-label="WhatsApp">ðŸ’¬</a>
 <script>document.getElementById('yr').textContent=new Date().getFullYear()</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -120,7 +120,7 @@ function setMeta(name, content, isProp){
 }
 function injectSEO(it, cat, topic){
   var title = it.seoTitle || it.title;
-  var desc = it.metaDescription || it.shortDescription || (it.title + ' — ' + cat.name + ' / ' + topic.name + ' on Physical Education Career.');
+  var desc = it.metaDescription || it.shortDescription || (it.title + ' â€” ' + cat.name + ' / ' + topic.name + ' on Physical Education Career.');
   var url = PORTAL_CATALOG.contentUrl(it.slug || it.id);
   document.title = title + ' | Physical Education Career';
   setMeta('description', desc);
@@ -258,7 +258,7 @@ function renderByType(it){
 function renderDetail(it){
   var cat = PORTAL_CATALOG.getCategory(it.category), topic = PORTAL_CATALOG.getTopic(it.category, it.topic);
   if(!cat){
-    document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">🚫</span> Invalid category.</div>';
+    document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">ðŸš«</span> Invalid category.</div>';
     return;
   }
   // If topic not in static catalog, try custom topics
@@ -271,9 +271,9 @@ function renderDetail(it){
           return;
         }
       }
-      document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">🚫</span> Invalid topic.</div>';
+      document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">ðŸš«</span> Invalid topic.</div>';
     }).catch(function(){
-      document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">🚫</span> Invalid topic.</div>';
+      document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">ðŸš«</span> Invalid topic.</div>';
     });
     return;
   }
@@ -283,10 +283,10 @@ function renderDetail(it){
 function renderDetailInner(it, cat, topic){
   injectSEO(it, cat, topic);
   document.getElementById('crumbs').innerHTML =
-    '<a href="index.html">Home</a><span class="sep">›</span>'+
-    '<a href="student-portal.html">Student Portal</a><span class="sep">›</span>'+
-    '<a href="portal-category.html?cat='+encodeURIComponent(cat.id)+'">'+esc(cat.name)+'</a><span class="sep">›</span>'+
-    '<a href="portal-topic.html?cat='+encodeURIComponent(cat.id)+'&topic='+encodeURIComponent(topic.id)+'">'+esc(topic.name)+'</a><span class="sep">›</span>'+
+    '<a href="index.html">Home</a><span class="sep">â€º</span>'+
+    '<a href="student-portal.html">Student Portal</a><span class="sep">â€º</span>'+
+    '<a href="portal-category.html?cat='+encodeURIComponent(cat.id)+'">'+esc(cat.name)+'</a><span class="sep">â€º</span>'+
+    '<a href="portal-topic.html?cat='+encodeURIComponent(cat.id)+'&topic='+encodeURIComponent(topic.id)+'">'+esc(topic.name)+'</a><span class="sep">â€º</span>'+
     '<span class="cur">'+esc(it.title)+'</span>';
   document.getElementById('backTopic').setAttribute('href','portal-topic.html?cat='+encodeURIComponent(cat.id)+'&topic='+encodeURIComponent(topic.id));
 
@@ -297,8 +297,8 @@ function renderDetailInner(it, cat, topic){
     '<div class="detail-meta">'+
       '<span class="pill">'+esc(cat.name)+'</span>'+
       '<span class="pill">'+esc(topic.name)+'</span>'+
-      (it.publishDate?'<span>📅 '+esc(it.publishDate)+'</span>':'')+
-      (it.author?'<span>✍️ '+esc(it.author)+'</span>':'')+
+      (it.publishDate?'<span>ðŸ“… '+esc(it.publishDate)+'</span>':'')+
+      (it.author?'<span>âœï¸ '+esc(it.author)+'</span>':'')+
     '</div>';
   if(it.shortDescription) main += '<p style="font-size:15px;color:var(--muted);margin:0 0 14px">'+esc(it.shortDescription)+'</p>';
   main += renderByType(it);
@@ -337,7 +337,7 @@ function renderDetailInner(it, cat, topic){
 (function(){
   var slug = getParam('slug'), id = getParam('id'), preview = getParam('preview')==='1';
   function showUnavailable(msg){
-    document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">🚫</span> '+msg+
+    document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">ðŸš«</span> '+msg+
       '<br><a href="student-portal.html">Back to Student Portal</a></div>';
   }
   function isAdmin(){
@@ -371,9 +371,12 @@ function renderDetailInner(it, cat, topic){
     }
     renderDetail(it);
   }).catch(function(e){
-    document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">⚠️</span> Failed to load content. '+esc(e.message)+'</div>';
+    document.getElementById('detailMain').innerHTML='<div class="empty-state"><span class="ico">âš ï¸</span> Failed to load content. '+esc(e.message)+'</div>';
   });
 })();
 </script>
+
+<script src="/js/site-ads.js"></script>
 </body>
 </html>
+

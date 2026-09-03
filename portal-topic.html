@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Topic Content — Student Information Portal | Physical Education Career</title>
+<title>Topic Content â€” Student Information Portal | Physical Education Career</title>
 <meta name="description" content="Browse the latest content for this student portal topic.">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://physicaleducationcareer.in/student-portal.html">
@@ -19,8 +19,8 @@
 </head>
 <body>
 <div class="topbar"><div class="container">
-<span>Admissions Open 2026-27 · NCTE Approved Universities</span>
-<div><a href="tel:+919828320688">📞 +91 98283 20688</a><a href="https://wa.me/919828320688" target="_blank">💬 WhatsApp</a></div>
+<span>Admissions Open 2026-27 Â· NCTE Approved Universities</span>
+<div><a href="tel:+919828320688">ðŸ“ž +91 98283 20688</a><a href="https://wa.me/919828320688" target="_blank">ðŸ’¬ WhatsApp</a></div>
 </div></div>
 
 <header><div class="container nav">
@@ -46,7 +46,7 @@
   <a href="https://wa.me/919828320688" target="_blank" rel="noopener" class="btn btn-whatsapp">WhatsApp</a>
   <a href="#contact" class="btn btn-primary">Apply Now</a>
 </div>
-<button class="menu-toggle" aria-label="Menu">☰</button>
+<button class="menu-toggle" aria-label="Menu">â˜°</button>
 </div>
 <nav class="mobile-nav">
   <a href="index.html">Home</a>
@@ -68,7 +68,7 @@
 
 <section class="portal-hero">
   <div class="container">
-    <span class="eyebrow" id="catIcon">📂</span>
+    <span class="eyebrow" id="catIcon">ðŸ“‚</span>
     <h1 id="topicName">Content</h1>
     <p id="topicDesc">Latest articles, jobs, results and updates for this topic.</p>
   </div>
@@ -82,7 +82,7 @@
       <p id="listSub">Published items in this topic.</p>
     </div>
     <div class="content-list" id="contentList">
-      <div class="empty-state" style="grid-column:1/-1"><span class="ico">⏳</span> Loading content…</div>
+      <div class="empty-state" style="grid-column:1/-1"><span class="ico">â³</span> Loading contentâ€¦</div>
     </div>
   </div>
 </section>
@@ -100,13 +100,13 @@
         <a href="about.html">About Us</a><br><a href="contact.html">Contact Us</a><br>
       </div>
       <div><h4>Courses</h4><a href="dped.html">D.P.Ed.</a><a href="bped.html">B.P.Ed.</a><a href="mped-admission-2026.html">M.P.Ed.</a><a href="phd.html">Ph.D. in PE</a></div>
-      <div><h4>Contact</h4><a href="tel:+919828320688">📞 +91 98283 20688</a><a href="mailto:info@physicaleducationcareer.in">✉ info@physicaleducationcareer.in</a><a href="https://wa.me/919828320688" target="_blank" rel="noopener">💬 WhatsApp Chat</a></div>
+      <div><h4>Contact</h4><a href="tel:+919828320688">ðŸ“ž +91 98283 20688</a><a href="mailto:info@physicaleducationcareer.in">âœ‰ info@physicaleducationcareer.in</a><a href="https://wa.me/919828320688" target="_blank" rel="noopener">ðŸ’¬ WhatsApp Chat</a></div>
     </div>
-    <div class="foot-bottom">© <span id="yr"></span> Physical Education Career · Founded by Jai Thakur (NIS | M.P.Ed.)</div>
+    <div class="foot-bottom">Â© <span id="yr"></span> Physical Education Career Â· Founded by Jai Thakur (NIS | M.P.Ed.)</div>
   </div>
 </footer>
 
-<a class="wa-float" href="https://wa.me/919828320688?text=Hi%2C%20I%20need%20admission%20guidance" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<a class="wa-float" href="https://wa.me/919828320688?text=Hi%2C%20I%20need%20admission%20guidance" target="_blank" rel="noopener" aria-label="WhatsApp">ðŸ’¬</a>
 <script>document.getElementById('yr').textContent=new Date().getFullYear()</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -122,10 +122,10 @@ function contentCard(it){
   var thumb = it.thumbnail || it.featuredImage;
   var img = thumb ? '<img src="'+esc(thumb)+'" alt="'+esc(it.title)+'" loading="lazy"/>' : icon;
   return '<a class="content-card" href="portal-content.html?slug='+encodeURIComponent(it.slug||it.id)+'">'+
-    '<div class="c-thumb">'+ (it.featured?'<span class="c-featured">★ Featured</span>':'') +
+    '<div class="c-thumb">'+ (it.featured?'<span class="c-featured">â˜… Featured</span>':'') +
       '<span class="c-type">'+esc(PORTAL_CATALOG.getContentTypeLabel(it.type))+'</span>'+img+'</div>'+
     '<div class="c-body"><div class="c-title">'+esc(it.title)+'</div>'+
-    '<div class="c-desc">'+(esc(it.shortDescription)||'Read the full details…')+'</div>'+
+    '<div class="c-desc">'+(esc(it.shortDescription)||'Read the full detailsâ€¦')+'</div>'+
     '<div class="c-meta"><span class="c-tag">'+esc(PORTAL_CATALOG.getTopicName(it.category,it.topic))+'</span>'+
     (it.publishDate?'<span>'+esc(it.publishDate)+'</span>':'')+'</div></div></a>';
 }
@@ -137,7 +137,7 @@ function contentCard(it){
   function showNotFound(){
     document.getElementById('topicName').textContent='Topic not found';
     document.getElementById('topicDesc').textContent='The requested topic does not exist.';
-    document.getElementById('contentList').innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ico">🚫</span> Topic not found. <a href="student-portal.html">Back to portal</a></div>';
+    document.getElementById('contentList').innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ico">ðŸš«</span> Topic not found. <a href="student-portal.html">Back to portal</a></div>';
   }
 
   if(!cat){ showNotFound(); return; }
@@ -161,7 +161,7 @@ function contentCard(it){
   renderTopicPage(cat, topic, catId, topicId);
 
   function renderTopicPage(cat, topic, catId, topicId){
-    document.title = topic.name + ' — ' + cat.name + ' | Physical Education Career';
+    document.title = topic.name + ' â€” ' + cat.name + ' | Physical Education Career';
     document.querySelector('link[rel="canonical"]').setAttribute('href', PORTAL_CATALOG.topicUrl(catId, topicId));
     document.getElementById('catIcon').textContent = cat.icon;
     document.getElementById('topicName').textContent = topic.name;
@@ -170,16 +170,16 @@ function contentCard(it){
     document.getElementById('listSub').textContent = 'Published items in ' + topic.name + '.';
     document.getElementById('backCat').setAttribute('href','portal-category.html?cat='+encodeURIComponent(catId));
     document.getElementById('crumbs').innerHTML =
-      '<a href="index.html">Home</a><span class="sep">›</span>'+
-      '<a href="student-portal.html">Student Portal</a><span class="sep">›</span>'+
-      '<a href="portal-category.html?cat='+encodeURIComponent(catId)+'">'+esc(cat.name)+'</a><span class="sep">›</span>'+
+      '<a href="index.html">Home</a><span class="sep">â€º</span>'+
+      '<a href="student-portal.html">Student Portal</a><span class="sep">â€º</span>'+
+      '<a href="portal-category.html?cat='+encodeURIComponent(catId)+'">'+esc(cat.name)+'</a><span class="sep">â€º</span>'+
       '<span class="cur">'+esc(topic.name)+'</span>';
 
     var list = document.getElementById('contentList');
     if(!window.PortalData){ list.innerHTML='<div class="empty-state" style="grid-column:1/-1">Content service unavailable.</div>'; return; }
     PortalData.listByTopic(catId, topicId).then(function(items){
       if(!items.length){
-        list.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ico">📭</span> No published content yet in this topic.<br>Check back soon or <a href="portal-search.html">search the portal</a>.</div>';
+        list.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ico">ðŸ“­</span> No published content yet in this topic.<br>Check back soon or <a href="portal-search.html">search the portal</a>.</div>';
         return;
       }
       list.innerHTML = items.map(contentCard).join('');
@@ -189,5 +189,8 @@ function contentCard(it){
   }
 })();
 </script>
+
+<script src="/js/site-ads.js"></script>
 </body>
 </html>
+

@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Search Student Portal — Jobs, Results, Admit Cards, Articles | Physical Education Career</title>
+<title>Search Student Portal â€” Jobs, Results, Admit Cards, Articles | Physical Education Career</title>
 <meta name="description" content="Search the Student Information Portal for government jobs, results, admit cards, articles, admissions, scholarships, study material and tests.">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://physicaleducationcareer.in/portal-search.html">
@@ -19,8 +19,8 @@
 </head>
 <body>
 <div class="topbar"><div class="container">
-<span>Admissions Open 2026-27 · NCTE Approved Universities</span>
-<div><a href="tel:+919828320688">📞 +91 98283 20688</a><a href="https://wa.me/919828320688" target="_blank">💬 WhatsApp</a></div>
+<span>Admissions Open 2026-27 Â· NCTE Approved Universities</span>
+<div><a href="tel:+919828320688">ðŸ“ž +91 98283 20688</a><a href="https://wa.me/919828320688" target="_blank">ðŸ’¬ WhatsApp</a></div>
 </div></div>
 
 <header><div class="container nav">
@@ -46,7 +46,7 @@
   <a href="https://wa.me/919828320688" target="_blank" rel="noopener" class="btn btn-whatsapp">WhatsApp</a>
   <a href="#contact" class="btn btn-primary">Apply Now</a>
 </div>
-<button class="menu-toggle" aria-label="Menu">☰</button>
+<button class="menu-toggle" aria-label="Menu">â˜°</button>
 </div>
 <nav class="mobile-nav">
   <a href="index.html">Home</a>
@@ -65,12 +65,12 @@
 </header>
 
 <nav class="portal-crumbs container" aria-label="Breadcrumb">
-  <a href="index.html">Home</a><span class="sep">›</span><a href="student-portal.html">Student Portal</a><span class="sep">›</span><span class="cur">Search</span>
+  <a href="index.html">Home</a><span class="sep">â€º</span><a href="student-portal.html">Student Portal</a><span class="sep">â€º</span><span class="cur">Search</span>
 </nav>
 
 <section class="portal-hero">
   <div class="container">
-    <span class="eyebrow">🔎 Search</span>
+    <span class="eyebrow">ðŸ”Ž Search</span>
     <h1>Search the Student Portal</h1>
     <p>Find government jobs, results, admit cards, articles, admissions, scholarships, study material, previous papers and tests.</p>
   </div>
@@ -81,7 +81,7 @@
     <div class="pf-toolbar">
       <div class="field">
         <label>Keyword</label>
-        <input id="fQ" type="search" placeholder="Search jobs, results, articles…"/>
+        <input id="fQ" type="search" placeholder="Search jobs, results, articlesâ€¦"/>
       </div>
       <div class="field">
         <label>Category</label>
@@ -101,7 +101,7 @@
 
     <div class="result-count" id="resultCount"></div>
     <div class="content-list" id="searchResults">
-      <div class="empty-state" style="grid-column:1/-1"><span class="ico">⏳</span> Loading…</div>
+      <div class="empty-state" style="grid-column:1/-1"><span class="ico">â³</span> Loadingâ€¦</div>
     </div>
   </div>
 </section>
@@ -119,13 +119,13 @@
         <a href="about.html">About Us</a><br><a href="contact.html">Contact Us</a><br>
       </div>
       <div><h4>Courses</h4><a href="dped.html">D.P.Ed.</a><a href="bped.html">B.P.Ed.</a><a href="mped-admission-2026.html">M.P.Ed.</a><a href="phd.html">Ph.D. in PE</a></div>
-      <div><h4>Contact</h4><a href="tel:+919828320688">📞 +91 98283 20688</a><a href="mailto:info@physicaleducationcareer.in">✉ info@physicaleducationcareer.in</a><a href="https://wa.me/919828320688" target="_blank" rel="noopener">💬 WhatsApp Chat</a></div>
+      <div><h4>Contact</h4><a href="tel:+919828320688">ðŸ“ž +91 98283 20688</a><a href="mailto:info@physicaleducationcareer.in">âœ‰ info@physicaleducationcareer.in</a><a href="https://wa.me/919828320688" target="_blank" rel="noopener">ðŸ’¬ WhatsApp Chat</a></div>
     </div>
-    <div class="foot-bottom">© <span id="yr"></span> Physical Education Career · Founded by Jai Thakur (NIS | M.P.Ed.)</div>
+    <div class="foot-bottom">Â© <span id="yr"></span> Physical Education Career Â· Founded by Jai Thakur (NIS | M.P.Ed.)</div>
   </div>
 </footer>
 
-<a class="wa-float" href="https://wa.me/919828320688?text=Hi%2C%20I%20need%20admission%20guidance" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<a class="wa-float" href="https://wa.me/919828320688?text=Hi%2C%20I%20need%20admission%20guidance" target="_blank" rel="noopener" aria-label="WhatsApp">ðŸ’¬</a>
 <script>document.getElementById('yr').textContent=new Date().getFullYear()</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -141,10 +141,10 @@ function contentCard(it){
   var thumb = it.thumbnail || it.featuredImage;
   var img = thumb ? '<img src="'+esc(thumb)+'" alt="'+esc(it.title)+'" loading="lazy"/>' : icon;
   return '<a class="content-card" href="portal-content.html?slug='+encodeURIComponent(it.slug||it.id)+'">'+
-    '<div class="c-thumb">'+ (it.featured?'<span class="c-featured">★ Featured</span>':'') +
+    '<div class="c-thumb">'+ (it.featured?'<span class="c-featured">â˜… Featured</span>':'') +
       '<span class="c-type">'+esc(PORTAL_CATALOG.getContentTypeLabel(it.type))+'</span>'+img+'</div>'+
     '<div class="c-body"><div class="c-title">'+esc(it.title)+'</div>'+
-    '<div class="c-desc">'+(esc(it.shortDescription)||'Read the full details…')+'</div>'+
+    '<div class="c-desc">'+(esc(it.shortDescription)||'Read the full detailsâ€¦')+'</div>'+
     '<div class="c-meta"><span class="c-tag">'+esc(PORTAL_CATALOG.getTopicName(it.category,it.topic))+'</span>'+
     (it.publishDate?'<span>'+esc(it.publishDate)+'</span>':'')+'</div></div></a>';
 }
@@ -191,7 +191,7 @@ function run(){
   PortalData.search({ q:q, category:cat, topic:topic, type:type }).then(function(items){
     countEl.textContent = items.length + ' result' + (items.length===1?'':'s') + ' found.';
     if(!items.length){
-      box.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ico">🔍</span> No matching content. Try different keywords or filters.</div>';
+      box.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span class="ico">ðŸ”</span> No matching content. Try different keywords or filters.</div>';
       return;
     }
     box.innerHTML = items.map(contentCard).join('');
@@ -219,5 +219,8 @@ function run(){
   run();
 })();
 </script>
+
+<script src="/js/site-ads.js"></script>
 </body>
 </html>
+
