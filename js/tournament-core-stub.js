@@ -29,11 +29,12 @@
         batch: function () { return { set: noop, commit: noop }; }
       };
     },
-    auth: function () {
+     auth: function () {
       return {
         onAuthStateChanged: function (cb) { if (cb) cb(null); return function () {}; },
         signInWithPopup: noop,
-        signInWithPhoneNumber: noop,
+        signInWithEmailAndPassword: noop,
+        createUserWithEmailAndPassword: noop,
         signOut: noop,
         currentUser: null
       };

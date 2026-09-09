@@ -167,24 +167,25 @@
     return base + 'tournament-verify.html?type=' + encodeURIComponent(type) + '&id=' + encodeURIComponent(id);
   }
 
-  /* --------------------------------------------------------------- auth */
+   /* --------------------------------------------------------------- auth */
   function friendlyAuthError(err) {
     var code = err && err.code ? err.code : '';
     var map = {
-      'auth/unauthorized-domain': 'This domain is not authorized in Firebase. Add “' + location.hostname + '” under Firebase Console → Authentication → Settings → Authorized domains.',
+      'auth/invalid-email': 'Invalid email address.',
+      'auth/invalid-credential': 'Invalid email or password.',
+      'auth/user-not-found': 'Invalid email or password.',
+      'auth/wrong-password': 'Invalid email or password.',
+      'auth/user-disabled': 'This account has been disabled.',
+      'auth/email-already-in-use': 'This email is already registered. Try signing in.',
+      'auth/weak-password': 'Password must be at least 6 characters.',
       'auth/operation-not-allowed': 'This sign-in method is not enabled in Firebase Console → Authentication → Sign-in method.',
+      'auth/unauthorized-domain': 'This domain is not authorized in Firebase. Add "' + location.hostname + '" under Firebase Console → Authentication → Settings → Authorized domains.',
+      'auth/too-many-requests': 'Too many attempts. Please wait and try again.',
       'auth/popup-blocked': 'Sign-in popup was blocked by the browser.',
       'auth/popup-closed-by-user': 'Sign-in popup was closed before completing.',
       'auth/cancelled-popup-request': 'Sign-in popup was cancelled.',
       'auth/operation-not-supported-in-this-environment': 'Popup sign-in is not supported here; redirect sign-in will be used.',
-      'auth/invalid-app-credential': 'App credential / reCAPTCHA failed. For Phone OTP, enable Phone sign-in and authorize this domain in Firebase Console.',
-      'auth/invalid-phone-number': 'Invalid phone number. Use E.164 format, e.g. +919876543210.',
-      'auth/missing-phone-number': 'Enter a phone number in E.164 format (+country code…).',
-      'auth/too-many-requests': 'Too many attempts. Please wait and try again.',
-      'auth/captcha-check-failed': 'reCAPTCHA verification failed. Refresh and try again.',
-      'auth/invalid-verification-code': 'Invalid OTP code. Check the SMS and try again.',
-      'auth/code-expired': 'OTP expired. Request a new code.',
-      'auth/account-exists-with-different-credential': 'An account already exists with a different sign-in method for this email/phone.'
+      'auth/account-exists-with-different-credential': 'An account already exists with a different sign-in method for this email.'
     };
     return map[code] || (err && err.message ? err.message : 'Authentication failed');
   }
@@ -216,35 +217,45 @@
     });
   }
 
-  function startPhoneLogin(phoneE164, containerOrBtnId) {
-    var el = (typeof containerOrBtnId === 'string')
-      ? document.getElementById(containerOrBtnId)
-      : containerOrBtnId;
-    if (!el) return Promise.reject(new Error('reCAPTCHA container not found'));
-    if (root.__tRecaptcha) {
-      try { root.__tRecaptcha.clear(); } catch (e) { /* ignore */ }
-      root.__tRecaptcha = null;
-    }
-    root.__tRecaptcha = new firebase.auth.RecaptchaVerifier(el, {
-      size: 'normal',
-      callback: function () { /* solved */ },
-      'expired-callback': function () { toast('reCAPTCHA expired — try again', 'warn'); }
-    });
-    return root.__tRecaptcha.render().then(function () {
-      return auth.signInWithPhoneNumber(phoneE164, root.__tRecaptcha);
-    }).then(function (confirm) {
-      root.__tPhoneConfirm = confirm;
-      return confirm;
-    }).catch(function (err) {
-      return Promise.reject(new Error(friendlyAuthError(err)));
-    });
+  function emailLogin(email, password) {
+    var em = String(email || '').trim().toLowerCase();
+    var pw = String(password || '');
+    if (!em || !pw) return Promise.reject(new Error('Email and password are required.'));
+    return auth.signInWithEmailAndPassword(em, pw)
+      .then(function (cred) { return cred.user; })
+      .catch(function (err) { return Promise.reject(new Error(friendlyAuthError(err))); });
   }
-  function confirmPhoneLogin(code) {
-    if (!root.__tPhoneConfirm) return Promise.reject(new Error('No phone confirmation pending — send OTP first'));
-    return root.__tPhoneConfirm.confirm(code).catch(function (err) {
-      return Promise.reject(new Error(friendlyAuthError(err)));
-    });
+
+  function emailSignUp(email, password, profile) {
+    var em = String(email || '').trim().toLowerCase();
+    var pw = String(password || '');
+    if (!em || !pw) return Promise.reject(new Error('Email and password are required.'));
+    if (pw.length < 6) return Promise.reject(new Error('Password must be at least 6 characters.'));
+    return auth.createUserWithEmailAndPassword(em, pw)
+      .then(function (cred) {
+        var u = cred.user;
+        var coachData = {
+          uid: u.uid,
+          email: u.email || em,
+          name: (profile && profile.name) || (profile && profile.fullName) || '',
+          academy: (profile && profile.academy) || '',
+          district: (profile && profile.district) || '',
+          state: (profile && profile.state) || 'Rajasthan',
+          address: (profile && profile.address) || '',
+          experience: Number((profile && profile.experience) || 0),
+          phone: (profile && profile.phone) || '',
+          photo: (profile && profile.photo) || '',
+          status: 'pending',
+          coachId: coachIdFromUid(u.uid)
+        };
+        coachData.createdAt = Date.now();
+        coachData.updatedAt = Date.now();
+        return db.collection(C.coaches).doc(u.uid).set(coachData, { merge: true })
+          .then(function () { return { user: u, coach: coachData }; });
+      })
+      .catch(function (err) { return Promise.reject(new Error(friendlyAuthError(err))); });
   }
+
   function logout() { return auth.signOut(); }
   function onAuth(cb) { return auth.onAuthStateChanged(cb); }
   function currentUser() { return auth.currentUser; }
@@ -1205,7 +1216,7 @@
     buildPlayerCategories: buildPlayerCategories,
     uploadImage: uploadImage, qrUrl: qrUrl, verifyUrl: verifyUrl,
     friendlyAuthError: friendlyAuthError, initAuthRedirect: initAuthRedirect,
-    googleLogin: googleLogin, startPhoneLogin: startPhoneLogin, confirmPhoneLogin: confirmPhoneLogin,
+    googleLogin: googleLogin, emailLogin: emailLogin, emailSignUp: emailSignUp,
     logout: logout, onAuth: onAuth, currentUser: currentUser, isAdmin: isAdmin,
     listTournaments: listTournaments, getTournament: getTournament, saveTournament: saveTournament,
     deleteTournament: deleteTournament, watchTournaments: watchTournaments,

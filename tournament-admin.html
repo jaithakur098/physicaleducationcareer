@@ -21,19 +21,30 @@
   <script src="js/tournament-fixture.js"></script>
   <script src="js/tournament-printables.js"></script>
   <script>
-  /* ADMIN GUARD — same rule as admin.html (admins/{uid} must exist) */
+  /* ADMIN GUARD — admins/{uid} must exist in Firestore.
+     Hides all protected content and shows a loading screen
+     until authentication + authorization are confirmed. */
   (function () {
-    var s = document.createElement('style'); s.id = '__tGuard';
-    s.textContent = 'html,body{visibility:hidden !important}';
-    document.documentElement.appendChild(s);
+    var guardStyle = document.createElement('style'); guardStyle.id = '__tGuard';
+    guardStyle.textContent =
+      '#tAdminContent{visibility:hidden !important}' +
+      '#tAdminLoading{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#050b1f 0%,#0a1633 45%,#0f2148 100%);color:#e9eefb;font-family:Inter,system-ui,sans-serif}';
+    document.documentElement.appendChild(guardStyle);
+
     function reject() {
       location.replace('admin-login.html?next=' + encodeURIComponent('tournament-admin.html'));
     }
     try {
+      var done = false;
+      var timeout = setTimeout(function () { if (!done) reject(); }, 20000);
       firebase.auth().onAuthStateChanged(function (u) {
         if (!u) return reject();
         firebase.firestore().collection('admins').doc(u.uid).get().then(function (d) {
+          if (done) return;
+          done = true;
+          clearTimeout(timeout);
           if (!d.exists) { firebase.auth().signOut(); return reject(); }
+          var ld = document.getElementById('tAdminLoading'); if (ld) ld.style.display = 'none';
           var st = document.getElementById('__tGuard'); if (st) st.remove();
           window.__ADMIN_USER__ = u;
           if (window.__tBoot) window.__tBoot(u);
@@ -45,6 +56,11 @@
 </head>
 <body class="t-page">
 
+<div id="tAdminLoading">
+  <div class="t-loader">Checking authentication…</div>
+</div>
+
+<div id="tAdminContent">
 <header class="t-top t-no-print">
   <div class="t-wrap-wide t-top-in">
     <a href="tournament-admin.html" class="t-brand">
@@ -494,6 +510,7 @@
 </div>
 
 <footer class="t-foot t-wrap-wide t-no-print">6th Alwar Cup Taekwondo Championship · Admin Panel</footer>
+</div>
 
 <script>
 (function () {

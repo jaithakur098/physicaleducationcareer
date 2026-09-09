@@ -1,0 +1,123 @@
+============================================================================
+  6th ALWAR CUP TAEKWONDO — Firestore Security Rules (ADDITIVE / MERGE)
+  ============================================================================
+  IMPORTANT: This is NOT a complete firestore.rules file. The live
+  "pe-exam-hub" project already has rules for its existing collections
+  (questions, live_tests, students, classes, admins, portal_content, etc.).
+  Deploying this snippet alone would REMOVE those rules and break the site.
+
+  >>> HOW TO APPLY <<<
+  1. Open your EXISTING firestore.rules (the one currently deployed).
+  2. Inside the top-level `match /databases/{db}/documents { ... }` block,
+     paste the `match` blocks below.
+  3. Deploy:  firebase deploy --only firestore:rules
+
+  What this does:
+  - /tournaments      : Public can READ (for public portal). Admin-only writes.
+  - /coaches          : Coach can read/write OWN doc by uid. Admin read/write all.
+  - /players          : 
+      * Public can READ only approved players when
+        tournaments/{tournamentId}.publicPlayerList == true.
+      * Coach can read/write players where coachUid == their uid.
+      * Admin can read/write all.
+      Public is NEVER granted blanket read access to /players.
+  - /categories       : Public can READ (needed for public category display).
+                        Admin-only writes.
+  - /draws            : Public can READ published draws. Admin-only writes.
+  - /t_matches        : Public can READ published match data. Admin-only writes.
+  - /results          : Public can READ published results. Admin-only writes.
+  - /referees         : Public can READ published ref/VIP data.
+                        Admin-only writes.
+  - /medalTable       : Public can READ. Admin-only writes.
+  - /t_certificates   : Public can READ for verification by certNo/id.
+                        Admin-only writes.
+  - /tournament_settings: Public can READ (category rules, etc.).
+                          Admin-only writes.
+
+  Admin detection reuses the existing /admins/{uid} document pattern
+  used by admin.html, admin-login.html, and firestore-rules-portal-additions.txt.
+============================================================================
+
+    /* ---- helper: is the signed-in user an admin? ---- */
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(db)/documents/admins/$(request.auth.uid));
+    }
+
+    /* ---- helper: is the signed-in user a coach? ---- */
+    function isCoach() {
+      return request.auth != null
+        && exists(/databases/$(db)/documents/coaches/$(request.auth.uid));
+    }
+
+    match /tournaments/{tournamentId} {
+      allow read: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    match /coaches/{coachId} {
+      allow read: if isAdmin()
+        || (request.auth != null && coachId == request.auth.uid);
+      allow create, update: if isAdmin()
+        || (request.auth != null && coachId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /players/{playerId} {
+      /* Public: read ONLY approved players from a tournament whose
+         publicPlayerList flag is ON.  Never blanket-read. */
+      allow read: if isAdmin()
+        || (request.auth != null && (
+              resource.data.coachUid == request.auth.uid
+              || isCoach()
+            ))
+        || (resource.data.status == 'approved'
+            && resource.data.tournamentId != null
+            && get(/databases/$(db)/documents/tournaments/$(resource.data.tournamentId)).data.publicPlayerList == true);
+
+      /* Writes: admin or the coach who owns the player */
+      allow create: if isAdmin() || isCoach();
+      allow update, delete: if isAdmin()
+        || (request.auth != null && resource.data.coachUid == request.auth.uid);
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /draws/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /t_matches/{matchId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /results/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /referees/{refereeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /medalTable/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /t_certificates/{certId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /tournament_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
