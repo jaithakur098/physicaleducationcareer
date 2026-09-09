@@ -239,7 +239,9 @@
                   <th>Weight</th>
                   <th>Kyorugi</th>
                   <th>Poomsae</th>
-                  <th>Category</th>
+                  <th>Excel Cat.</th>
+                  <th>Age Cat.</th>
+                  <th>Resolved Cat.</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -1325,6 +1327,46 @@
     function categoryLabel(name, gender, weight) { return T.categoryLabel(name, gender, weight); }
     function categoryId(tid, ageKey, gender, weight) { return T.categoryId(tid, ageKey, gender, weight); }
 
+    // Normalize Excel category names to standard tournament categories
+    function normalizeExcelCategory(raw) {
+      if (!raw) return '';
+      var s = String(raw).trim().toLowerCase();
+      // Pee Wee variants
+      if (s === 'pee wee' || s === 'pee-wee' || s === 'peewee' || s === 'peewe' || s === 'below 6' || s === 'under 6' || s === 'u6') return 'Pee Wee';
+      // Sub Junior variants
+      if (s === 'sub junior' || s === 'sub-junior' || s === 'subjunior' || s === 'sub jr' || s === 'sub-jr' || s === '6-11' || s === '6 to 11' || s === '6–11') return 'Sub Junior';
+      // Cadet variants
+      if (s === 'cadet' || s === '12-14' || s === '12 to 14' || s === '12–14') return 'Cadet';
+      // Junior variants
+      if (s === 'junior' || s === 'jr' || s === '15-17' || s === '15 to 17' || s === '15–17') return 'Junior';
+      // Senior variants
+      if (s === 'senior' || s === 'sr' || s === '18+' || s === '18 plus' || s === 'above 18' || s === '18 and above') return 'Senior';
+      // Return as-is if no match (will be validated)
+      return raw.trim();
+    }
+
+    // Map standard category name to ageKey
+    function categoryToAgeKey(catName) {
+      var map = {
+        'Pee Wee': 'peewee',
+        'Sub Junior': 'subjunior',
+        'Cadet': 'cadet',
+        'Junior': 'junior',
+        'Senior': 'senior'
+      };
+      return map[catName] || '';
+    }
+
+    // Get expected category from age
+    function expectedCategoryFromAge(age) {
+      if (age == null) return '';
+      if (age < 6) return 'Pee Wee';
+      if (age >= 6 && age <= 11) return 'Sub Junior';
+      if (age >= 12 && age <= 14) return 'Cadet';
+      if (age >= 15 && age <= 17) return 'Junior';
+      return 'Senior';
+    }
+
     function show(el) { el.classList.remove('t-hide'); }
     function hide(el) { el.classList.add('t-hide'); }
     function esc(s) { return T.esc(s); }
@@ -1485,8 +1527,14 @@
       var points = row.Points || row.points;
       var photo = normStr(row.Photo || row.photo);
 
+      // Read Excel age category
+      var excelCategoryRaw = normStr(row.Categories || row.categories || row.Category || row.category || row['Age Category'] || row['age category'] || row['AgeGroup'] || row.ageGroup || '');
+
       var errors = [];
       var warnings = [];
+
+      // Normalize Excel category
+      var excelCategory = normalizeExcelCategory(excelCategoryRaw);
 
       // Required fields
       if (!name) errors.push('Missing Name');
@@ -1511,56 +1559,62 @@
         if (isNaN(weightNum) || weightNum <= 0) { errors.push('Invalid Weight'); weightNum = null; }
       }
 
+      // Determine age category: Excel category is PRIMARY, age calculation is FALLBACK
+      var finalAgeCategory = excelCategory || expectedCategoryFromAge(ageNum);
+      var ageKey = categoryToAgeKey(finalAgeCategory);
+
+      // Validate Excel category against age (if Excel provided one)
+      if (excelCategory && ageNum !== null) {
+        var expectedCat = expectedCategoryFromAge(ageNum);
+        if (excelCategory !== expectedCat) {
+          warnings.push('CATEGORY / AGE MISMATCH: Excel Category = ' + excelCategory + ', Age = ' + ageNum + ', Expected = ' + expectedCat);
+        }
+      }
+
       // Category matching against ACTUAL tournament categories (single source of truth)
       var cat = null;
       var catLabel = '';
-      var ageKey = '';
       var weightCat = '';
       var matchedCategory = null;
 
-      if (!errors.length && ageNum !== null && weightNum !== null && I.tournamentCategories && I.tournamentCategories.length) {
-        var ac = ageCategory(dob || (ageNum ? new Date(new Date().getFullYear() - ageNum, 0, 1) : null));
-        if (ac) {
-          ageKey = ac.key;
+      if (!errors.length && ageNum !== null && weightNum !== null && I.tournamentCategories && I.tournamentCategories.length && ageKey) {
+        // Find matching tournament category by ageKey + gender + weight range
+        // Tournament category weight field is like "-35" or "+65"
+        matchedCategory = I.tournamentCategories.find(function (c) {
+          if (c.ageKey !== ageKey) return false;
+          if (c.gender !== gender) return false;
           
-          // Find matching tournament category by ageKey + gender + weight range
-          // Tournament category weight field is like "-35" or "+65"
-          matchedCategory = I.tournamentCategories.find(function (c) {
-            if (c.ageKey !== ageKey) return false;
-            if (c.gender !== gender) return false;
-            
-            // Parse weight range from category
-            var catWeight = c.weight || '';
-            if (!catWeight) return false;
-            
-            var w = weightNum;
-            var lbl = String(catWeight).trim();
-            
-            if (lbl.charAt(0) === '+') {
-              // Open weight class: weight must be > threshold
-              var threshold = parseFloat(lbl.slice(1));
-              return w > threshold;
-            } else {
-              // Upper bound: weight must be <= cap
-              var cap = parseFloat(lbl.replace('-', ''));
-              return w <= cap;
-            }
-          });
+          // Parse weight range from category
+          var catWeight = c.weight || '';
+          if (!catWeight) return false;
           
-          if (matchedCategory) {
-            cat = { 
-              ageKey: matchedCategory.ageKey, 
-              gender: matchedCategory.gender, 
-              weight: matchedCategory.weight 
-            };
-            catLabel = matchedCategory.label;
-            weightCat = matchedCategory.weight;
+          var w = weightNum;
+          var lbl = String(catWeight).trim();
+          
+          if (lbl.charAt(0) === '+') {
+            // Open weight class: weight must be > threshold
+            var threshold = parseFloat(lbl.slice(1));
+            return w > threshold;
           } else {
-            errors.push('No matching tournament category found for age ' + ageNum + ' (' + ac.name + '), gender ' + (gender === 'male' ? 'Boys' : 'Girls') + ', weight ' + weightNum + 'kg');
+            // Upper bound: weight must be <= cap
+            var cap = parseFloat(lbl.replace('-', ''));
+            return w <= cap;
           }
+        });
+        
+        if (matchedCategory) {
+          cat = { 
+            ageKey: matchedCategory.ageKey, 
+            gender: matchedCategory.gender, 
+            weight: matchedCategory.weight 
+          };
+          catLabel = matchedCategory.label;
+          weightCat = matchedCategory.weight;
         } else {
-          errors.push('No matching age category for age ' + ageNum);
+          errors.push('No matching tournament category found for ' + finalAgeCategory + ' ' + (gender === 'male' ? 'Boys' : 'Girls') + ' weight ' + weightNum + 'kg');
         }
+      } else if (!ageKey) {
+        errors.push('Could not determine age category (Excel: ' + (excelCategory || 'none') + ', Age: ' + (ageNum || 'unknown') + ')');
       }
 
       // Events
@@ -1598,6 +1652,8 @@
         teamPoomsae: teamPoomsae,
         events: events,
         category: catLabel,
+        excelCategory: excelCategory,
+        finalAgeCategory: finalAgeCategory,
         cat: cat,
         matchedCategory: matchedCategory,
         number: number,
@@ -1642,12 +1698,25 @@
       var errs = I.preview.filter(function (p) { return p.status === 'error'; }).length;
       var dups = I.preview.filter(function (p) { return p.status === 'duplicate'; }).length;
 
+      // Category-wise counts (from Excel/final age category)
+      var catCounts = { 'Pee Wee': 0, 'Sub Junior': 0, 'Cadet': 0, 'Junior': 0, 'Senior': 0 };
+      I.preview.forEach(function (p) {
+        var cat = p.finalAgeCategory || p.excelCategory || '—';
+        if (catCounts.hasOwnProperty(cat)) catCounts[cat]++;
+      });
+
+      var catHtml = '';
+      ['Pee Wee', 'Sub Junior', 'Cadet', 'Junior', 'Senior'].forEach(function (c) {
+        catHtml += '<div class="t-stat" style="min-width:110px"><div class="n" style="color:var(--t-gold)">' + catCounts[c] + '</div><div class="l" style="font-size:10px">' + c + '</div></div>';
+      });
+
       summaryBox.innerHTML =
         '<div class="t-stat"><div class="n">' + total + '</div><div class="l">Excel Rows</div></div>' +
         '<div class="t-stat"><div class="n" style="color:var(--t-success)">' + ready + '</div><div class="l">Valid</div></div>' +
         '<div class="t-stat"><div class="n" style="color:var(--t-warn)">' + warns + '</div><div class="l">Warnings</div></div>' +
         '<div class="t-stat"><div class="n" style="color:var(--t-danger)">' + errs + '</div><div class="l">Errors</div></div>' +
-        '<div class="t-stat"><div class="n" style="color:#5aa9ff">' + dups + '</div><div class="l">Duplicates</div></div>';
+        '<div class="t-stat"><div class="n" style="color:#5aa9ff">' + dups + '</div><div class="l">Duplicates</div></div>' +
+        '<div style="grid-column:1/-1;margin-top:8px;border-top:1px solid var(--t-border);padding-top:8px">' + catHtml + '</div>';
     }
 
     function renderTable() {
@@ -1676,6 +1745,9 @@
 
         var kyo = p.events.indexOf('kyorugi') > -1;
         var poo = p.events.indexOf('poomsae') > -1;
+        
+        var excelCatDisplay = p.excelCategory ? '<span class="t-chip" style="background:rgba(212,175,55,.14);color:var(--t-gold);border-color:rgba(212,175,55,.4);font-size:10px">' + esc(p.excelCategory) + '</span>' : '<span class="t-chip" style="opacity:.5;font-size:10px">—</span>';
+        var finalCatDisplay = p.finalAgeCategory ? '<span class="t-chip" style="background:rgba(61,220,151,.14);color:var(--t-success);border-color:rgba(61,220,151,.4);font-size:10px">' + esc(p.finalAgeCategory) + '</span>' : '<span class="t-chip" style="opacity:.5;font-size:10px">—</span>';
 
         return '<tr data-idx="' + I.preview.indexOf(p) + '">' +
           '<td><input type="checkbox" class="imp-ck" value="' + I.preview.indexOf(p) + '" ' + (p.status === 'ready' ? '' : 'disabled') + '></td>' +
@@ -1687,6 +1759,7 @@
           '<td>' + (p.weight !== null ? p.weight + ' kg' : '—') + '</td>' +
           '<td style="text-align:center">' + (kyo ? '<span class="t-chip ok">✓</span>' : '<span class="t-chip" style="opacity:.3">—</span>') + '</td>' +
           '<td style="text-align:center">' + (poo ? '<span class="t-chip ok">✓</span>' : '<span class="t-chip" style="opacity:.3">—</span>') + '</td>' +
+          '<td>' + excelCatDisplay + ' ' + finalCatDisplay + '</td>' +
           '<td>' + esc(p.category || '—') + '</td>' +
           '<td>' + statusBadge(p.status) + detail + '</td>' +
         '</tr>';
