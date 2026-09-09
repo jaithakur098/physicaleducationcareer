@@ -1989,7 +1989,15 @@
         refunded: p.refunded
       };
       
-      return data;
+      return sanitizePlayerData(data);
+    }
+    
+    function sanitizePlayerData(data) {
+      var out = {};
+      Object.keys(data).forEach(function(k) {
+        if (data[k] !== undefined) out[k] = data[k];
+      });
+      return out;
     }
   })();
 })();
