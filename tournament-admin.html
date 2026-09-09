@@ -69,6 +69,7 @@
       <a href="#" data-tab="tournaments"><span class="ico">🏆</span> Tournaments</a>
       <a href="#" data-tab="coaches"><span class="ico">👤</span> Coaches</a>
       <a href="#" data-tab="players"><span class="ico">🥋</span> Players</a>
+      <a href="#" data-tab="import"><span class="ico">📥</span> Import Excel</a>
       <a href="#" data-tab="categories"><span class="ico">📋</span> Categories</a>
       <a href="#" data-tab="fixtures"><span class="ico">🎯</span> Fixtures</a>
       <a href="#" data-tab="results"><span class="ico">🏅</span> Results</a>
@@ -187,6 +188,72 @@
           <button type="button" id="btnCsv" class="t-btn t-btn-ghost t-btn-sm">Export CSV</button>
         </div>
         <div id="playersTable" class="t-table-wrap"><div class="t-empty">Select a tournament.</div></div>
+      </div>
+    </section>
+
+    <!-- IMPORT EXCEL -->
+    <section id="tab-import" class="t-panel">
+      <div class="t-card">
+        <h3>Import Entries from Excel</h3>
+        <p class="t-sub">Upload the 6th Alwar Cup Excel workbook. The <strong>Competitors</strong> sheet will be read to create player entries with automatic category assignment.</p>
+
+        <div class="t-field" style="margin-top:18px">
+          <label>Excel File (.xlsx / .xls)</label>
+          <div class="t-dropzone" id="importDrop">
+            <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" />
+            <div class="t-dz-inner">
+              <span class="t-dz-ico">📄</span>
+              <strong>Drag & drop</strong> or <button type="button" class="t-btn t-btn-ghost t-btn-sm" id="btnPickFile">Choose File</button>
+              <small class="t-dz-hint">Competitors sheet required · Max 10 MB</small>
+            </div>
+            <div id="fileInfo" class="t-dz-info t-hide"></div>
+          </div>
+        </div>
+
+        <div class="t-row t-no-print" style="margin-top:16px" id="importActions" class="t-hide">
+          <button type="button" id="btnImportPreview" class="t-btn t-btn-gold" disabled>Generate Preview</button>
+          <button type="button" id="btnImportCancel" class="t-btn t-btn-ghost">Cancel</button>
+        </div>
+
+        <div id="importPreview" class="t-hide" style="margin-top:20px">
+          <div class="t-import-summary t-grid t-g5" id="importSummary"></div>
+
+          <div class="t-filters t-no-print" style="margin:14px 0">
+            <div class="t-field"><label>Status</label><select class="t-select" id="impFilterStatus"><option value="">All</option><option value="ready">✅ Ready</option><option value="warning">⚠ Warning</option><option value="error">❌ Error</option><option value="duplicate">↻ Duplicate</option></select></div>
+            <div class="t-field"><label>Event</label><select class="t-select" id="impFilterEvent"><option value="">All</option><option value="kyorugi">Kyorugi</option><option value="poomsae">Poomsae</option><option value="pair-poomsae">Pair Poomsae</option><option value="team-poomsae">Team Poomsae</option></select></div>
+            <div class="t-field"><label>Category</label><select class="t-select" id="impFilterCat"></select></div>
+            <div class="t-field"><label>School</label><input class="t-input" id="impFilterSchool" placeholder="Filter school…"></div>
+            <div class="t-field"><label>Gender</label><select class="t-select" id="impFilterGender"><option value="">All</option><option value="male">Male</option><option value="female">Female</option></select></div>
+          </div>
+
+          <div class="t-table-wrap" style="max-height:60vh;overflow:auto">
+            <table class="t-table" id="importTable">
+              <thead>
+                <tr>
+                  <th style="width:40px"><input type="checkbox" id="impCkAll" disabled></th>
+                  <th>#</th>
+                  <th>Player</th>
+                  <th>School</th>
+                  <th>Gender</th>
+                  <th>Age</th>
+                  <th>Weight</th>
+                  <th>Kyorugi</th>
+                  <th>Poomsae</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="t-row t-no-print" style="margin-top:14px">
+            <span id="impSelectionCount" class="t-chip">0 selected</span>
+            <span class="t-spacer"></span>
+            <button type="button" id="btnDownloadErrors" class="t-btn t-btn-ghost t-btn-sm" disabled>Download Error Report</button>
+            <button type="button" id="btnImportExecute" class="t-btn t-btn-gold" disabled>Import Valid Entries</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1243,6 +1310,471 @@
   }
 
   if (window.__ADMIN_USER__) window.__tBoot(window.__ADMIN_USER__);
+
+  /* =========================================================================
+     EXCEL IMPORT MODULE
+     ========================================================================= */
+  (function () {
+    var I = window.TImport = { rows: [], preview: [], schools: [] };
+
+    function normStr(s) { return String(s || '').trim(); }
+    function normGender(g) { return T.normGender(g); }
+    function calcAge(dob, ref) { return T.calcAge(dob, ref); }
+    function ageCategory(dob, ref) { return T.ageCategory(dob, ref); }
+    function weightCategory(w, ageKey, gender) { return T.weightCategory(w, ageKey, gender); }
+    function categoryLabel(name, gender, weight) { return T.categoryLabel(name, gender, weight); }
+    function categoryId(tid, ageKey, gender, weight) { return T.categoryId(tid, ageKey, gender, weight); }
+
+    function show(el) { el.classList.remove('t-hide'); }
+    function hide(el) { el.classList.add('t-hide'); }
+    function esc(s) { return T.esc(s); }
+
+    /* dropzone */
+    var drop = document.getElementById('importDrop');
+    var fileInput = document.getElementById('importFile');
+    var fileInfo = document.getElementById('fileInfo');
+    var btnPick = document.getElementById('btnPickFile');
+    var btnPreview = document.getElementById('btnImportPreview');
+    var btnCancel = document.getElementById('btnImportCancel');
+    var previewBox = document.getElementById('importPreview');
+    var actionsBox = document.getElementById('importActions');
+    var summaryBox = document.getElementById('importSummary');
+    var tableBody = document.querySelector('#importTable tbody');
+    var ckAll = document.getElementById('impCkAll');
+    var selCount = document.getElementById('impSelectionCount');
+    var btnErrors = document.getElementById('btnDownloadErrors');
+    var btnExecute = document.getElementById('btnImportExecute');
+
+    btnPick.onclick = function () { fileInput.click(); };
+    fileInput.onchange = handleFileSelect;
+
+    ['dragenter', 'dragover'].forEach(function (evt) {
+      drop.addEventListener(evt, function (e) { e.preventDefault(); e.stopPropagation(); drop.classList.add('t-dz-active'); });
+    });
+    ['dragleave', 'drop'].forEach(function (evt) {
+      drop.addEventListener(evt, function (e) { e.preventDefault(); e.stopPropagation(); drop.classList.remove('t-dz-active'); });
+    });
+    drop.addEventListener('drop', function (e) {
+      var f = e.dataTransfer.files[0];
+      if (f) { fileInput.files = e.dataTransfer.files; handleFileSelect({ target: fileInput }); }
+    });
+
+    function handleFileSelect(e) {
+      var f = e.target.files[0];
+      if (!f) return;
+      if (!/\.(xlsx|xls)$/i.test(f.name)) { T.toast('Please select an .xlsx or .xls file', 'error'); return; }
+      if (f.size > 10 * 1024 * 1024) { T.toast('File too large (max 10 MB)', 'error'); return; }
+      fileInfo.innerHTML = '<strong>' + esc(f.name) + '</strong> · ' + (f.size / 1024).toFixed(1) + ' KB';
+      show(fileInfo);
+      show(actionsBox);
+      show(btnPreview);
+      btnPreview.disabled = false;
+      btnPreview.textContent = 'Generate Preview';
+      I.file = f;
+    }
+
+    btnCancel.onclick = function () {
+      fileInput.value = '';
+      fileInfo.innerHTML = '';
+      hide(fileInfo);
+      hide(actionsBox);
+      hide(previewBox);
+      I.rows = []; I.preview = [];
+    };
+
+    btnPreview.onclick = generatePreview;
+
+    async function generatePreview() {
+      if (!I.file) return;
+      btnPreview.disabled = true;
+      btnPreview.textContent = 'Reading…';
+      try {
+        var data = await readWorkbook(I.file);
+        I.rows = data.rows;
+        I.schools = data.schools;
+        if (!I.rows.length) { T.toast('No data rows found in Competitors sheet', 'error'); btnPreview.disabled = false; return; }
+
+        // Load existing players for duplicate check
+        var existing = await T.listPlayers({ tournamentId: S.tid });
+        var existingMap = buildExistingMap(existing);
+
+        // Load category rules
+        await T.loadCategoryRules();
+
+        // Process each row
+        I.preview = I.rows.map(function (r, idx) { return processRow(r, idx + 1, existingMap); });
+
+        // Build category filter options
+        var cats = [];
+        I.preview.forEach(function (p) {
+          if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category);
+        });
+        var catSel = document.getElementById('impFilterCat');
+        catSel.innerHTML = '<option value="">All</option>' + cats.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+
+        renderSummary();
+        renderTable();
+        show(previewBox);
+        T.toast('Preview generated: ' + I.preview.length + ' rows', 'success');
+      } catch (err) {
+        console.error(err);
+        T.toast('Failed to read Excel: ' + (err.message || err), 'error');
+      } finally {
+        btnPreview.disabled = false;
+        btnPreview.textContent = 'Generate Preview';
+      }
+    }
+
+    function readWorkbook(file) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            var wb = XLSX.read(e.target.result, { type: 'array' });
+            var sheetName = wb.SheetNames.find(function (n) { return /competitor/i.test(n); }) || wb.SheetNames[0];
+            var ws = wb.Sheets[sheetName];
+            var json = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
+            var schools = new Set();
+            json.forEach(function (r) {
+              var s = normStr(r.School || r.school || r.Academy || r.academy || '');
+              if (s) schools.add(s);
+            });
+            resolve({ rows: json, schools: Array.from(schools) });
+          } catch (err) { reject(err); }
+        };
+        reader.onerror = function () { reject(new Error('File read failed')); };
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    function buildExistingMap(players) {
+      var m = {};
+      players.forEach(function (p) {
+        var key = [normStr(p.name).toLowerCase(), normStr(p.school || p.academy).toLowerCase(), normGender(p.gender), p.age || calcAge(p.dob), p.weight].join('|');
+        if (!m[key]) m[key] = [];
+        m[key].push(p);
+      });
+      return m;
+    }
+
+    function processRow(row, rowNum, existingMap) {
+      var name = normStr(row.Name || row.name);
+      var school = normStr(row.School || row.school || row.Academy || row.academy);
+      var genderRaw = normStr(row.Gender || row.gender);
+      var gender = normGender(genderRaw);
+      var dob = normStr(row.Birthdate || row.birthdate || row.DOB || row.dob || row['Date of Birth'] || row['date of birth']);
+      var age = row.Age || row.age || row['Age (years)'];
+      var weight = row['Weight (kg)'] || row.Weight || row.weight;
+      var kyorugi = normStr(row.Kyorugi || row.kyorugi);
+      var poomsae = normStr(row.Poomsae || row.poomsae);
+      var pairPoomsae = normStr(row['Pair Poomsae'] || row['pair poomsae'] || row.PairPoomsae);
+      var teamPoomsae = normStr(row['Team Poomsae'] || row['team poomsae'] || row.TeamPoomsae);
+      var number = normStr(row.Number || row.number || row['Reg No'] || row['reg no']);
+      var email = normStr(row.Email || row.email);
+      var phone = normStr(row['Phone Number'] || row.phone || row.mobile);
+      var address = normStr(row.Address || row.address);
+      var nationality = normStr(row.Nationality || row.nationality);
+      var owed = row.Owed || row.owed;
+      var paid = row.Paid || row.paid;
+      var refunded = row.Refunded || row.refunded;
+      var txnId = normStr(row['Transaction ID'] || row.transactionId || row.txnId);
+      var regAt = normStr(row['Registered at'] || row.registeredAt || row.createdAt);
+      var weigh1 = row['Weigh-in #1'] || row.weigh1;
+      var weigh2 = row['Weigh-in #2'] || row.weigh2;
+      var points = row.Points || row.points;
+      var photo = normStr(row.Photo || row.photo);
+
+      var errors = [];
+      var warnings = [];
+
+      // Required fields
+      if (!name) errors.push('Missing Name');
+      if (!school) errors.push('Missing School');
+      if (!genderRaw) errors.push('Missing Gender');
+      if (!dob && !age) errors.push('Missing Age or Birthdate');
+      if (!weight && weight !== 0) errors.push('Missing Weight');
+
+      // Age calculation
+      var ageNum = null;
+      var ageCalc = null;
+      if (age && !isNaN(Number(age))) ageNum = Number(age);
+      if (!ageNum && dob) { ageCalc = calcAge(dob); ageNum = ageCalc; }
+      if (age && dob && ageCalc !== null && ageNum !== null && Math.abs(ageNum - ageCalc) > 1) {
+        warnings.push('Age mismatch: Excel ' + ageNum + ' vs Calculated ' + ageCalc);
+      }
+
+      // Weight validation
+      var weightNum = null;
+      if (weight !== null && weight !== undefined && weight !== '') {
+        weightNum = parseFloat(weight);
+        if (isNaN(weightNum) || weightNum <= 0) { errors.push('Invalid Weight'); weightNum = null; }
+      }
+
+      // Category matching
+      var cat = null;
+      var catLabel = '';
+      var ageKey = '';
+      var weightCat = '';
+
+      if (!errors.length && ageNum !== null && weightNum !== null) {
+        var ac = ageCategory(dob || (ageNum ? new Date(new Date().getFullYear() - ageNum, 0, 1) : null));
+        if (ac) {
+          ageKey = ac.key;
+          weightCat = weightCategory(weightNum, ageKey, gender);
+          if (weightCat) {
+            cat = { ageKey: ageKey, gender: gender, weight: weightCat };
+            catLabel = categoryLabel(ac.name, gender, weightCat);
+          } else {
+            errors.push('No matching weight category for ' + weightNum + 'kg in ' + ac.name + ' ' + (gender === 'male' ? 'Boys' : 'Girls'));
+          }
+        } else {
+          errors.push('No matching age category for age ' + ageNum);
+        }
+      }
+
+      // Events
+      var events = [];
+      if (/^[xXYy1]/i.test(kyorugi)) events.push('kyorugi');
+      if (/^[xXYy1]/i.test(poomsae)) events.push('poomsae');
+      if (/^[xXYy1]/i.test(pairPoomsae)) events.push('pair-poomsae');
+      if (/^[xXYy1]/i.test(teamPoomsae)) events.push('team-poomsae');
+
+      // Duplicate check
+      var dupKey = [name.toLowerCase(), school.toLowerCase(), gender, ageNum || '', weightNum || ''].join('|');
+      var existing = existingMap[dupKey] || [];
+      var isDuplicate = existing.length > 0;
+
+      var status = 'ready';
+      if (errors.length) status = 'error';
+      else if (warnings.length) status = 'warning';
+      else if (isDuplicate) status = 'duplicate';
+
+      return {
+        rowNum: rowNum,
+        name: name,
+        school: school,
+        gender: gender,
+        genderRaw: genderRaw,
+        dob: dob,
+        age: ageNum,
+        ageCalc: ageCalc,
+        ageKey: ageKey,
+        weight: weightNum,
+        weightCat: weightCat,
+        kyorugi: kyorugi,
+        poomsae: poomsae,
+        pairPoomsae: pairPoomsae,
+        teamPoomsae: teamPoomsae,
+        events: events,
+        category: catLabel,
+        cat: cat,
+        number: number,
+        email: email,
+        phone: phone,
+        address: address,
+        nationality: nationality,
+        owed: owed,
+        paid: paid,
+        refunded: refunded,
+        txnId: txnId,
+        regAt: regAt,
+        weigh1: weigh1,
+        weigh2: weigh2,
+        points: points,
+        photo: photo,
+        errors: errors,
+        warnings: warnings,
+        isDuplicate: isDuplicate,
+        existing: existing,
+        status: status
+      };
+    }
+
+    function statusBadge(s) {
+      if (s === 'ready') return '<span class="t-chip ok">✅ Ready</span>';
+      if (s === 'warning') return '<span class="t-chip warn">⚠ Warning</span>';
+      if (s === 'error') return '<span class="t-chip bad">❌ Error</span>';
+      if (s === 'duplicate') return '<span class="t-chip" style="background:rgba(90,169,255,.14);color:#5aa9ff;border-color:rgba(90,169,255,.4)">↻ Duplicate</span>';
+      return '<span class="t-chip">—</span>';
+    }
+
+    function eventBadge(ev) {
+      if (!ev) return '<span class="t-chip" style="opacity:.5">—</span>';
+      return '<span class="t-chip ok">✓</span>';
+    }
+
+    function renderSummary() {
+      var total = I.preview.length;
+      var ready = I.preview.filter(function (p) { return p.status === 'ready'; }).length;
+      var warns = I.preview.filter(function (p) { return p.status === 'warning'; }).length;
+      var errs = I.preview.filter(function (p) { return p.status === 'error'; }).length;
+      var dups = I.preview.filter(function (p) { return p.status === 'duplicate'; }).length;
+
+      summaryBox.innerHTML =
+        '<div class="t-stat"><div class="n">' + total + '</div><div class="l">Excel Rows</div></div>' +
+        '<div class="t-stat"><div class="n" style="color:var(--t-success)">' + ready + '</div><div class="l">Valid</div></div>' +
+        '<div class="t-stat"><div class="n" style="color:var(--t-warn)">' + warns + '</div><div class="l">Warnings</div></div>' +
+        '<div class="t-stat"><div class="n" style="color:var(--t-danger)">' + errs + '</div><div class="l">Errors</div></div>' +
+        '<div class="t-stat"><div class="n" style="color:#5aa9ff">' + dups + '</div><div class="l">Duplicates</div></div>';
+    }
+
+    function renderTable() {
+      var fStatus = document.getElementById('impFilterStatus').value;
+      var fEvent = document.getElementById('impFilterEvent').value;
+      var fCat = document.getElementById('impFilterCat').value;
+      var fSchool = document.getElementById('impFilterSchool').value.trim().toLowerCase();
+      var fGender = document.getElementById('impFilterGender').value;
+
+      var filtered = I.preview.filter(function (p) {
+        if (fStatus && p.status !== fStatus) return false;
+        if (fEvent && p.events.indexOf(fEvent) === -1) return false;
+        if (fCat && p.category !== fCat) return false;
+        if (fSchool && p.school.toLowerCase().indexOf(fSchool) === -1) return false;
+        if (fGender && p.gender !== fGender) return false;
+        return true;
+      });
+
+      var html = filtered.map(function (p, idx) {
+        var detail = '';
+        if (p.errors.length) detail += '<div style="color:var(--t-danger);font-size:11px;margin-top:4px">' + p.errors.map(function (e) { return '❌ ' + esc(e); }).join('<br>') + '</div>';
+        if (p.warnings.length) detail += '<div style="color:var(--t-warn);font-size:11px;margin-top:4px">' + p.warnings.map(function (w) { return '⚠ ' + esc(w); }).join('<br>') + '</div>';
+        if (p.isDuplicate) {
+          detail += '<div style="color:#5aa9ff;font-size:11px;margin-top:4px">↻ Matches ' + p.existing.length + ' existing: ' + p.existing.map(function (e) { return esc(e.name) + ' (' + esc(e.regNo || 'no-reg') + ')'; }).join(', ') + '</div>';
+        }
+
+        var kyo = p.events.indexOf('kyorugi') > -1;
+        var poo = p.events.indexOf('poomsae') > -1;
+
+        return '<tr data-idx="' + I.preview.indexOf(p) + '">' +
+          '<td><input type="checkbox" class="imp-ck" value="' + I.preview.indexOf(p) + '" ' + (p.status === 'ready' ? '' : 'disabled') + '></td>' +
+          '<td>' + p.rowNum + '</td>' +
+          '<td><strong>' + esc(p.name) + '</strong><br><small>' + esc(p.school) + '</small></td>' +
+          '<td>' + esc(p.school) + '</td>' +
+          '<td>' + (p.gender === 'male' ? '👦' : '👧') + ' ' + (p.gender === 'male' ? 'Boys' : 'Girls') + '</td>' +
+          '<td>' + (p.age !== null ? p.age + (p.ageCalc !== null && p.age !== p.ageCalc ? ' ⚠' : '') : '—') + '</td>' +
+          '<td>' + (p.weight !== null ? p.weight + ' kg' : '—') + '</td>' +
+          '<td style="text-align:center">' + (kyo ? '<span class="t-chip ok">✓</span>' : '<span class="t-chip" style="opacity:.3">—</span>') + '</td>' +
+          '<td style="text-align:center">' + (poo ? '<span class="t-chip ok">✓</span>' : '<span class="t-chip" style="opacity:.3">—</span>') + '</td>' +
+          '<td>' + esc(p.category || '—') + '</td>' +
+          '<td>' + statusBadge(p.status) + detail + '</td>' +
+        '</tr>';
+      }).join('');
+
+      tableBody.innerHTML = html || '<tr><td colspan="11" class="t-empty">No rows match the filters.</td></tr>';
+      updateSelectionCount();
+
+      // Filter listeners
+      ['impFilterStatus', 'impFilterEvent', 'impFilterCat', 'impFilterSchool', 'impFilterGender'].forEach(function (id) {
+        document.getElementById(id).onchange = renderTable;
+        document.getElementById(id).oninput = renderTable;
+      });
+
+      // Checkbox listeners
+      tableBody.querySelectorAll('.imp-ck').forEach(function (ck) { ck.onchange = updateSelectionCount; });
+      ckAll.onchange = function () { tableBody.querySelectorAll('.imp-ck').forEach(function (c) { c.checked = ckAll.checked; }); updateSelectionCount(); };
+    }
+
+    function updateSelectionCount() {
+      var checked = tableBody.querySelectorAll('.imp-ck:checked').length;
+      var totalReady = tableBody.querySelectorAll('.imp-ck:not(:disabled)').length;
+      selCount.textContent = checked + ' of ' + totalReady + ' selected';
+      btnExecute.disabled = checked === 0;
+      btnErrors.disabled = I.preview.filter(function (p) { return p.status === 'error' || p.status === 'warning'; }).length === 0;
+    }
+
+    // Error report download
+    btnErrors.onclick = function () {
+      var rows = I.preview.filter(function (p) { return p.status === 'error' || p.status === 'warning' || p.status === 'duplicate'; });
+      if (!rows.length) return T.toast('No errors or warnings to export', 'error');
+      var csvRows = rows.map(function (p) {
+        return {
+          Row: p.rowNum,
+          Player: p.name,
+          School: p.school,
+          Gender: p.genderRaw,
+          Age: p.age || '',
+          Weight: p.weight || '',
+          Events: p.events.join(', '),
+          Category: p.category || '',
+          Status: p.status,
+          Problems: (p.errors.concat(p.warnings)).join('; '),
+          Duplicate: p.isDuplicate ? 'Yes (' + p.existing.length + ')' : 'No',
+          SuggestedAction: p.status === 'error' ? 'Fix data in Excel and re-upload' : (p.status === 'duplicate' ? 'Review existing player' : 'Review and confirm')
+        };
+      });
+      T.exportCSV('import-error-report', csvRows);
+    };
+
+    // Import execution
+    btnExecute.onclick = async function () {
+      var checked = tableBody.querySelectorAll('.imp-ck:checked');
+      if (!checked.length) return;
+      var indices = Array.prototype.slice.call(checked).map(function (c) { return parseInt(c.value, 10); });
+      var toImport = indices.map(function (i) { return I.preview[i]; }).filter(function (p) { return p.status === 'ready' || p.status === 'warning'; });
+
+      if (!toImport.length) { T.toast('No valid entries selected', 'error'); return; }
+
+      if (!confirm('Import ' + toImport.length + ' player(s) into tournament "' + (tour().name || S.tid) + '"?')) return;
+
+      btnExecute.disabled = true;
+      btnExecute.textContent = 'Importing…';
+
+      var success = 0, failed = 0;
+      for (var i = 0; i < toImport.length; i++) {
+        var p = toImport[i];
+        try {
+          var playerData = buildPlayerData(p);
+          var pid = await T.savePlayer(playerData, null, tour().date);
+          success++;
+        } catch (err) {
+          console.error(err);
+          failed++;
+        }
+      }
+
+      T.toast('Import complete: ' + success + ' success' + (failed ? ', ' + failed + ' failed' : ''), failed ? 'warn' : 'success');
+      btnExecute.disabled = false;
+      btnExecute.textContent = 'Import Valid Entries';
+      // Refresh player list
+      S.players = await T.listPlayers({ tournamentId: S.tid });
+      renderPlayers();
+      renderDash();
+      fillCategorySelects();
+    };
+
+    function buildPlayerData(p) {
+      var today = tour().date || new Date().toISOString().slice(0, 10);
+      return {
+        tournamentId: S.tid,
+        name: p.name,
+        fatherName: '',
+        dob: p.dob || (p.age ? new Date(new Date().getFullYear() - p.age, 0, 1).toISOString().slice(0, 10) : ''),
+        gender: p.gender,
+        age: p.age,
+        ageCategory: p.ageKey,
+        weight: p.weight,
+        weightCategory: p.weightCat,
+        categoryLabel: p.category,
+        academy: p.school,
+        school: p.school,
+        district: '',
+        state: '',
+        phone: p.phone,
+        email: p.email,
+        photo: p.photo || '',
+        status: 'pending',
+        events: p.events,
+        number: p.number,
+        weighIn1: p.weigh1,
+        weighIn2: p.weigh2,
+        points: p.points,
+        txnId: p.txnId,
+        owed: p.owed,
+        paid: p.paid,
+        refunded: p.refunded
+      };
+    }
+  })();
 })();
 </script>
 </body>

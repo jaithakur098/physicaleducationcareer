@@ -812,11 +812,36 @@ table.t-table tr:hover td { background: rgba(255, 255, 255, .035); }
 .t-toast.out { opacity: 0; transform: translateY(8px); }
 
 /* ---------- misc ---------- */
-.t-loader { padding: 34px; text-align: center; color: var(--t-ink-mute); }
-.t-hide { display: none !important; }
-.t-foot { border-top: 1px solid var(--t-border); margin-top: 40px; padding: 22px 0; text-align: center; color: var(--t-ink-mute); font-size: 12.5px; }
-.t-photo-prev { width: 84px; height: 104px; object-fit: cover; border-radius: 10px; border: 1px solid var(--t-border); background: #152c5e; }
-.t-no-print { }
+  .t-loader { padding: 34px; text-align: center; color: var(--t-ink-mute); }
+  .t-hide { display: none !important; }
+  .t-foot { border-top: 1px solid var(--t-border); margin-top: 40px; padding: 22px 0; text-align: center; color: var(--t-ink-mute); font-size: 12.5px; }
+  .t-photo-prev { width: 84px; height: 104px; object-fit: cover; border-radius: 10px; border: 1px solid var(--t-border); background: #152c5e; }
+  .t-no-print { }
+
+  /* ---------- import dropzone ---------- */
+  .t-dropzone {
+    border: 2px dashed var(--t-border);
+    border-radius: var(--t-radius);
+    background: var(--t-glass);
+    transition: .18s;
+    cursor: pointer;
+  }
+  .t-dropzone.t-dz-active { border-color: var(--t-gold); background: rgba(212, 175, 55, .08); }
+  .t-dz-inner { padding: 28px; text-align: center; }
+  .t-dz-ico { font-size: 36px; display: block; margin-bottom: 8px; }
+  .t-dz-inner strong { display: block; margin-bottom: 4px; font-size: 15px; }
+  .t-dz-hint { font-size: 12px; color: var(--t-ink-mute); }
+  .t-dz-info { padding: 10px 18px; border-top: 1px solid var(--t-border); background: rgba(255,255,255,.02); border-radius: 0 0 var(--t-radius) var(--t-radius); font-size: 13px; }
+
+  /* ---------- import preview ---------- */
+  .t-import-summary .t-stat { text-align: center; }
+  .t-import-summary .t-stat .n { font-size: 28px; font-weight: 700; font-family: 'Playfair Display', serif; }
+  .t-import-summary .t-stat .l { font-size: 11px; color: var(--t-ink-mute); text-transform: uppercase; letter-spacing: .08em; margin-top: 4px; }
+
+  #importTable td { vertical-align: top; }
+  #importTable td:last-child { max-width: 360px; }
+  #importTable .t-chip { margin-bottom: 4px; display: inline-block; }
+  #importTable small { display: block; margin-top: 4px; line-height: 1.4; }
 
 /* ---------- responsive ---------- */
 @media (max-width: 1100px) {
