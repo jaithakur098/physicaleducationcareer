@@ -1398,17 +1398,18 @@
         var existing = await T.listPlayers({ tournamentId: S.tid });
         var existingMap = buildExistingMap(existing);
 
-        // Load category rules
+        // Load tournament categories from Firestore (SINGLE SOURCE OF TRUTH)
+        I.tournamentCategories = await T.listCategories(S.tid);
+        console.log('[Import] Loaded tournament categories:', I.tournamentCategories.length);
+
+        // Load category rules (for age calculation only)
         await T.loadCategoryRules();
 
         // Process each row
         I.preview = I.rows.map(function (r, idx) { return processRow(r, idx + 1, existingMap); });
 
-        // Build category filter options
-        var cats = [];
-        I.preview.forEach(function (p) {
-          if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category);
-        });
+        // Build category filter options from actual tournament categories
+        var cats = I.tournamentCategories.map(function (c) { return c.label; }).filter(function (c) { return c; });
         var catSel = document.getElementById('impFilterCat');
         catSel.innerHTML = '<option value="">All</option>' + cats.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
 
@@ -1510,22 +1511,52 @@
         if (isNaN(weightNum) || weightNum <= 0) { errors.push('Invalid Weight'); weightNum = null; }
       }
 
-      // Category matching
+      // Category matching against ACTUAL tournament categories (single source of truth)
       var cat = null;
       var catLabel = '';
       var ageKey = '';
       var weightCat = '';
+      var matchedCategory = null;
 
-      if (!errors.length && ageNum !== null && weightNum !== null) {
+      if (!errors.length && ageNum !== null && weightNum !== null && I.tournamentCategories && I.tournamentCategories.length) {
         var ac = ageCategory(dob || (ageNum ? new Date(new Date().getFullYear() - ageNum, 0, 1) : null));
         if (ac) {
           ageKey = ac.key;
-          weightCat = weightCategory(weightNum, ageKey, gender);
-          if (weightCat) {
-            cat = { ageKey: ageKey, gender: gender, weight: weightCat };
-            catLabel = categoryLabel(ac.name, gender, weightCat);
+          
+          // Find matching tournament category by ageKey + gender + weight range
+          // Tournament category weight field is like "-35" or "+65"
+          matchedCategory = I.tournamentCategories.find(function (c) {
+            if (c.ageKey !== ageKey) return false;
+            if (c.gender !== gender) return false;
+            
+            // Parse weight range from category
+            var catWeight = c.weight || '';
+            if (!catWeight) return false;
+            
+            var w = weightNum;
+            var lbl = String(catWeight).trim();
+            
+            if (lbl.charAt(0) === '+') {
+              // Open weight class: weight must be > threshold
+              var threshold = parseFloat(lbl.slice(1));
+              return w > threshold;
+            } else {
+              // Upper bound: weight must be <= cap
+              var cap = parseFloat(lbl.replace('-', ''));
+              return w <= cap;
+            }
+          });
+          
+          if (matchedCategory) {
+            cat = { 
+              ageKey: matchedCategory.ageKey, 
+              gender: matchedCategory.gender, 
+              weight: matchedCategory.weight 
+            };
+            catLabel = matchedCategory.label;
+            weightCat = matchedCategory.weight;
           } else {
-            errors.push('No matching weight category for ' + weightNum + 'kg in ' + ac.name + ' ' + (gender === 'male' ? 'Boys' : 'Girls'));
+            errors.push('No matching tournament category found for age ' + ageNum + ' (' + ac.name + '), gender ' + (gender === 'male' ? 'Boys' : 'Girls') + ', weight ' + weightNum + 'kg');
           }
         } else {
           errors.push('No matching age category for age ' + ageNum);
@@ -1568,6 +1599,7 @@
         events: events,
         category: catLabel,
         cat: cat,
+        matchedCategory: matchedCategory,
         number: number,
         email: email,
         phone: phone,
@@ -1744,6 +1776,15 @@
 
     function buildPlayerData(p) {
       var today = tour().date || new Date().toISOString().slice(0, 10);
+      
+      // Use matched tournament category's exact ID if available
+      var categoryId = '';
+      if (p.matchedCategory && p.matchedCategory.id) {
+        categoryId = p.matchedCategory.id;
+      } else if (p.cat) {
+        categoryId = T.categoryId(S.tid, p.cat.ageKey, p.cat.gender, p.cat.weight);
+      }
+      
       return {
         tournamentId: S.tid,
         name: p.name,
@@ -1755,6 +1796,7 @@
         weight: p.weight,
         weightCategory: p.weightCat,
         categoryLabel: p.category,
+        categoryId: categoryId,
         academy: p.school,
         school: p.school,
         district: '',
