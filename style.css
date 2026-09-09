@@ -164,6 +164,21 @@ a.btn,button{min-height:44px}
 }
 
 
+/* ---- Missing classes for top-universities.html ---- */
+.search-box input{width:100%;max-width:400px;padding:12px 20px;border-radius:12px;border:1px solid var(--border);font-size:16px;outline:none}
+.search-box input:focus{border-color:var(--navy)}
+.section-title{font-size:32px;color:var(--navy);margin-bottom:16px;text-align:center}
+.state-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px;margin:20px 0}
+.state-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:28px;transition:.25s;box-shadow:var(--shadow)}
+.state-card:hover{transform:translateY(-4px);box-shadow:0 20px 60px -20px rgba(11,29,58,.35)}
+.state-card h3{color:var(--navy);margin-bottom:8px}
+.state-card p{color:var(--muted);font-size:14px;margin-bottom:16px}
+.state-card a{color:var(--red);font-weight:600;font-size:14px}
+.state-card a:hover{text-decoration:underline}
+
+.pec-ad-bottom{margin:10px auto}
+.pec-ad-bottom iframe{max-width:100%;width:100%;border:0}
+
 /* ---- Accessibility & responsive additions (AdSense audit remediation) ---- */
 a, button, .hero-btn, .nav-link { min-height:44px; }
 nav a, .nav-link, .hero-btn, footer a { display:inline-flex; align-items:center; padding:10px 14px; }

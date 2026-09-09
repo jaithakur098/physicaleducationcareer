@@ -231,9 +231,7 @@
   /* ================================================================
      6. BANNER AD INJECTION (suppressed on denied pages)
       ================================================================ */
-  function loadBannerAdsSequential(topDesktop, topMobile, middle) {
-    /* Sequential loader for atOptions-based banners.
-       Must set window.atOptions before each invoke.js loads. */
+  function loadBannerAdsSequential(topDesktop, topMobile, middle, callback) {
     var ads = [
       { atOptions: BANNER_300.atOptions, src: BANNER_300.src, container: middle },
       { atOptions: BANNER_728.atOptions, src: BANNER_728.src, container: topDesktop },
@@ -242,13 +240,7 @@
 
     function loadNext(idx) {
       if (idx >= ads.length) {
-        /* All banners done — load the additional script
-           RESTRICTED (Student Portal / Exam / Coach Portal): NOT loaded */
-        if (!RESTRICTED) {
-          var extra = document.createElement("script");
-          extra.src = EXTRA_SRC;
-          document.body.appendChild(extra);
-        }
+        if (callback) callback();
         return;
       }
       var ad = ads[idx];
@@ -289,6 +281,18 @@
       insertAtBodyEnd(middleWrapper);
     }
 
+    /* Bottom banner container: 300x250 */
+    var bottomWrapper = createWrapper("pec-ad-bottom");
+    var bottom728 = createWrapper("pec-ad-desktop");
+    var bottom320 = createWrapper("pec-ad-mobile");
+    bottomWrapper.appendChild(bottom728);
+    bottomWrapper.appendChild(bottom320);
+    if (footer) {
+      insertAfter(bottomWrapper, footer);
+    } else {
+      insertAtBodyEnd(bottomWrapper);
+    }
+
     /* Popunder: container + async script (exact attributes)
        RESTRICTED (Student Portal / Exam / Coach Portal): NEVER injected */
     if (!RESTRICTED) {
@@ -305,7 +309,15 @@
     }
 
     /* Banner ads (sequential due to shared atOptions global) */
-    loadBannerAdsSequential(desktop728, mobile320, middleWrapper);
+    loadBannerAdsSequential(desktop728, mobile320, middleWrapper, function () {
+      loadBannerAdsSequential(bottom728, bottom320, bottomWrapper, function () {
+        if (!RESTRICTED) {
+          var extra = document.createElement("script");
+          extra.src = EXTRA_SRC;
+          document.body.appendChild(extra);
+        }
+      });
+    });
   }
 
   /* ================================================================
