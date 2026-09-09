@@ -1897,9 +1897,12 @@
     // Import execution
     btnExecute.onclick = async function () {
       var checked = tableBody.querySelectorAll('.imp-ck:checked');
+      console.log('[Excel Import] checked checkboxes:', checked.length);
       if (!checked.length) return;
       var indices = Array.prototype.slice.call(checked).map(function (c) { return parseInt(c.value, 10); });
+      console.log('[Excel Import] selected indices count:', indices.length);
       var toImport = indices.map(function (i) { return I.preview[i]; }).filter(function (p) { return p.status === 'ready' || p.status === 'warning'; });
+      console.log('[Excel Import] rows to import:', toImport.length);
 
       if (!toImport.length) { T.toast('No valid entries selected', 'error'); return; }
 
@@ -1909,15 +1912,19 @@
       btnExecute.textContent = 'Importing…';
 
       var success = 0, failed = 0;
+      var failedRows = [];
       for (var i = 0; i < toImport.length; i++) {
         btnExecute.textContent = 'Importing ' + (i + 1) + '/' + toImport.length;
         var p = toImport[i];
         try {
           var playerData = buildPlayerData(p);
+          console.log('[Excel Import] IMPORTING row ' + p.rowNum + ':', p.name);
           var pid = await T.savePlayer(playerData, null, tour().date);
+          console.log('[Excel Import] IMPORTED row ' + p.rowNum + ':', p.name, '->', pid);
           success++;
         } catch (err) {
-          console.error(err);
+          console.error('[Excel Import] FAILED row ' + (p ? p.rowNum : '?') + ':', p ? p.name : 'unknown', err);
+          failedRows.push({ row: p ? p.rowNum : '?', name: p ? p.name : 'unknown', error: err && err.message ? err.message : String(err) });
           failed++;
         }
       }
@@ -1930,6 +1937,14 @@
       renderPlayers();
       renderDash();
       fillCategorySelects();
+      
+      if (failedRows.length) {
+        console.group('[Excel Import] Failed rows detail');
+        failedRows.forEach(function(fr) {
+          console.error('Row ' + fr.row + ':', fr.name, '->', fr.error);
+        });
+        console.groupEnd();
+      }
     };
 
     function buildPlayerData(p) {
