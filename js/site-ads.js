@@ -25,32 +25,31 @@
   var PATH = window.location.pathname.toLowerCase();
   var FNAME = PATH.substring(PATH.lastIndexOf("/") + 1);
 
-  var DENY_FILES = [
-    "admin.html",
-    "admin-content.html",
-    "admin-seed-starter.html",
-    "admin-students.html",
-    "admin-login.html",
-    "live-test-admin.html",
-    "practice-test-admin.html",
-    "tournament-admin.html",
-    "tournament-coach.html",
-    "tournament-draw-test.html",
-    "tournament-preview-test.html",
-    "certificate.html",
-    "student-login.html",
-    "student-register.html",
-    "student-forgot.html",
-    "student-attempt.html",
-    "student-practice-attempt.html",
-    "test.html",
-    "class-selection.html",
-    "yoga-day-quiz.html",
-    "yoga-test.html",
-    "404.html",
-    "coming-soon.html",
-    "googlee24decdc4d4a6ce9.html"
-  ];
+   var DENY_FILES = [
+     "admin.html",
+     "admin-content.html",
+     "admin-seed-starter.html",
+     "admin-students.html",
+     "admin-login.html",
+     "live-test-admin.html",
+     "practice-test-admin.html",
+     "tournament-admin.html",
+     "tournament-draw-test.html",
+     "tournament-preview-test.html",
+     "certificate.html",
+     "student-login.html",
+     "student-register.html",
+     "student-forgot.html",
+     "student-attempt.html",
+     "student-practice-attempt.html",
+     "test.html",
+     "class-selection.html",
+     "yoga-day-quiz.html",
+     "yoga-test.html",
+     "404.html",
+     "coming-soon.html",
+     "googlee24decdc4d4a6ce9.html"
+   ];
 
   function isDenied() {
     if (document.documentElement.hasAttribute("data-no-ads")) return true;
@@ -77,12 +76,13 @@
     return FNAME.indexOf("student-") === 0;
   }
 
-  function isExamArea() {
-    /* Live test entry page + live exam attempt pages (already denied) */
-    return FNAME === "live-test.html" ||
-           FNAME === "student-attempt.html" ||
-           FNAME === "student-practice-attempt.html";
-  }
+   function isExamArea() {
+     /* Live test entry page + live exam attempt pages (already denied) */
+     return FNAME === "live-test.html" ||
+            FNAME === "live-tests.html" ||
+            FNAME === "student-attempt.html" ||
+            FNAME === "student-practice-attempt.html";
+   }
 
   function isCoachPortal() {
     /* 6th Alwar Cup Coach Portal */

@@ -132,7 +132,7 @@ function render(){
       </div>
       <div style="margin-top:14px">
          <button class="btn primary" ${btnDisabled?"disabled":""}
-           onclick="if(window.PECAds)PECAds.triggerAction('exam_entry');location.href='${url}${url.includes('?')?'&':'?'}liveId=${encodeURIComponent(t.id)}'">${btnLabel}</button>
+            onclick="location.href='${url}${url.includes('?')?'&':'?'}liveId=${encodeURIComponent(t.id)}'">${btnLabel}</button>
       </div>
     </div>`;
   }).join("");
