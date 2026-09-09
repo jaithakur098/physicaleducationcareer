@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tournament Players — 6th Alwar Cup</title>
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://physicaleducationcareer.in/tournament-players.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tournament.css">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+  <script src="config/firebase-init.js"></script>
+  <script src="config/tournament-config.js"></script>
+  <script src="js/tournament-core.js"></script>
+</head>
+<body class="t-page">
+
+<header class="t-top">
+  <div class="t-wrap t-top-in">
+    <a href="tournament.html" class="t-brand">
+      <div class="t-brand-mark">🥋</div>
+      <div>
+        <b>6th ALWAR CUP</b>
+        <small>Taekwondo Championship</small>
+      </div>
+    </a>
+    <nav class="t-topnav t-no-print">
+      <a href="tournament.html">Tournaments</a>
+      <a href="tournament.html#results">Live Results</a>
+      <a href="tournament.html#draws">Draw Sheets</a>
+      <a href="tournament.html#medals">Medal Tally</a>
+      <a href="tournament.html#search">Player Search</a>
+      <a href="tournament-verify.html">Verify</a>
+      <a href="index.html">← Main Website</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="t-hero t-wrap">
+    <span class="t-eyebrow">6th Edition · Taekwondo</span>
+    <h1 id="tourTitle">Tournament Players</h1>
+    <p id="tourSub" class="t-sub">View registered players for this tournament.</p>
+  </section>
+
+  <section class="t-section">
+    <div class="t-wrap">
+      <div id="privateBox" class="t-hide">
+        <div class="t-card" style="text-align:center;padding:40px">
+          <div style="font-size:48px;margin-bottom:12px">🔒</div>
+          <h3 style="color:var(--t-gold-3)">Player List is currently private.</h3>
+          <p class="t-sub" style="max-width:520px;margin:10px auto 0">The organiser has not made the player list public yet. Please check back later.</p>
+        </div>
+      </div>
+
+      <div id="publicBox" class="t-hide">
+        <div class="t-card">
+          <div class="t-filters t-no-print">
+            <div class="t-field" style="flex:2"><label>Search</label><input id="ppSearch" class="t-input" placeholder="Name, academy, district…"></div>
+            <div class="t-field"><label>Academy / School</label><select id="ppFilterAcademy" class="t-select"><option value="">All</option></select></div>
+            <div class="t-field"><label>Gender</label><select id="ppFilterGender" class="t-select"><option value="">All</option><option value="male">Boys</option><option value="female">Girls</option></select></div>
+            <div class="t-field"><label>Category</label><select id="ppFilterCat" class="t-select"><option value="">All</option></select></div>
+            <div class="t-field"><label>Age</label><select id="ppFilterAge" class="t-select"><option value="">All</option></select></div>
+            <div class="t-field"><label>Weight</label><select id="ppFilterWeight" class="t-select"><option value="">All</option></select></div>
+            <div class="t-field" style="flex:0;min-width:auto"><label>&nbsp;</label><button type="button" id="ppClear" class="t-btn t-btn-ghost t-btn-sm">Clear Filters</button></div>
+          </div>
+          <div class="t-row t-no-print" style="margin-bottom:10px">
+            <span id="ppCount" class="t-chip">Showing 0 of 0 players</span>
+          </div>
+          <div id="ppTable" class="t-table-wrap"><div class="t-empty">Loading players…</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="t-foot t-wrap">6th Alwar Cup Taekwondo Championship · A module of Physical Education Career</footer>
+
+<script>
+(function () {
+  var T = window.TCore, E = T.esc, D = window.TOURNAMENT_DEFAULTS;
+  var state = { tid: '', tournament: null, players: [], filtered: [] };
+
+  function getParam(name) {
+    var m = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+  }
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '&gt;': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function publicSafe(p) {
+    return {
+      name: p.name || '',
+      photo: p.photo || '',
+      academy: p.academy || p.school || '',
+      district: p.district || '',
+      gender: p.gender || '',
+      age: p.age || '',
+      weight: p.weight || '',
+      categoryLabel: p.categoryLabel || p.category || '',
+      ageCategory: p.ageCategory || '',
+      weightCategory: p.weightCategory || '',
+      events: p.events || [],
+      regNo: p.regNo || p.number || ''
+    };
+  }
+
+  function loadTournament() {
+    state.tid = getParam('tournamentId');
+    if (!state.tid) {
+      document.getElementById('tourTitle').textContent = 'Tournament Not Found';
+      document.getElementById('tourSub').textContent = 'Please provide a valid tournament ID.';
+      return;
+    }
+    T.getTournament(state.tid).then(function (t) {
+      state.tournament = t || {};
+      document.getElementById('tourTitle').textContent = (t && t.name) ? 'Players — ' + t.name : 'Tournament Players';
+      document.getElementById('tourSub').textContent = (t && t.venue) ? t.venue + ' · ' + T.fmtDate(t.date) : 'View registered players.';
+      if (!t || t.publicPlayerList !== true) {
+        document.getElementById('privateBox').classList.remove('t-hide');
+        document.getElementById('publicBox').classList.add('t-hide');
+        return;
+      }
+      document.getElementById('privateBox').classList.add('t-hide');
+      document.getElementById('publicBox').classList.remove('t-hide');
+      loadPlayers();
+    }).catch(function () {
+      document.getElementById('tourTitle').textContent = 'Tournament Not Found';
+      document.getElementById('tourSub').textContent = 'Unable to load tournament details.';
+    });
+  }
+
+  function loadPlayers() {
+    document.getElementById('ppTable').innerHTML = '<div class="t-loader">Loading players…</div>';
+    T.listPlayers({ tournamentId: state.tid }).then(function (all) {
+      state.players = all.filter(function (p) { return p.status === 'approved'; }).map(publicSafe);
+      buildFilters();
+      applyFilters();
+    }).catch(function (e) {
+      console.error(e);
+      document.getElementById('ppTable').innerHTML = '<div class="t-empty">Unable to load players.</div>';
+    });
+  }
+
+  function buildFilters() {
+    var academies = {}, genders = {}, cats = {}, ages = {}, weights = {};
+    state.players.forEach(function (p) {
+      if (p.academy) academies[p.academy] = 1;
+      if (p.gender) genders[p.gender] = 1;
+      if (p.categoryLabel) cats[p.categoryLabel] = 1;
+      if (p.ageCategory) ages[p.ageCategory] = 1;
+      if (p.weightCategory) weights[p.weightCategory] = 1;
+    });
+    function fill(id, map) {
+      var s = document.getElementById(id);
+      s.innerHTML = '<option value="">All</option>' + Object.keys(map).sort().map(function (k) { return '<option value="' + esc(k) + '">' + esc(k) + '</option>'; }).join('');
+    }
+    fill('ppFilterAcademy', academies);
+    fill('ppFilterCat', cats);
+    fill('ppFilterAge', ages);
+    fill('ppFilterWeight', weights);
+    var gs = {};
+    (genders['male'] || genders['female']) && (gs.Boys = 'male', gs.Girls = 'female');
+    var gSel = document.getElementById('ppFilterGender');
+    gSel.innerHTML = '<option value="">All</option>' + Object.keys(gs).map(function (k) { return '<option value="' + gs[k] + '">' + esc(k) + '</option>'; }).join('');
+  }
+
+  function applyFilters() {
+    var q = document.getElementById('ppSearch').value.trim().toLowerCase();
+    var academy = document.getElementById('ppFilterAcademy').value;
+    var gender = document.getElementById('ppFilterGender').value;
+    var cat = document.getElementById('ppFilterCat').value;
+    var age = document.getElementById('ppFilterAge').value;
+    var weight = document.getElementById('ppFilterWeight').value;
+
+    state.filtered = state.players.filter(function (p) {
+      if (q && ![p.name, p.academy, p.district, p.regNo, p.categoryLabel].some(function (v) { return String(v || '').toLowerCase().indexOf(q) > -1; })) return false;
+      if (academy && p.academy !== academy) return false;
+      if (gender && p.gender !== gender) return false;
+      if (cat && p.categoryLabel !== cat) return false;
+      if (age && p.ageCategory !== age) return false;
+      if (weight && p.weightCategory !== weight) return false;
+      return true;
+    });
+
+    document.getElementById('ppCount').textContent = 'Showing ' + state.filtered.length + ' of ' + state.players.length + ' players';
+
+    var box = document.getElementById('ppTable');
+    if (!state.filtered.length) { box.innerHTML = '<div class="t-empty">No players match the filters.</div>'; return; }
+    box.innerHTML = '<table class="t-table"><thead><tr><th>#</th><th>Photo</th><th>Player</th><th>Academy / School</th><th>District</th><th>Gender</th><th>Age</th><th>Weight</th><th>Category</th><th>Events</th></tr></thead><tbody>' +
+      state.filtered.map(function (p, i) {
+        var photoHtml = p.photo
+          ? '<img src="' + esc(p.photo) + '" style="width:32px;height:32px;object-fit:cover;border-radius:4px;border:1px solid var(--t-border)" onerror="this.onerror=null;this.src=\'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjZjFmNWY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM4ODkyYjIiIGZvbnQtc2l6ZT0iMTIiPkE8L3RleHQ+PC9zdmc+\'">'
+          : '<span style="opacity:.5;font-size:10px">No Photo</span>';
+        return '<tr><td>' + (i + 1) + '</td><td style="text-align:center">' + photoHtml + '</td><td><b>' + esc(p.name) + '</b>' + (p.regNo ? '<br><small style="color:var(--t-ink-mute)">' + esc(p.regNo) + '</small>' : '') + '</td><td>' + esc(p.academy) + '</td><td>' + esc(p.district) + '</td><td>' + esc(p.gender === 'male' ? 'Boys' : (p.gender === 'female' ? 'Girls' : p.gender)) + '</td><td>' + esc(p.age) + '</td><td>' + esc(p.weight) + '</td><td>' + esc(p.categoryLabel || p.ageCategory || '—') + '</td><td>' + esc((p.events || []).join(', ') || '—') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  ['ppSearch', 'ppFilterAcademy', 'ppFilterGender', 'ppFilterCat', 'ppFilterAge', 'ppFilterWeight'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', applyFilters);
+    document.getElementById(id).addEventListener('change', applyFilters);
+  });
+  document.getElementById('ppClear').onclick = function () {
+    document.getElementById('ppSearch').value = '';
+    document.getElementById('ppFilterAcademy').value = '';
+    document.getElementById('ppFilterGender').value = '';
+    document.getElementById('ppFilterCat').value = '';
+    document.getElementById('ppFilterAge').value = '';
+    document.getElementById('ppFilterWeight').value = '';
+    applyFilters();
+  };
+
+  loadTournament();
+})();
+</script>
+</body>
+</html>

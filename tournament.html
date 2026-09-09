@@ -167,15 +167,17 @@
     var box = document.getElementById('tourList');
     if (!state.tournaments.length) { box.innerHTML = '<div class="t-empty">No tournaments published yet.</div>'; return; }
     box.innerHTML = state.tournaments.map(function (t) {
+      var actions = '<a href="tournament-coach.html?t=' + encodeURIComponent(t.id) + '" class="t-btn t-btn-gold t-btn-sm">Register Players</a>' +
+        '<button type="button" class="t-btn t-btn-ghost t-btn-sm" data-jump="' + E(t.id) + '">View Results</button>';
+      if (t.publicPlayerList) {
+        actions += ' <a href="tournament-players.html?tournamentId=' + encodeURIComponent(t.id) + '" class="t-btn t-btn-ghost t-btn-sm">View Players</a>';
+      }
       return '<div class="t-card">' +
         '<div class="t-row" style="margin-bottom:8px"><span class="t-chip">' + E(t.sport || 'Taekwondo') + '</span>' + statusChip(t.status) + '</div>' +
         '<h3>' + E(t.name || 'Untitled') + '</h3>' +
         '<p class="t-sub">' + E(t.venue || 'Venue TBA') + ' · ' + T.fmtDate(t.date) + (t.city ? ' · ' + E(t.city) : '') + '</p>' +
         '<p style="font-size:13px;color:var(--t-ink-soft);margin:10px 0">' + E(t.description || '') + '</p>' +
-        '<div class="t-row t-no-print">' +
-        '<a href="tournament-coach.html?t=' + encodeURIComponent(t.id) + '" class="t-btn t-btn-gold t-btn-sm">Register Players</a>' +
-        '<button type="button" class="t-btn t-btn-ghost t-btn-sm" data-jump="' + E(t.id) + '">View Results</button>' +
-        '</div></div>';
+        '<div class="t-row t-no-print">' + actions + '</div></div>';
     }).join('');
     box.querySelectorAll('[data-jump]').forEach(function (b) {
       b.onclick = function () {

@@ -423,7 +423,37 @@
         </div>
         <p class="t-hint">Brand text is configured in tournament-config.js. Category overrides are stored in Firestore.</p>
       </div>
+
+      <div class="t-card" style="margin-top:16px">
+        <h3>Public Player List</h3>
+        <p class="t-sub">Control whether the tournament player list is visible to the public.</p>
+        <div class="t-row" style="align-items:center;margin-top:18px">
+          <div>
+            <div id="pubListStatus" class="t-chip" style="margin-bottom:6px">🔒 PRIVATE</div>
+            <p id="pubListDesc" class="t-hint" style="margin:0">Only authorised tournament users can view players.</p>
+          </div>
+          <label class="t-switch" style="margin-left:auto">
+            <input type="checkbox" id="pubListToggle">
+            <span class="t-switch-slider"></span>
+          </label>
+        </div>
+        <div class="t-row" style="margin-top:14px">
+          <button type="button" id="btnPubListSave" class="t-btn t-btn-gold t-btn-sm" disabled>Save Public Player List Setting</button>
+        </div>
+      </div>
     </section>
+
+    <!-- Public Player List confirmation modal -->
+    <div id="pubListModal" class="t-modal t-no-print">
+      <div class="t-modal-box" style="max-width:460px">
+        <h3 id="pubListModalTitle">Make player list public?</h3>
+        <p id="pubListModalInfo" class="t-sub" style="margin-bottom:14px"></p>
+        <div class="t-row">
+          <button type="button" id="btnPubListCancel" class="t-btn t-btn-ghost">Cancel</button>
+          <button type="button" id="btnPubListConfirm" class="t-btn t-btn-gold">Confirm</button>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -489,10 +519,68 @@
       document.querySelectorAll('.t-panel').forEach(function (p) { p.classList.remove('active'); });
       tab.classList.add('active');
       document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      if (tab.dataset.tab === 'settings') loadPubListSetting();
     };
   });
 
   function tour() { return S.tours.filter(function (t) { return t.id === S.tid; })[0] || {}; }
+
+  function loadPubListSetting() {
+    var t = tour();
+    var toggle = document.getElementById('pubListToggle');
+    var status = document.getElementById('pubListStatus');
+    var desc = document.getElementById('pubListDesc');
+    var btn = document.getElementById('btnPubListSave');
+    if (!t || !toggle) return;
+    var isPublic = !!t.publicPlayerList;
+    toggle.checked = isPublic;
+    if (isPublic) {
+      status.textContent = '🟢 PUBLIC';
+      status.style.background = 'rgba(61,220,151,.14)';
+      status.style.color = 'var(--t-success)';
+      status.style.borderColor = 'rgba(61,220,151,.35)';
+      desc.textContent = 'Visitors can view tournament players.';
+    } else {
+      status.textContent = '🔒 PRIVATE';
+      status.style.background = 'var(--t-glass)';
+      status.style.color = 'var(--t-ink-soft)';
+      status.style.borderColor = 'var(--t-border)';
+      desc.textContent = 'Only authorised tournament users can view players.';
+    }
+    btn.disabled = true;
+  }
+
+  document.getElementById('pubListToggle').onchange = function () {
+    var btn = document.getElementById('btnPubListSave');
+    btn.disabled = false;
+  };
+
+  document.getElementById('btnPubListSave').onclick = function () {
+    var t = tour();
+    if (!t || !t.id) { T.toast('Select a tournament first', 'error'); return; }
+    var toggle = document.getElementById('pubListToggle');
+    var modal = document.getElementById('pubListModal');
+    var title = document.getElementById('pubListModalTitle');
+    var info = document.getElementById('pubListModalInfo');
+    var newVal = toggle.checked;
+    title.textContent = newVal ? 'Make player list public?' : 'Make player list private?';
+    info.textContent = newVal
+      ? 'This will allow anyone to view the approved public player information for this tournament.'
+      : 'Public visitors will no longer be able to view the player list.';
+    modal.classList.add('open');
+    document.getElementById('btnPubListConfirm').onclick = function () {
+      modal.classList.remove('open');
+      T.saveTournament({ publicPlayerList: newVal }, t.id).then(function () {
+        T.toast(newVal ? 'Player list is now public' : 'Player list is now private', 'success');
+        loadPubListSetting();
+      }).catch(function (err) { T.toast(err.message, 'error'); });
+    };
+    document.getElementById('btnPubListCancel').onclick = function () {
+      modal.classList.remove('open');
+    };
+  };
+
+  document.getElementById('tourPick').onchange = function () { setTour(this.value); };
 
   document.getElementById('btnLogout').onclick = function () { T.logout().then(function () { location.href = 'admin-login.html'; }); };
 
@@ -524,10 +612,11 @@
     document.getElementById('tourChip').textContent = tid ? (tour().status || 'upcoming').toUpperCase() : '—';
     if (window.__uP) window.__uP();
     if (window.__uR) window.__uR();
-    if (!tid) { S.players = []; S.results = []; renderAll(); return; }
+    if (!tid) { S.players = []; S.results = []; renderAll(); loadPubListSetting(); return; }
     window.__uP = T.watchPlayers({ tournamentId: tid }, function (l) { S.players = l; renderAll(); });
     window.__uR = T.watchResults(tid, function (l) { S.results = l; renderResults(); renderMedals(); });
     T.listCertificates({ tournamentId: tid }).then(function (c) { S.certs = c; renderCerts(); });
+    loadPubListSetting();
   }
 
   function renderAll() {
