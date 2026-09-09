@@ -230,7 +230,8 @@
             <table class="t-table" id="importTable">
               <thead>
                 <tr>
-                  <th style="width:40px"><input type="checkbox" id="impCkAll" disabled></th>
+                  <th style="width:40px"><input type="checkbox" id="impCkAll" disabled><span id="impCkAllLabel" style="font-weight:400;font-size:11px;margin-left:4px;display:inline-block;min-width:70px"></span></th>
+                  <th style="width:36px">Photo</th>
                   <th>#</th>
                   <th>Player</th>
                   <th>School</th>
@@ -1318,6 +1319,7 @@
      ========================================================================= */
   (function () {
     var I = window.TImport = { rows: [], preview: [], schools: [] };
+    var PHOTO_PLACEHOLDER = 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="#f1f5f9"/><text x="16" y="22" font-family="sans-serif" font-size="14" fill="#8892b2">X</text></svg>');
 
     function normStr(s) { return String(s || '').trim(); }
     function normGender(g) { return T.normGender(g); }
@@ -1326,6 +1328,23 @@
     function weightCategory(w, ageKey, gender) { return T.weightCategory(w, ageKey, gender); }
     function categoryLabel(name, gender, weight) { return T.categoryLabel(name, gender, weight); }
     function categoryId(tid, ageKey, gender, weight) { return T.categoryId(tid, ageKey, gender, weight); }
+
+    function parseExcelAge(raw) {
+      if (raw == null) return null;
+      var s = String(raw).trim();
+      if (!s) return null;
+      var n = parseFloat(s);
+      if (isNaN(n) || n < 0 || n > 150) return null;
+      return Math.round(n);
+    }
+
+    function resolvePhoto(raw) {
+      var s = normStr(raw);
+      if (!s) return { type: 'blank', value: '' };
+      if (/^https?:\/\//i.test(s) || /^data:/i.test(s)) return { type: 'url', value: s };
+      if (/\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(s)) return { type: 'path', value: s };
+      return { type: 'unsupported', value: s };
+    }
 
     // Normalize Excel category names to standard tournament categories
     function normalizeExcelCategory(raw) {
@@ -1457,6 +1476,9 @@
 
         renderSummary();
         renderTable();
+        ckAll.disabled = false;
+        ckAll.checked = false;
+        updateSelectAllLabel();
         show(previewBox);
         T.toast('Preview generated: ' + I.preview.length + ' rows', 'success');
       } catch (err) {
@@ -1504,9 +1526,9 @@
       var name = normStr(row.Name || row.name);
       var school = normStr(row.School || row.school || row.Academy || row.academy);
       var genderRaw = normStr(row.Gender || row.gender);
-      var gender = normGender(genderRaw);
+      var gender = genderRaw ? normGender(genderRaw) : '';
       var dob = normStr(row.Birthdate || row.birthdate || row.DOB || row.dob || row['Date of Birth'] || row['date of birth']);
-      var age = row.Age || row.age || row['Age (years)'];
+      var ageRaw = row.Age || row.age || row['Age (years)'];
       var weight = row['Weight (kg)'] || row.Weight || row.weight;
       var kyorugi = normStr(row.Kyorugi || row.kyorugi);
       var poomsae = normStr(row.Poomsae || row.poomsae);
@@ -1525,7 +1547,8 @@
       var weigh1 = row['Weigh-in #1'] || row.weigh1;
       var weigh2 = row['Weigh-in #2'] || row.weigh2;
       var points = row.Points || row.points;
-      var photo = normStr(row.Photo || row.photo);
+      var photoRaw = normStr(row.Photo || row.photo);
+      var photo = resolvePhoto(photoRaw);
 
       // Read Excel age category
       var excelCategoryRaw = normStr(row.Categories || row.categories || row.Category || row.category || row['Age Category'] || row['age category'] || row['AgeGroup'] || row.ageGroup || '');
@@ -1536,20 +1559,42 @@
       // Normalize Excel category
       var excelCategory = normalizeExcelCategory(excelCategoryRaw);
 
-      // Required fields
+      // Required fields: only Name, Age, Weight, School are mandatory
       if (!name) errors.push('Missing Name');
       if (!school) errors.push('Missing School');
-      if (!genderRaw) errors.push('Missing Gender');
-      if (!dob && !age) errors.push('Missing Age or Birthdate');
+      if (!ageRaw) errors.push('Missing Age');
       if (!weight && weight !== 0) errors.push('Missing Weight');
 
-      // Age calculation
+      // Gender is optional
+      var hasGender = !!genderRaw;
+      if (!hasGender) warnings.push('Gender not provided');
+
+      // Age: Excel Age column is AUTHORITATIVE. Birthdate is fallback only.
       var ageNum = null;
       var ageCalc = null;
-      if (age && !isNaN(Number(age))) ageNum = Number(age);
-      if (!ageNum && dob) { ageCalc = calcAge(dob); ageNum = ageCalc; }
-      if (age && dob && ageCalc !== null && ageNum !== null && Math.abs(ageNum - ageCalc) > 1) {
-        warnings.push('Age mismatch: Excel ' + ageNum + ' vs Calculated ' + ageCalc);
+      var excelAgeValid = false;
+
+      if (ageRaw !== null && ageRaw !== undefined && String(ageRaw).trim() !== '') {
+        ageNum = parseExcelAge(ageRaw);
+        if (ageNum !== null) {
+          excelAgeValid = true;
+        }
+      }
+
+      if (!excelAgeValid && dob) {
+        ageCalc = calcAge(dob);
+        ageNum = ageCalc;
+      }
+
+      if (excelAgeValid && dob) {
+        ageCalc = calcAge(dob);
+        if (ageCalc !== null && Math.abs(ageNum - ageCalc) > 1) {
+          warnings.push('Birthdate differs from Excel Age (' + ageNum + ' yrs)');
+        }
+      }
+
+      if (!ageNum && !dob) {
+        errors.push('Missing Age or Birthdate');
       }
 
       // Weight validation
@@ -1577,7 +1622,7 @@
       var weightCat = '';
       var matchedCategory = null;
 
-      if (!errors.length && ageNum !== null && weightNum !== null && I.tournamentCategories && I.tournamentCategories.length && ageKey) {
+      if (!errors.length && ageNum !== null && weightNum !== null && hasGender && I.tournamentCategories && I.tournamentCategories.length && ageKey) {
         // Find matching tournament category by ageKey + gender + weight range
         // Tournament category weight field is like "-35" or "+65"
         matchedCategory = I.tournamentCategories.find(function (c) {
@@ -1611,10 +1656,12 @@
           catLabel = matchedCategory.label;
           weightCat = matchedCategory.weight;
         } else {
-          errors.push('No matching tournament category found for ' + finalAgeCategory + ' ' + (gender === 'male' ? 'Boys' : 'Girls') + ' weight ' + weightNum + 'kg');
+          warnings.push('Category Pending');
         }
       } else if (!ageKey) {
-        errors.push('Could not determine age category (Excel: ' + (excelCategory || 'none') + ', Age: ' + (ageNum || 'unknown') + ')');
+        warnings.push('Could not determine age category');
+      } else if (!hasGender) {
+        warnings.push('Category Pending');
       }
 
       // Events
@@ -1669,7 +1716,8 @@
         weigh1: weigh1,
         weigh2: weigh2,
         points: points,
-        photo: photo,
+        photo: photoRaw,
+        photoResolved: photo,
         errors: errors,
         warnings: warnings,
         isDuplicate: isDuplicate,
@@ -1684,6 +1732,15 @@
       if (s === 'error') return '<span class="t-chip bad">❌ Error</span>';
       if (s === 'duplicate') return '<span class="t-chip" style="background:rgba(90,169,255,.14);color:#5aa9ff;border-color:rgba(90,169,255,.4)">↻ Duplicate</span>';
       return '<span class="t-chip">—</span>';
+    }
+
+    function photoCell(resolved) {
+      if (!resolved) return '<span style="opacity:.5;font-size:10px">No Photo</span>';
+      if (resolved.type === 'url') {
+        return '<img src="' + esc(resolved.value) + '" style="width:32px;height:32px;object-fit:cover;border-radius:4px;border:1px solid var(--t-border)" onerror="this.onerror=null;this.src=\'' + PHOTO_PLACEHOLDER + '\'">';
+      }
+      if (resolved.type === 'path') return '<span style="font-size:10px;color:var(--t-gold)">📎 ' + esc(resolved.value) + '</span>';
+      return '<span style="color:var(--t-warn);font-size:10px">⚠ Photo unavailable</span>';
     }
 
     function eventBadge(ev) {
@@ -1750,11 +1807,12 @@
         var finalCatDisplay = p.finalAgeCategory ? '<span class="t-chip" style="background:rgba(61,220,151,.14);color:var(--t-success);border-color:rgba(61,220,151,.4);font-size:10px">' + esc(p.finalAgeCategory) + '</span>' : '<span class="t-chip" style="opacity:.5;font-size:10px">—</span>';
 
         return '<tr data-idx="' + I.preview.indexOf(p) + '">' +
-          '<td><input type="checkbox" class="imp-ck" value="' + I.preview.indexOf(p) + '" ' + (p.status === 'ready' ? '' : 'disabled') + '></td>' +
+          '<td><input type="checkbox" class="imp-ck" value="' + I.preview.indexOf(p) + '" ' + (p.status === 'error' || p.status === 'duplicate' ? 'disabled' : '') + '></td>' +
+          '<td style="text-align:center">' + photoCell(p.photoResolved) + '</td>' +
           '<td>' + p.rowNum + '</td>' +
           '<td><strong>' + esc(p.name) + '</strong><br><small>' + esc(p.school) + '</small></td>' +
           '<td>' + esc(p.school) + '</td>' +
-          '<td>' + (p.gender === 'male' ? '👦' : '👧') + ' ' + (p.gender === 'male' ? 'Boys' : 'Girls') + '</td>' +
+          '<td>' + (p.gender === 'male' ? '👦 Boys' : (p.gender === 'female' ? '👧 Girls' : '—')) + '</td>' +
           '<td>' + (p.age !== null ? p.age + (p.ageCalc !== null && p.age !== p.ageCalc ? ' ⚠' : '') : '—') + '</td>' +
           '<td>' + (p.weight !== null ? p.weight + ' kg' : '—') + '</td>' +
           '<td style="text-align:center">' + (kyo ? '<span class="t-chip ok">✓</span>' : '<span class="t-chip" style="opacity:.3">—</span>') + '</td>' +
@@ -1765,7 +1823,7 @@
         '</tr>';
       }).join('');
 
-      tableBody.innerHTML = html || '<tr><td colspan="11" class="t-empty">No rows match the filters.</td></tr>';
+      tableBody.innerHTML = html || '<tr><td colspan="13" class="t-empty">No rows match the filters.</td></tr>';
       updateSelectionCount();
 
       // Filter listeners
@@ -1775,8 +1833,13 @@
       });
 
       // Checkbox listeners
-      tableBody.querySelectorAll('.imp-ck').forEach(function (ck) { ck.onchange = updateSelectionCount; });
-      ckAll.onchange = function () { tableBody.querySelectorAll('.imp-ck').forEach(function (c) { c.checked = ckAll.checked; }); updateSelectionCount(); };
+      tableBody.querySelectorAll('.imp-ck').forEach(function (ck) { ck.onchange = function () { updateSelectionCount(); updateSelectAllLabel(); }; });
+      ckAll.onchange = function () {
+        var check = ckAll.checked;
+        tableBody.querySelectorAll('.imp-ck:not(:disabled)').forEach(function (c) { c.checked = check; });
+        updateSelectionCount();
+        updateSelectAllLabel();
+      };
     }
 
     function updateSelectionCount() {
@@ -1785,6 +1848,27 @@
       selCount.textContent = checked + ' of ' + totalReady + ' selected';
       btnExecute.disabled = checked === 0;
       btnErrors.disabled = I.preview.filter(function (p) { return p.status === 'error' || p.status === 'warning'; }).length === 0;
+    }
+
+    function updateSelectAllLabel() {
+      var allCks = tableBody.querySelectorAll('.imp-ck:not(:disabled)');
+      var total = allCks.length;
+      var checked = tableBody.querySelectorAll('.imp-ck:checked').length;
+      var label = document.getElementById('impCkAllLabel');
+      if (!label) return;
+      if (checked === 0) {
+        label.textContent = 'Select All';
+        ckAll.checked = false;
+        ckAll.indeterminate = false;
+      } else if (checked === total) {
+        label.textContent = 'All Ready Selected';
+        ckAll.checked = true;
+        ckAll.indeterminate = false;
+      } else {
+        label.textContent = checked + ' Selected';
+        ckAll.checked = false;
+        ckAll.indeterminate = true;
+      }
     }
 
     // Error report download
@@ -1826,6 +1910,7 @@
 
       var success = 0, failed = 0;
       for (var i = 0; i < toImport.length; i++) {
+        btnExecute.textContent = 'Importing ' + (i + 1) + '/' + toImport.length;
         var p = toImport[i];
         try {
           var playerData = buildPlayerData(p);
@@ -1837,7 +1922,7 @@
         }
       }
 
-      T.toast('Import complete: ' + success + ' success' + (failed ? ', ' + failed + ' failed' : ''), failed ? 'warn' : 'success');
+      T.toast('Imported: ' + success + (failed ? ', Skipped: ' + failed : ''), failed ? 'warn' : 'success');
       btnExecute.disabled = false;
       btnExecute.textContent = 'Import Valid Entries';
       // Refresh player list
@@ -1858,11 +1943,11 @@
         categoryId = T.categoryId(S.tid, p.cat.ageKey, p.cat.gender, p.cat.weight);
       }
       
-      return {
+      var data = {
         tournamentId: S.tid,
         name: p.name,
         fatherName: '',
-        dob: p.dob || (p.age ? new Date(new Date().getFullYear() - p.age, 0, 1).toISOString().slice(0, 10) : ''),
+        dob: p.age ? new Date(new Date().getFullYear() - p.age, 0, 1).toISOString().slice(0, 10) : (p.dob || ''),
         gender: p.gender,
         age: p.age,
         ageCategory: p.ageKey,
@@ -1876,7 +1961,6 @@
         state: '',
         phone: p.phone,
         email: p.email,
-        photo: p.photo || '',
         status: 'pending',
         events: p.events,
         number: p.number,
@@ -1888,6 +1972,12 @@
         paid: p.paid,
         refunded: p.refunded
       };
+      
+      if (p.photoResolved && p.photoResolved.type !== 'blank') {
+        data.photo = p.photoResolved.value;
+      }
+      
+      return data;
     }
   })();
 })();
