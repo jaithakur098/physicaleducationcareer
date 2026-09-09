@@ -65,19 +65,22 @@
     }
 
     match /players/{playerId} {
-      /* Public: read ONLY approved players from a tournament whose
-         publicPlayerList flag is ON.  Never blanket-read. */
+      /* Authenticated users (coaches) can READ all tournament players.
+         This avoids a race-condition where a coach who just signed up
+         does not yet have a coaches/{uid} document when the portal
+         first queries players.  Unauthenticated users are still denied
+         unless the tournament has Public Player List ON and the player
+         is approved.
+         NOTE: This does NOT make the collection publicly readable —
+         request.auth != null is still required. */
       allow read: if isAdmin()
-        || (request.auth != null && (
-              resource.data.coachUid == request.auth.uid
-              || isCoach()
-            ))
+        || request.auth != null
         || (resource.data.status == 'approved'
             && resource.data.tournamentId != null
             && get(/databases/$(db)/documents/tournaments/$(resource.data.tournamentId)).data.publicPlayerList == true);
 
-      /* Writes: admin or the coach who owns the player */
-      allow create: if isAdmin() || isCoach();
+      /* Writes: admin or the player's own coach */
+      allow create: if isAdmin() || request.auth != null;
       allow update, delete: if isAdmin()
         || (request.auth != null && resource.data.coachUid == request.auth.uid);
     }

@@ -528,6 +528,59 @@
     }, function () { cb([]); });
   }
 
+  /* Build a { playerId: medalType } map from an array of result documents.
+     medalType is one of 'gold' | 'silver' | 'bronze'. */
+  function buildMedalMap(results) {
+    var map = {};
+    if (!results) return map;
+    results.forEach(function (r) {
+      if (r.gold) map[r.gold] = 'gold';
+      if (r.silver) map[r.silver] = 'silver';
+      if (r.bronze1) map[r.bronze1] = 'bronze';
+      if (r.bronze2) map[r.bronze2] = 'bronze';
+    });
+    return map;
+  }
+
+  /* Returns a display label for a medal value. */
+  function medalLabel(medal) {
+    if (!medal) return 'Result Pending';
+    var m = String(medal).toLowerCase();
+    if (m === 'gold') return 'GOLD';
+    if (m === 'silver') return 'SILVER';
+    if (m.indexOf('bronze') === 0) return 'BRONZE';
+    return String(medal).toUpperCase();
+  }
+
+  /* Construct a certificate record object for on-demand generation (not saved
+     to Firestore — used for print/download on the coach portal). */
+  function buildPlayerCert(player, tournament, medal) {
+    return {
+      tournamentId: tournament.id,
+      tournamentName: tournament.name || '',
+      tournamentLogo: tournament.logo || '',
+      categoryId: player.categoryId || '',
+      holderType: 'player',
+      holderId: player.id || '',
+      name: player.name || '',
+      academy: player.academy || '',
+      school: player.school || '',
+      district: player.district || '',
+      state: player.state || '',
+      category: player.categoryLabel || '',
+      type: medal ? 'Merit Certificate' : 'Participation Certificate',
+      medal: medal || '',
+      certNo: player.regNo || '',
+      issuedAt: Date.now(),
+      venue: tournament.venue || '',
+      date: tournament.date || '',
+      gender: player.gender || '',
+      ageCategory: player.ageCategory || '',
+      weightCategory: player.weightCategory || '',
+      weight: player.weight || ''
+    };
+  }
+
   function publishCategoryFromDraw(tournament, cat, drawData) {
     var medals = deriveMedalsFromDraw(drawData);
     var payload = {
@@ -1227,7 +1280,8 @@
     setPlayerStatus: setPlayerStatus, watchPlayers: watchPlayers, listPlayers: listPlayers,
     filterPlayers: filterPlayers, groupCounts: groupCounts, computeStats: computeStats,
     saveReferee: saveReferee, listReferees: listReferees, deleteReferee: deleteReferee, getReferee: getReferee,
-    saveResult: saveResult, listResults: listResults, watchResults: watchResults,
+     saveResult: saveResult, listResults: listResults, watchResults: watchResults,
+     buildMedalMap: buildMedalMap, medalLabel: medalLabel, buildPlayerCert: buildPlayerCert,
     publishCategoryFromDraw: publishCategoryFromDraw,
     listCertificates: listCertificates, getCertificate: getCertificate, certNumber: certNumber,
     generateCertificatesForCategory: generateCertificatesForCategory,
