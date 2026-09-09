@@ -1976,6 +1976,7 @@
         state: '',
         phone: p.phone,
         email: p.email,
+        photo: (p.photoResolved && p.photoResolved.type !== 'blank') ? p.photoResolved.value : (p.photo || ''),
         status: 'pending',
         events: p.events,
         number: p.number,
@@ -1987,10 +1988,6 @@
         paid: p.paid,
         refunded: p.refunded
       };
-      
-      if (p.photoResolved && p.photoResolved.type !== 'blank') {
-        data.photo = p.photoResolved.value;
-      }
       
       return data;
     }
