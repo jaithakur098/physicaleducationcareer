@@ -331,9 +331,8 @@
   T.onAuth(function (user) {
     authResolved = true;
     S.user = user;
-    if (!user) { showLogin(); return; }
-    if (window.PECAds) PECAds.triggerAction('coach_login');
-    showApp(user);
+if (!user) { showLogin(); return; }
+     showApp(user);
     boot();
   });
 
@@ -437,10 +436,9 @@
     if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
-  document.getElementById('btnPrintCoachIdCard').onclick = function () {
-    if (!S.coach || !S.coach.idCardGenerated) return T.toast('Generate the ID card first', 'error');
-    if (window.PECAds) PECAds.triggerAction('id_card_download');
-    var html = TP.coachIdCardHTML(Object.assign({}, S.coach, { holderType: 'coach', status: S.coach.status || 'approved' }), activeTournament(), D);
+document.getElementById('btnPrintCoachIdCard').onclick = function () {
+     if (!S.coach || !S.coach.idCardGenerated) return T.toast('Generate the ID card first', 'error');
+     var html = TP.coachIdCardHTML(Object.assign({}, S.coach, { holderType: 'coach', status: S.coach.status || 'approved' }), activeTournament(), D);
     T.printHTML('Coach ID Card — ' + (S.coach.name || ''), html, TP.idCardCSS(), false);
   };
 
@@ -523,9 +521,8 @@
       data.regNo = old.regNo;
       data.status = old.status === 'rejected' ? 'pending' : old.status;
     }
-    T.savePlayer(data, editing || null, t.date).then(function () {
-      if (window.PECAds) PECAds.triggerAction('player_registration_success');
-      T.toast(editing ? 'Player updated' : 'Player registered — pending approval', 'success');
+T.savePlayer(data, editing || null, t.date).then(function () {
+       T.toast(editing ? 'Player updated' : 'Player registered — pending approval', 'success');
       resetPlayerForm();
       goTab('players');
     }).catch(function (err) { T.toast(err.message, 'error'); });
@@ -644,9 +641,8 @@
   function downloadIdCard(id) {
     var p = playerById(id);
     if (!p) return T.toast('Player not found', 'error');
-    if (p.status !== 'approved') return T.toast('ID card available for approved players only', 'error');
-    if (window.PECAds) PECAds.triggerAction('id_card_download');
-    var t = tourFor(p) || activeTournament();
+if (p.status !== 'approved') return T.toast('ID card available for approved players only', 'error');
+     var t = tourFor(p) || activeTournament();
     var html = TP.idCardHTML(p, t, D);
     T.printHTML('ID Card — ' + (p.name || ''), html, TP.idCardCSS(), false);
   }
@@ -656,9 +652,8 @@
     if (!p) return T.toast('Player not found', 'error');
     var t = tourFor(p) || activeTournament();
     var medal = S.resultMap[p.id] || (p.medal && p.medal.toLowerCase().indexOf('bronze') === 0 ? 'bronze' : p.medal);
-    var cert = T.buildPlayerCert(p, t, medal);
-    if (window.PECAds) PECAds.triggerAction('tournament_cert_download');
-    var html, css;
+var cert = T.buildPlayerCert(p, t, medal);
+     var html, css;
     if (medal) {
       html = TP.meritCertHTML(cert, t, D);
       css = TP.meritCertCSS();
@@ -707,9 +702,8 @@
      Object.keys(byTour).forEach(function (tid) {
        var t = S.tournaments.filter(function (x) { return x.id === tid; })[0] || {};
        sheets += TP.idCardsSheetHTML(byTour[tid], t, D);
-     });
-     if (window.PECAds) PECAds.triggerAction('id_card_download');
-     T.printHTML('Player ID Cards', sheets, TP.idCardCSS(), false);
+});
+      T.printHTML('Player ID Cards', sheets, TP.idCardCSS(), false);
   };
 
   document.querySelectorAll('[data-rf]').forEach(function (tab) {
@@ -788,10 +782,9 @@
     });
   }
 
-  function printCert(c) {
-    if (!c) return;
-    if (window.PECAds) PECAds.triggerAction('tournament_cert_download');
-    var t = S.tournaments.filter(function (x) { return x.id === c.tournamentId; })[0] || {};
+function printCert(c) {
+     if (!c) return;
+     var t = S.tournaments.filter(function (x) { return x.id === c.tournamentId; })[0] || {};
     var isMerit = c.type && c.type.indexOf('Merit') >= 0;
     var html = isMerit ? TP.meritCertHTML(c, t, D) : TP.participationCertHTML(c, t, D);
     var css = isMerit ? TP.meritCertCSS() : TP.participationCertCSS();

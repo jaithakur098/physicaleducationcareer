@@ -462,9 +462,8 @@
       chapterName: displayName(attempt.chapterId || cert.chapterId, maps.ch)  || displayName(attempt.chapterName, null),
       testName:    await resolveTestName(attempt)
     };
-    render(cert, attempt, profile, rank, names);
-    if (window.PECAds) PECAds.triggerAction('certificate_view');
-    window.__cert = cert;
+render(cert, attempt, profile, rank, names);
+     window.__cert = cert;
     fitCert();
   }
 
@@ -514,11 +513,9 @@
     if (navigator.share){ try { await navigator.share({ title:'PEEngine Certificate', text:text, url:url }); return; } catch(_){} }
     try { await navigator.clipboard.writeText(url); PEC.toast('Certificate link copied','ok'); } catch(_){ prompt('Copy link:', url); }
   }
-  document.getElementById('downloadPdf').addEventListener('click', downloadPdf);
-  document.getElementById('downloadPng').addEventListener('click', downloadPng);
-  document.getElementById('downloadPdf').addEventListener('click', function(){ if(window.PECAds) PECAds.triggerAction('certificate_download'); });
-  document.getElementById('downloadPng').addEventListener('click', function(){ if(window.PECAds) PECAds.triggerAction('certificate_download'); });
-  document.getElementById('shareBtn').addEventListener('click', share);
+document.getElementById('downloadPdf').addEventListener('click', downloadPdf);
+   document.getElementById('downloadPng').addEventListener('click', downloadPng);
+   document.getElementById('shareBtn').addEventListener('click', share);
 
   Student.onChange(function(u){
     if(!u){ location.href='student-login.html'; return; }

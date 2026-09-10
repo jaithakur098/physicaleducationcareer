@@ -47,9 +47,8 @@ Student.onChange(async function(u){
   var wrap=document.getElementById('wrap');
   if(!id){ wrap.innerHTML='<p class="empty">Missing attempt id.</p>'; return; }
   var r = await Practice.getAttempt(id);
-  if(!r){ wrap.innerHTML='<p class="empty">Attempt not found.</p>'; return; }
-  if (window.PECAds) PECAds.triggerAction('result_view');
-  var attempted = (r.answers||[]).filter(function(a){ return a.picked; }).length;
+if(!r){ wrap.innerHTML='<p class="empty">Attempt not found.</p>'; return; }
+   var attempted = (r.answers||[]).filter(function(a){ return a.picked; }).length;
   var unatt = Math.max(0, (r.total||0) - attempted);
   var eligible = (r.percent||0) >= 90;
 
