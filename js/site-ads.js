@@ -1,133 +1,97 @@
-/**
- * /js/site-ads.js — Centralized ad integration for physicaleducationcareer.in
- *
- * This single file contains ALL site ad codes and a denylist so that
- * admin / private / auth pages can never receive ads accidentally.
- *
- * Each public HTML page includes:  <script src="/js/site-ads.js"></script>
- *
- * On denied pages automatic banner/popunder injection is suppressed, but
- * the action-trigger API (window.PECAds.triggerAction) is still available
- * so that action-based ads can fire after login, download, etc.
- *
- * RESTRICTED AREAS (Student Portal + Live/Practice Tests + Coach Portal):
- *   These areas receive ONLY visible in-page banner ads.
- *   No popunder, no smartlink, no external redirect, no new tab/window.
- *   Action triggers on these pages show a visible banner ad instead of
- *   a popunder. Students and coaches always remain on physicaleducationcareer.in.
- */
 (function () {
   "use strict";
 
-  /* ================================================================
-     1. DENYLIST — admin / private / auth / operator-only / tool pages
-     ================================================================ */
   var PATH = window.location.pathname.toLowerCase();
   var FNAME = PATH.substring(PATH.lastIndexOf("/") + 1);
 
-   var DENY_FILES = [
-     "admin.html",
-     "admin-content.html",
-     "admin-seed-starter.html",
-     "admin-students.html",
-     "admin-login.html",
-     "live-test-admin.html",
-     "practice-test-admin.html",
-     "tournament-admin.html",
-     "tournament-draw-test.html",
-     "tournament-preview-test.html",
-     "certificate.html",
-     "student-login.html",
-     "student-register.html",
-     "student-forgot.html",
-     "student-attempt.html",
-     "student-practice-attempt.html",
-     "test.html",
-     "class-selection.html",
-     "yoga-day-quiz.html",
-     "yoga-test.html",
-     "404.html",
-     "coming-soon.html",
-     "googlee24decdc4d4a6ce9.html"
-   ];
+  var DENY_FILES = [
+    "admin.html",
+    "admin-content.html",
+    "admin-seed-starter.html",
+    "admin-students.html",
+    "admin-login.html",
+    "live-test-admin.html",
+    "practice-test-admin.html",
+    "tournament-admin.html",
+    "tournament-draw-test.html",
+    "tournament-preview-test.html",
+    "test.html",
+    "class-selection.html",
+    "404.html",
+    "coming-soon.html",
+    "googlee24decdc4d4a6ce9.html"
+  ];
+
+  var PROTECTED_NO_POPUP_PAGES = [
+    "student-login.html",
+    "student-register.html",
+    "student-forgot.html",
+    "student-dashboard.html",
+    "student-portal.html",
+    "student-live-tests.html",
+    "student-practice-tests.html",
+    "student-attempt.html",
+    "student-practice-attempt.html",
+    "student-result.html",
+    "student-practice-result.html",
+    "student-my-results.html",
+    "student-analytics.html",
+    "student-review.html",
+    "student-certificate.html",
+    "student-details.html",
+    "student-leaderboard.html",
+    "student-practice-leaderboard.html",
+    "student-profile.html",
+    "live-test.html",
+    "live-tests.html",
+    "class11-test.html",
+    "class12-test.html",
+    "yoga-test.html",
+    "yoga-day-quiz.html",
+    "certificate.html",
+    "certificate-verify.html",
+    "tournament-coach.html"
+  ];
+
+  function hasProtectedAttribute() {
+    if (document.documentElement.hasAttribute("data-protected-no-popup")) return true;
+    return !!(document.body && document.body.hasAttribute("data-protected-no-popup"));
+  }
+
+  function isProtectedNoPopupPage() {
+    if (hasProtectedAttribute()) return true;
+    if (PROTECTED_NO_POPUP_PAGES.indexOf(FNAME) !== -1) return true;
+    if (FNAME.indexOf("student-") === 0) return true;
+    if (FNAME === "class11-test.html" || FNAME === "class12-test.html") return true;
+    if (/^class(?:11|12)-ch\d+-test\.html$/.test(FNAME)) return true;
+    if (FNAME === "live-test.html" || FNAME === "live-tests.html") return true;
+    if (FNAME === "yoga-test.html" || FNAME === "yoga-day-quiz.html") return true;
+    if (FNAME.indexOf("certificate") !== -1) return true;
+    if (FNAME === "tournament-coach.html") return true;
+    return false;
+  }
 
   function isDenied() {
     if (document.documentElement.hasAttribute("data-no-ads")) return true;
     if (document.body && document.body.hasAttribute("data-no-ads")) return true;
-
+    if (isProtectedNoPopupPage()) return false;
     for (var i = 0; i < DENY_FILES.length; i++) {
       if (FNAME === DENY_FILES[i]) return true;
     }
-
     if (PATH.indexOf("/config/") !== -1) return true;
     if (PATH.indexOf("/cert/") !== -1) return true;
-
     return false;
   }
 
   var DENIED = isDenied();
 
-  /* ================================================================
-     AD RESTRICTION POLICY
-     Student Portal + Live/Practice Tests + Coach Portal = BANNERS ONLY
-     No popunder, no smartlink, no external redirect, no new tab/window.
-     ================================================================ */
-  function isStudentPortal() {
-    return FNAME.indexOf("student-") === 0;
-  }
-
-   function isExamArea() {
-     /* Live test entry page + live exam attempt pages (already denied) */
-     return FNAME === "live-test.html" ||
-            FNAME === "live-tests.html" ||
-            FNAME === "student-attempt.html" ||
-            FNAME === "student-practice-attempt.html";
-   }
-
-  function isCoachPortal() {
-    /* 6th Alwar Cup Coach Portal */
-    return FNAME === "tournament-coach.html";
-  }
-
-  var RESTRICTED = isStudentPortal() || isExamArea() || isCoachPortal();
-
-  /* ================================================================
-     2. AD CODES — exact values from provided codes
-     ================================================================ */
-
-  /* 1) Popunder */
-  var POP_SRC = "https://pl31056701.profitableratecpmnetwork.com/26a3fcbbc72ff01eb703de7c3450ed15/invoke.js";
-  var POP_CONTAINER_ID = "container-26a3fcbbc72ff01eb703de7c3450ed15";
-
-  /* 2) 728x90 Desktop Banner */
-  var BANNER_728 = {
-    atOptions: { key: "b2c767bd72c48c41fbcc95d2cae4601b", format: "iframe", height: 90, width: 728, params: {} },
-    src: "https://www.highrevenueformat.com/b2c767bd72c48c41fbcc95d2cae4601b/invoke.js"
-  };
-
-  /* 3) 320x50 Mobile Banner */
-  var BANNER_320 = {
-    atOptions: { key: "476b14cb868a858f021da25d83e22fcc", format: "iframe", height: 50, width: 320, params: {} },
-    src: "https://www.highrevenueformat.com/476b14cb868a858f021da25d83e22fcc/invoke.js"
-  };
-
-  /* 4) 300x250 Banner */
-  var BANNER_300 = {
-    atOptions: { key: "ee866c73f37e6848b60b7bf340ccc93d", format: "iframe", height: 250, width: 300, params: {} },
-    src: "https://www.highrevenueformat.com/ee866c73f37e6848b60b7bf340ccc93d/invoke.js"
-  };
-
-  /* 5) Additional script */
-  var EXTRA_SRC = "https://pl31056698.profitableratecpmnetwork.com/5d/84/ce/5d84cee107dda3e3ba6404b5206d452c.js";
-
-  /* ================================================================
-     3. RESPONSIVE CSS — prevent horizontal overflow
-     ================================================================ */
   var cssText = [
     ".pec-ad-slot{max-width:100%;overflow:hidden;margin:15px auto;text-align:center;clear:both;box-sizing:border-box}",
-    ".pec-ad-slot iframe{max-width:100%;width:100%;border:0}",
+    ".pec-ad-slot iframe{display:block;max-width:100%;width:100%;border:0;margin:0 auto}",
     ".pec-ad-top{margin:10px auto}",
     ".pec-ad-middle{margin:30px auto}",
+    ".pec-ad-bottom{margin:15px auto}",
+    ".pec-ad-action{margin:20px auto;padding:10px 0;border-top:1px dashed rgba(255,255,255,0.12);border-bottom:1px dashed rgba(255,255,255,0.12)}",
     ".pec-ad-desktop{display:block}",
     ".pec-ad-mobile{display:none}",
     "@media(max-width:768px){",
@@ -136,200 +100,106 @@
     "}"
   ].join("");
 
-  var styleEl = document.createElement("style");
-  styleEl.textContent = cssText;
-  document.head.appendChild(styleEl);
-
-  /* ================================================================
-     4. DOM HELPERS
-     ================================================================ */
-  function createWrapper(className) {
-    var div = document.createElement("div");
-    div.className = "pec-ad-slot " + className;
-    return div;
-  }
-
-  function insertAfter(newEl, refEl) {
-    if (!refEl) return insertAtBodyStart(newEl);
-    var parent = refEl.parentNode;
-    if (!parent) return insertAtBodyStart(newEl);
-    var next = refEl.nextSibling;
-    if (next) { parent.insertBefore(newEl, next); }
-    else { parent.appendChild(newEl); }
-  }
-
-  function insertBefore(newEl, refEl) {
-    if (!refEl) return insertAtBodyEnd(newEl);
-    var parent = refEl.parentNode;
-    if (!parent) return insertAtBodyEnd(newEl);
-    parent.insertBefore(newEl, refEl);
-  }
-
-  function insertAtBodyStart(el) {
-    if (document.body) { document.body.insertBefore(el, document.body.firstChild); }
-  }
-
-  function insertAtBodyEnd(el) {
-    if (document.body) { document.body.appendChild(el); }
+  function appendStyle() {
+    if (document.getElementById("pec-ad-style")) return;
+    var styleEl = document.createElement("style");
+    styleEl.id = "pec-ad-style";
+    styleEl.textContent = cssText;
+    (document.head || document.documentElement).appendChild(styleEl);
   }
 
   function findHeader() {
-    return document.querySelector("header, .edu-nav, .topbar, .t-top, .portal-hero, .hero, .brand");
+    return document.querySelector("header, .edu-nav, .topbar, .t-top, .portal-hero, .hero") ||
+      document.querySelector(".brand");
   }
 
   function findFooter() {
     return document.querySelector("footer, .edu-foot");
   }
 
-  /* ================================================================
-     5. ACTION-BASED POPUNDER (always available, even on denied pages)
-      ================================================================ */
-
-  /* Deduplication map — each action fires at most once per page */
-  var firedActions = {};
-
-  function firePopunder() {
-    var container = document.createElement("div");
-    container.id = POP_CONTAINER_ID;
-    var s = document.createElement("script");
-    s.src = POP_SRC;
-    s.async = true;
-    s.setAttribute("data-cfasync", "false");
-    container.appendChild(s);
-    insertAtBodyEnd(container);
+  function ensureSlot(id, className) {
+    var existing = document.getElementById(id);
+    if (existing) return existing;
+    var slot = document.createElement("div");
+    slot.id = id;
+    slot.className = "pec-ad-slot " + className;
+    slot.setAttribute("data-pec-ad-slot", id);
+    return slot;
   }
 
-  function fireBanner() {
-    /* Inject a visible 300x250 banner ad in-page (for RESTRICTED pages). */
-    var wrapper = createWrapper("pec-ad-action");
-    wrapper.style.margin = "20px auto";
-    wrapper.style.padding = "10px 0";
-    wrapper.style.borderTop = "1px dashed rgba(255,255,255,0.1)";
-    wrapper.style.borderBottom = "1px dashed rgba(255,255,255,0.1)";
-    window.atOptions = BANNER_300.atOptions;
-    var s = document.createElement("script");
-    s.src = BANNER_300.src;
-    s.async = false;
-    wrapper.appendChild(s);
-    insertAtBodyEnd(wrapper);
-  }
-
-  function triggerActionAd(actionName) {
-    if (!actionName) return;
-    if (firedActions[actionName]) return;
-    firedActions[actionName] = true;
-
-    if (RESTRICTED) {
-      /* Student Portal / Exam / Coach Portal: show visible banner, never popunder */
-      fireBanner();
+  function insertAfter(newEl, refEl) {
+    if (!refEl || !refEl.parentNode) {
+      insertAtBodyStart(newEl);
+      return;
+    }
+    var next = refEl.nextSibling;
+    if (next) {
+      refEl.parentNode.insertBefore(newEl, next);
     } else {
-      /* Public site: fire popunder */
-      firePopunder();
+      refEl.parentNode.appendChild(newEl);
     }
   }
 
-  /* ================================================================
-     6. BANNER AD INJECTION (suppressed on denied pages)
-      ================================================================ */
-  function loadBannerAdsSequential(topDesktop, topMobile, middle, callback) {
-    var ads = [
-      { atOptions: BANNER_300.atOptions, src: BANNER_300.src, container: middle },
-      { atOptions: BANNER_728.atOptions, src: BANNER_728.src, container: topDesktop },
-      { atOptions: BANNER_320.atOptions, src: BANNER_320.src, container: topMobile }
-    ];
-
-    function loadNext(idx) {
-      if (idx >= ads.length) {
-        if (callback) callback();
-        return;
-      }
-      var ad = ads[idx];
-      window.atOptions = ad.atOptions;
-      var s = document.createElement("script");
-      s.src = ad.src;
-      s.async = false;
-      s.onload = function () { loadNext(idx + 1); };
-      s.onerror = function () { loadNext(idx + 1); };
-      ad.container.appendChild(s);
+  function insertBefore(newEl, refEl) {
+    if (!refEl || !refEl.parentNode) {
+      insertAtBodyEnd(newEl);
+      return;
     }
-
-    loadNext(0);
+    refEl.parentNode.insertBefore(newEl, refEl);
   }
 
-  function injectAds() {
+  function insertAtBodyStart(el) {
+    if (document.body) document.body.insertBefore(el, document.body.firstChild);
+  }
+
+  function insertAtBodyEnd(el) {
+    if (document.body) document.body.appendChild(el);
+  }
+
+  function injectVisibleBannerAdsOnly() {
+    if (!document.body || document.documentElement.getAttribute("data-pec-ads-initialized") === "true") return;
+    document.documentElement.setAttribute("data-pec-ads-initialized", "true");
+    appendStyle();
+
     var header = findHeader();
     var footer = findFooter();
 
-    /* Top banner container: 728x90 (desktop) + 320x50 (mobile) */
-    var topWrapper = createWrapper("pec-ad-top");
-    var desktop728 = createWrapper("pec-ad-desktop");
-    var mobile320 = createWrapper("pec-ad-mobile");
-    topWrapper.appendChild(desktop728);
-    topWrapper.appendChild(mobile320);
-
-    if (header) {
-      insertAfter(topWrapper, header);
-    } else {
-      insertAtBodyStart(topWrapper);
+    var topWrapper = ensureSlot("pec-ad-top", "pec-ad-top");
+    var desktop728 = ensureSlot("pec-ad-728-top", "pec-ad-desktop");
+    var mobile320 = ensureSlot("pec-ad-320-top", "pec-ad-mobile");
+    if (!desktop728.parentNode) topWrapper.appendChild(desktop728);
+    if (!mobile320.parentNode) topWrapper.appendChild(mobile320);
+    if (topWrapper.parentNode !== document.body && topWrapper.parentNode !== header) {
+      if (header) insertAfter(topWrapper, header);
+      else insertAtBodyStart(topWrapper);
     }
 
-    /* Middle banner container: 300x250 (both desktop + mobile) */
-    var middleWrapper = createWrapper("pec-ad-middle");
-    if (footer) {
-      insertBefore(middleWrapper, footer);
-    } else {
-      insertAtBodyEnd(middleWrapper);
+    var middleWrapper = ensureSlot("pec-ad-300-middle", "pec-ad-middle");
+    if (!middleWrapper.parentNode) {
+      if (footer) insertBefore(middleWrapper, footer);
+      else insertAtBodyEnd(middleWrapper);
     }
 
-    /* Bottom banner container: 300x250 */
-    var bottomWrapper = createWrapper("pec-ad-bottom");
-    var bottom728 = createWrapper("pec-ad-desktop");
-    var bottom320 = createWrapper("pec-ad-mobile");
-    bottomWrapper.appendChild(bottom728);
-    bottomWrapper.appendChild(bottom320);
-    if (footer) {
-      insertAfter(bottomWrapper, footer);
-    } else {
-      insertAtBodyEnd(bottomWrapper);
+    var bottomWrapper = ensureSlot("pec-ad-bottom", "pec-ad-bottom");
+    var bottom728 = ensureSlot("pec-ad-728-bottom", "pec-ad-desktop");
+    var bottom320 = ensureSlot("pec-ad-320-bottom", "pec-ad-mobile");
+    if (!bottom728.parentNode) bottomWrapper.appendChild(bottom728);
+    if (!bottom320.parentNode) bottomWrapper.appendChild(bottom320);
+    if (!bottomWrapper.parentNode) {
+      if (footer) insertAfter(bottomWrapper, footer);
+      else insertAtBodyEnd(bottomWrapper);
     }
-
-    /* Popunder: container + async script (exact attributes)
-       RESTRICTED (Student Portal / Exam / Coach Portal): NEVER injected */
-    if (!RESTRICTED) {
-      var popWrapper = createWrapper("pec-popunder");
-      var popContainer = document.createElement("div");
-      popContainer.id = POP_CONTAINER_ID;
-      var popScript = document.createElement("script");
-      popScript.async = true;
-      popScript.setAttribute("data-cfasync", "false");
-      popScript.src = POP_SRC;
-      popWrapper.appendChild(popContainer);
-      popWrapper.appendChild(popScript);
-      insertAtBodyEnd(popWrapper);
-    }
-
-    /* Banner ads (sequential due to shared atOptions global) */
-    loadBannerAdsSequential(desktop728, mobile320, middleWrapper, function () {
-      loadBannerAdsSequential(bottom728, bottom320, bottomWrapper, function () {
-        if (!RESTRICTED) {
-          var extra = document.createElement("script");
-          extra.src = EXTRA_SRC;
-          document.body.appendChild(extra);
-        }
-      });
-    });
   }
 
-  /* ================================================================
-     7. BOOTSTRAP — expose API, then inject banners if not denied
-     ================================================================ */
-  window.PECAds = { triggerAction: triggerActionAd };
+  window.PECAds = {
+    initializeVisibleBannerAdsOnly: injectVisibleBannerAdsOnly
+  };
 
   if (!DENIED) {
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", injectAds);
+      document.addEventListener("DOMContentLoaded", injectVisibleBannerAdsOnly);
     } else {
-      injectAds();
+      injectVisibleBannerAdsOnly();
     }
   }
 })();
