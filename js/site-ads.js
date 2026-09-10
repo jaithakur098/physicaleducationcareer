@@ -192,7 +192,8 @@
   }
 
   window.PECAds = {
-    initializeVisibleBannerAdsOnly: injectVisibleBannerAdsOnly
+    initializeVisibleBannerAdsOnly: injectVisibleBannerAdsOnly,
+    triggerAction: function() {}
   };
 
   if (!DENIED) {
