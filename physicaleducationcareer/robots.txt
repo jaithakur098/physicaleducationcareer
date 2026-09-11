@@ -68,8 +68,7 @@ Disallow: /scripts/
 Disallow: /data/
 Disallow: /node_modules/
 Disallow: /public/
-
-User-agent: Mediapartners-Google
-Allow: /
+Disallow: /student-styles.css
+Disallow: /portal-content-sitemap.xml
 
 Sitemap: https://physicaleducationcareer.in/sitemap.xml
