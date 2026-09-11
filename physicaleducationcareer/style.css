@@ -27,6 +27,13 @@ header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.95);backdro
 .nav-links a{padding:8px 12px;font-size:14px;font-weight:500;color:#3a4358;border-radius:6px;transition:.2s}
 .nav-links a:hover,.nav-links a.active{background:#eef1f7;color:var(--navy)}
 .nav-cta{display:flex;gap:8px}.nav-cta .btn{padding:8px 14px;font-size:12px}
+.search-form{display:flex;align-items:center;gap:4px;position:relative}
+.search-form input[type="search"]{padding:8px 14px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;width:160px;outline:none;transition:.2s;background:#fff;color:var(--text)}
+.search-form input[type="search"]:focus{border-color:var(--navy);width:200px}
+.search-form button{padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--navy);cursor:pointer;font-size:14px;transition:.2s}
+.search-form button:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+@media (max-width:1300px){.search-form{display:none}}
+@media (max-width:768px){.search-form{display:flex;position:absolute;top:100%;left:0;right:0;background:#fff;border-bottom:1px solid var(--border);padding:10px 20px;z-index:40}}
 .menu-toggle{display:none;background:none;border:0;font-size:24px;cursor:pointer;color:var(--navy)}
 .mobile-nav{display:none}
 
@@ -154,7 +161,7 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,.8);padding:60px 0 0}
 .portal-crumbs .sep{margin:0 8px;color:#9aa3b5}
 .portal-crumbs .cur{color:var(--muted)}
 
-/* ---- Static promotional notice (replaces removed blinking bars) ---- */
+/* ---- Static promotional notice ---- */
 .site-notice{
   background:#ffffff;
   border-top:3px solid #1e3a8a;
@@ -178,7 +185,12 @@ a.btn,button{min-height:44px}
 }
 
 
-/* ---- Missing classes for top-universities.html ---- */
+/* ---- Search form styles ---- */
+.search-form{display:inline-flex;gap:6px;align-items:center}
+.search-form input[type="search"]{padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text);font-size:13px;width:180px;outline:none;font-family:inherit}
+.search-form input[type="search"]:focus{border-color:var(--navy)}
+.search-form button{padding:6px 12px;border-radius:6px;border:0;background:var(--navy);color:#fff;cursor:pointer;font-size:13px}
+@media(max-width:1300px){.search-form{display:none}}
 .search-box input{width:100%;max-width:400px;padding:12px 20px;border-radius:12px;border:1px solid var(--border);font-size:16px;outline:none}
 .search-box input:focus{border-color:var(--navy)}
 .section-title{font-size:32px;color:var(--navy);margin-bottom:16px;text-align:center}
@@ -190,7 +202,7 @@ a.btn,button{min-height:44px}
 .state-card a{color:var(--red);font-weight:600;font-size:14px}
 .state-card a:hover{text-decoration:underline}
 
-/* ---- Accessibility & responsive additions (AdSense audit remediation) ---- */
+/* ---- Accessibility & responsive additions ---- */
 a, button, .hero-btn, .nav-link { min-height:44px; }
 nav a, .nav-link, .hero-btn, footer a { display:inline-flex; align-items:center; padding:10px 14px; }
 img { max-width:100%; height:auto; }

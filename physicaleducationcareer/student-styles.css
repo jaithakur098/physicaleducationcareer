@@ -64,7 +64,7 @@ th{color:var(--ink-mute);font-weight:600;font-size:12px;text-transform:uppercase
 .stat .l{font-size:12px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.06em}
 
 
-/* ---- Accessibility & responsive additions (AdSense audit remediation) ---- */
+/* ---- Accessibility & responsive additions ---- */
 a, button, .hero-btn, .nav-link { min-height:44px; }
 nav a, .nav-link, .hero-btn, footer a { display:inline-flex; align-items:center; padding:10px 14px; }
 img { max-width:100%; height:auto; }

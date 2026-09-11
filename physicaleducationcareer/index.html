@@ -84,13 +84,17 @@ style="color:white;font-weight:bold;text-decoration:none;" rel="noopener norefer
   <a href="#contact">Contact</a>
   <a href="tournament.html">?? Alwar Cup</a>
 </nav>
+<form class="search-form" action="search.html" method="GET">
+  <input type="search" name="q" placeholder="Search..." aria-label="Search">
+  <button type="submit" aria-label="Submit search">🔍</button>
+</form>
 <div class="nav-cta">
   <a href="https://wa.me/919828320688" target="_blank" rel="noopener" class="btn btn-whatsapp">WhatsApp</a>
   <a href="#contact" class="btn btn-primary">Apply Now</a>
 </div>
-<button class="menu-toggle" aria-label="Menu">?</button>
+<button class="menu-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mobileNav">☰</button>
 </div>
-<nav class="mobile-nav">
+<nav class="mobile-nav" id="mobileNav">
 <a href="index.html">Home</a>
 <a href="admissions.html">Admissions</a>
 <a href="cbse.html">CBSE PE</a>
@@ -108,7 +112,7 @@ style="color:white;font-weight:bold;text-decoration:none;" rel="noopener norefer
 <section class="hero" id="home">
   <div class="container">
     <span class="hero-eyebrow">Admissions Open 2026-27</span>
-    <h1>India's Trusted Platform for <span>Physical Education</span> Learning, Admissions & Career Guidance</h1>
+    <h1>Physical Education Learning, Admissions & Career Guidance</h1>
     <p>CBSE Physical Education resources, D.P.Ed.  B.P.E.S.  B.P.Ed.  M.P.Ed.  Ph.D. admissions, PYQs, study material, career guidance and expert counselling by Jai Thakur (NIS | M.P.Ed.).</p>
     <div class="hero-cta">
       <div class="govt-dropdown">
@@ -162,11 +166,11 @@ style="color:white;font-weight:bold;text-decoration:none;" rel="noopener norefer
 
       <div class="course-card">
         <div class="course-head">
-          <small>95+ SCORE</small>
+          <small>Exam Strategy</small>
           <h3>Exam Strategy</h3>
         </div>
         <div class="course-body">
-          <p>Mentor-guided preparation for top board scores.</p>
+          <p>Strategies for effective board exam preparation.</p>
           <a href="exam-strategy.html" class="btn btn-primary">Get Started</a>
         </div>
       </div>
@@ -351,9 +355,9 @@ style="color:white;font-weight:bold;text-decoration:none;" rel="noopener norefer
         <small style="color:var(--red);font-weight:700;letter-spacing:.1em">FOUNDER & MENTOR</small>
         <h2>Jai Thakur</h2>
         <div class="role">Head of Department  Delhi Public School, Alwar</div>
-        <div class="badges"><span class="badge">NIS</span><span class="badge">M.P.Ed.</span><span class="badge">10+ Years</span></div>
+        <div class="badges"><span class="badge">NIS</span><span class="badge">M.P.Ed.</span><span class="badge">B.P.Ed.</span></div>
         <p style="color:var(--muted)">
-"My mission is to guide students towards the right Physical Education career path through trusted counselling, verified colleges and practical career guidance."
+"My mission is to guide students towards the right Physical Education career path through counselling, verified colleges and practical career guidance."
 </p>
         <div class="cred-grid">
           <div>Experienced PE Educator</div>
@@ -420,7 +424,7 @@ style="color:white;font-weight:bold;text-decoration:none;" rel="noopener norefer
   </div>
 </section>
 
-<script src="config/portal-catalog.js"></script>
+<script src="config/portal-catalog.js" defer></script>
 <script>
 (function(){
   var grid = document.getElementById('portalHomeGrid');
@@ -437,7 +441,7 @@ style="color:white;font-weight:bold;text-decoration:none;" rel="noopener norefer
 <section class="cta-band" id="contact">
   <div class="container">
     <h2>Admissions Open 2026-27</h2>
-    <p>Get personalized course &amp; college guidance from India's top PE mentor.</p>
+    <p>Get personalized course &amp; college guidance from experienced PE mentors.</p>
    <form class="lead-form" action="https://formsubmit.co/phe.edu08@gmail.com" method="POST">
       <h3>Get Free Admission Guidance</h3>
       <input name="name" placeholder="Full Name" required/>
@@ -460,7 +464,7 @@ style="color:white;font-weight:bold;text-decoration:none;" rel="noopener norefer
     <div class="footer-grid">
       <div>
         <div class="logo"><span class="logo-mark">PE</span><span class="logo-text" style="color:#fff">PHYSICAL EDUCATION<small>CAREER</small></span></div>
-        <p style="margin-top:14px;font-size:14px">India's trusted platform for B.P.Ed., M.P.Ed., D.P.Ed. admissions, CBSE Physical Education notes and PET career guidance.</p>
+        <p style="margin-top:14px;font-size:14px">B.P.Ed., M.P.Ed., D.P.Ed. admissions, CBSE Physical Education notes and PET career guidance.</p>
         <div class="social"><a href="https://wa.me/919828320688" aria-label="WhatsApp">??</a></div>
       </div>
       <div>
@@ -602,7 +606,7 @@ style="color:white;font-weight:bold;text-decoration:none;" rel="noopener norefer
   </div>
 </div>
 
-<script src="config/chapters.js"></script>
+<script src="config/chapters.js" defer></script>
 <script>
 /* ============ Class ? Subject ? Chapter data ============ */
 const TS_DATA = {

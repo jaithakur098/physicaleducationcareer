@@ -52,7 +52,6 @@ Disallow: /class12-ch1-test.html
 Disallow: /class12-ch2-test.html
 Disallow: /class12-ch3-test.html
 Disallow: /coming-soon.html
-Disallow: /success-stories.html
 Disallow: /top-universities.html
 Disallow: /bped-admission-2026.html
 Disallow: /class10-papers.html
@@ -69,12 +68,6 @@ Disallow: /scripts/
 Disallow: /data/
 Disallow: /node_modules/
 Disallow: /public/
-Disallow: /resources/previous-papers/
-Disallow: /resources/mcqs/
-Disallow: /resources/entrance-preparation/
-Disallow: /resources/pet-preparation/
-Disallow: /resources/sports-rules/
-Disallow: /resources/tournament-management/
 
 User-agent: Mediapartners-Google
 Allow: /

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search — Physical Education Career</title>
+<meta name="description" content="Search Physical Education Career for notes, admissions, career guidance, and exam preparation resources.">
+<meta name="robots" content="noindex,follow">
+<link rel="canonical" href="https://physicaleducationcareer.in/search.html">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+<div class="container nav">
+<a href="index.html" class="logo">
+<span class="logo-mark">PE</span>
+<span class="logo-text">PHYSICAL EDUCATION<small>CAREER</small></span>
+</a>
+<nav class="nav-links">
+<a href="index.html">Home</a>
+<a href="search.html" class="active">Search</a>
+<a href="resources/index.html">Resources</a>
+<a href="about.html">About</a>
+</nav>
+</div>
+</header>
+<section class="block">
+<div class="container" style="max-width:700px;">
+<div class="section-head">
+<div class="section-eyebrow">Search</div>
+<h2>Find What You Need</h2>
+<p>Search for notes, admissions, career guidance, exam preparation, and more.</p>
+</div>
+<form id="searchForm" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:30px;">
+<input type="search" id="searchInput" placeholder="Search..." style="flex:1;min-width:240px;padding:12px 16px;border:1px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;" aria-label="Search">
+<button type="submit" class="btn btn-primary">Search</button>
+</form>
+<div id="searchResults">
+<p style="color:var(--muted);text-align:center;padding:40px 0;">Enter a keyword above to search the site.</p>
+</div>
+</div>
+</section>
+<footer>
+<div class="container">
+<div class="foot-bottom">© <span id="yr"></span> Physical Education Career</div>
+</div>
+</footer>
+<script>
+document.getElementById('yr').textContent=new Date().getFullYear();
+var PAGES=[
+{url:'index.html',title:'Home',content:'CBSE PE notes admissions CBSE physical education D.P.Ed B.P.Ed M.P.Ed Ph.D PYQs study material career guidance Jai Thakur NIS MPEd'},
+{url:'admissions.html',title:'Admissions',content:'admissions D.P.Ed B.P.E.S B.P.Ed M.P.Ed Ph.D admissions guidance counselling NCTE approved universities'},
+{url:'cbse.html',title:'CBSE PE',content:'CBSE Class 10 11 12 Physical Education notes MCQs practical files PYQs board exam preparation'},
+{url:'board-preparation.html',title:'Board Preparation',content:'board preparation MCQs sample papers PYQs practical files exam strategy'},
+{url:'exam-strategy.html',title:'Exam Strategy',content:'exam strategy mentor preparation board scores revision tips'},
+{url:'downloads.html',title:'Downloads',content:'downloads notes syllabi practical files sample papers B.P.Ed M.P.Ed PDF'},
+{url:'pet-career.html',title:'PET Career',content:'PET PTI Physical Education Teacher roadmap qualification government exams selection interview'},
+{url:'govt-pti.html',title:'Govt PTI Jobs',content:'government PTI PET jobs teacher recruitment KVS NVS DSSSB CTET REET'},
+{url:'about.html',title:'About',content:'about Physical Education Career founder Jai Thakur mission vision'},
+{url:'contact.html',title:'Contact',content:'contact admissions enquiry counselling phone email WhatsApp'},
+{url:'editorial-policy.html',title:'Editorial Policy',content:'editorial policy content guidelines accuracy transparency'},
+{url:'privacy-policy.html',title:'Privacy Policy',content:'privacy policy data protection cookies GDPR'},
+{url:'terms.html',title:'Terms',content:'terms conditions use of website disclaimer liability'},
+{url:'disclaimer.html',title:'Disclaimer',content:'disclaimer information accuracy liability responsibility'},
+{url:'resources/index.html',title:'Resources',content:'resources study material previous papers MCQs practical files'},
+{url:'resources/cbse/index.html',title:'CBSE Resources',content:'CBSE resources notes syllabus sample papers admit cards'},
+{url:'resources/practical/index.html',title:'Practical Files',content:'practical files templates CBSE PE practical file viva preparation'},
+{url:'resources/mcqs/index.html',title:'MCQs',content:'MCQs multiple choice questions practice'},
+{url:'resources/previous-papers/index.html',title:'Previous Papers',content:'previous year papers solved papers answer keys'},
+{url:'resources/entrance-preparation/index.html',title:'Entrance Preparation',content:'entrance preparation B.P.Ed physical fitness test'},
+{url:'resources/pet-preparation/index.html',title:'PET Preparation',content:'PET PTI preparation physical and written'},
+{url:'resources/sports-rules/index.html',title:'Sports Rules',content:'sports rules school sports event formats'},
+{url:'resources/tournament-management/index.html',title:'Tournament Management',content:'tournament management school tournament checklist'},
+{url:'pe-lesson-planning.html',title:'PE Lesson Planning',content:'physical education lesson planning'},
+{url:'sports-injury-prevention-pe.html',title:'Sports Injury Prevention',content:'sports injury prevention physical education'},
+{url:'pe-teacher-interview-questions.html',title:'PE Teacher Interview',content:'PE teacher interview questions answers'},
+{url:'fitness-assessment-in-schools.html',title:'Fitness Assessment',content:'fitness assessment in schools'},
+{url:'taekwondo-coaching-for-schools.html',title:'Taekwondo Coaching',content:'taekwondo coaching for schools'},
+{url:'bped.html',title:'B.P.Ed',content:'B.P.Ed Bachelor of Physical Education admission course'},
+{url:'bpes.html',title:'B.P.E.S',content:'B.P.E.S Bachelor of PE and Sports admission course'},
+{url:'dped.html',title:'D.P.Ed',content:'D.P.Ed Diploma in Physical Education admission'},
+{url:'mped-admission-2026.html',title:'M.P.Ed Admission',content:'M.P.Ed Master of Physical Education admission'},
+{url:'phd.html',title:'Ph.D PE',content:'Ph.D Physical Education research admission'},
+{url:'cbse-tournament.html',title:'CBSE Tournament',content:'CBSE tournament information registration'},
+{url:'tournament.html',title:'Tournament',content:'tournament Alwar Cup management'},
+{url:'cbse-papers.html',title:'CBSE Papers',content:'CBSE previous year papers sample papers'},
+{url:'class11-papers.html',title:'Class 11 Papers',content:'Class 11 previous year papers'},
+{url:'class12-papers.html',title:'Class 12 Papers',content:'Class 12 previous year papers'},
+{url:'class12-pyq.html',title:'Class 12 PYQ',content:'Class 12 previous year question papers'},
+{url:'admissions.html',title:'Admissions',content:'admissions'},
+{url:'govt-jobs.html',title:'Govt Jobs',content:'government jobs latest vacancies'},
+{url:'rajasthan-govt-jobs.html',title:'Rajasthan Govt Jobs',content:'Rajasthan government jobs'},
+{url:'teacher-jobs.html',title:'Teacher Jobs',content:'teacher jobs recruitment'},
+{url:'sports-govt-jobs.html',title:'Sports Govt Jobs',content:'sports government jobs'},
+{url:'central-govt-jobs.html',title:'Central Govt Jobs',content:'central government jobs'},
+{url:'govt-jobs-list.html',title:'Govt Jobs List',content:'government jobs list'},
+{url:'rajasthan-universities.html',title:'Rajasthan Universities',content:'Rajasthan universities admissions'},
+{url:'university-of-rajasthan.html',title:'University of Rajasthan',content:'University of Rajasthan'},
+{url:'kurukshetra-university.html',title:'Kurukshetra University',content:'Kurukshetra University'},
+{url:'nims-university.html',title:'NIMS University',content:'NIMS University'},
+{url:'jjt-university.html',title:'JJT University',content:'JJT University'},
+{url:'lords-university.html',title:'Lords University',content:'Lords University'},
+{url:'tantia-university.html',title:'Tantia University',content:'Tantia University'},
+{url:'bhupal-nobles-university.html',title:'Bhupal Nobles University',content:'Bhupal Nobles University'},
+{url:'singhania-university.html',title:'Singhania University',content:'Singhania University'},
+{url:'mewar-university.html',title:'Mewar University',content:'Mewar University'},
+{url:'opjs-university.html',title:'OPJS University',content:'OPJS University'},
+{url:'madhav-university.html',title:'Madhav University',content:'Madhav University'},
+{url:'physical-education-career-scope.html',title:'PE Career Scope',content:'physical education career scope salary jobs'},
+{url:'bped-admission-2026.html',title:'B.P.Ed Admission 2026',content:'B.P.Ed admission 2026'},
+{url:'class10-papers.html',title:'Class 10 Papers',content:'Class 10 papers'},
+{url:'old-pyq.html',title:'Old PYQ',content:'old previous year question papers'},
+{url:'success-stories.html',title:'Success Stories',content:'student success stories achievements'},
+{url:'coming-soon.html',title:'Coming Soon',content:'coming soon'},
+{url:'live-test.html',title:'Live Test',content:'live test'},
+{url:'live-tests.html',title:'Live Tests',content:'live tests'},
+{url:'tests/mcq-engine.html',title:'MCQ Engine',content:'MCQ engine online tests'},
+{url:'certificate.html',title:'Certificate',content:'certificate'},
+{url:'certificate-verify.html',title:'Verify Certificate',content:'verify certificate'}
+];
+var form=document.getElementById('searchForm');
+var input=document.getElementById('searchInput');
+var results=document.getElementById('searchResults');
+form.addEventListener('submit',function(e){
+e.preventDefault();
+var q=(input.value||'').toLowerCase().trim();
+if(!q){results.innerHTML='<p style="color:var(--muted);text-align:center;">Enter a keyword to search.</p>';return;}
+var matches=PAGES.filter(function(p){return (p.title+' '+p.content).toLowerCase().includes(q);});
+if(!matches.length){results.innerHTML='<p style="color:var(--muted);text-align:center;padding:40px 0;">No results for "<strong>'+esc(q)+'</strong>". Try different keywords.</p>';return;}
+var html='<h3>Results</h3><ul style="list-style:none;padding:0;">';
+matches.forEach(function(m){
+html+='<li style="padding:12px 0;border-bottom:1px solid var(--border);"><a href="'+m.url+'" style="font-weight:600;color:var(--navy);">'+m.title+'</a><br><small style="color:var(--muted);">'+m.url+'</small></li>';
+});
+html+='</ul>';
+results.innerHTML=html;
+});
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+input.focus();
+</script>
+</body>
+</html>

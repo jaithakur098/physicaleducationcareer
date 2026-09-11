@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded',()=>{
   const t=document.querySelector('.menu-toggle'),m=document.querySelector('.mobile-nav');
-  if(t&&m)t.addEventListener('click',()=>m.classList.toggle('open'));
+  if(t&&m){t.addEventListener('click',()=>{m.classList.toggle('open');t.setAttribute('aria-expanded',m.classList.contains('open')?'true':'false');});}
 
   const io=new IntersectionObserver((ents)=>{
     ents.forEach(e=>{
