@@ -1,0 +1,8 @@
+node_modules/
+public/
+*.py
+*.ps1
+*.log
+*.tmp
+.env
+.env.*

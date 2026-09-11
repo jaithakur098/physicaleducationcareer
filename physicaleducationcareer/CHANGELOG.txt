@@ -1,0 +1,82 @@
+CHANGELOG — PEEngine Updated Files (Complete Bundle)
+====================================================
+
+config/question-bank.js
+  - Single shared loader used by Question Bank, Practice Tests, Live Tests
+    and both student attempt engines.
+  - normalizeQuestion(raw): accepts every alias for options
+    (a/b/c/d, A..D, optionA..D, option_a..d, opt1..4, choiceA..D,
+    options[]) and correct-answer keys (correct, correctAnswer,
+    correctOption, answer, ans, correctIndex — letter, number or option
+    text). Writes BOTH cls/subject/chapter AND classId/subjectId/chapterId.
+  - validateNormalized(q): rejects empty question text, <2 filled options,
+    invalid correct answer, missing class / subject / chapter.
+  - questionMatches / variants / filterQuestions: normalise both sides so
+    "class12" == "Class 12" == "12", "chapter1" == "Ch 1" == "1", and
+    composite ids ("class12__physical-education__chapter1") collapse to
+    their last segment.
+  - getQuestionsForTest(test): honours test.questionIds if present, else
+    filters by class/subject/chapter and shuffles.
+  - toLetterQuestion / toEngineQuestion: adapters used by all attempt UIs.
+
+config/admin-data.js
+  - listQuestions(): NO orderBy('createdAt'), NO limit — bulk-imported
+    rows without createdAt are no longer silently dropped.
+  - saveQuestion / updateQuestion: dual-write cls<->classId,
+    subject<->subjectId, chapter<->chapterId every time.
+  - migrateAllQuestions(): one-click Repair/Migrate. Resolves labels or
+    slugs back to canonical master-data ids, only patches missing /
+    garbage class/subject/chapter fields, backfills createdAt, flags
+    unrepairable rows with _needsReview:true. Never touches question text,
+    options, answer, explanation or document ids.
+  - listPublishedTests / togglePublish: unchanged, but confirmed to filter
+    on isPublished == true so students see every published live test.
+
+config/practice-data.js
+  - QuestionBank reference is now resolved lazily inside every helper.
+    Fixes "No questions available for this selection" when practice-data.js
+    loaded before question-bank.js.
+  - listPublished(): where('isPublished','==',true), then client-side sort
+    on createdAt so docs without the field are not dropped.
+
+config/student-data.js
+  - QuestionBank lookup is now lazy — script order between
+    question-bank.js and student-data.js no longer matters.
+  - Student.getTestQuestions(): always routes through
+    QuestionBank.getQuestionsForTest so live tests and practice tests use
+    the same matching rules. Robust fallback if QB is truly missing.
+  - Student.listActiveTests(): published-only + client-side sort with
+    startAt || createdAt fallback so tests missing startAt still list.
+
+admin.html
+  - Import button pipeline: readFile -> parse (CSV/Excel/JSON) ->
+    QuestionBank.normalizeQuestion -> QuestionBank.validateNormalized ->
+    AdminData.saveQuestion. Robust RFC-4180 CSV parser (handles quoted
+    commas / embedded quotes / CRLF).
+  - Question Bank table shows every row from listQuestions() — no
+    createdAt/limit filter — so imported rows appear immediately.
+  - Live Test Manager pool uses Practice.listAvailableQuestions (the same
+    shared loader) so what admin sees == what students get.
+  - Repair / Migrate All Questions button wired to
+    AdminData.migrateAllQuestions with progress toast.
+
+practice-test-admin.html
+  - Loads config/question-bank.js BEFORE config/practice-data.js so the
+    shared loader is available on first use.
+
+student-practice-tests.html
+  - Uses Practice.listPublished(). Loads question-bank.js and
+    practice-data.js in the correct order.
+
+student-live-tests.html
+  - Now also loads config/question-bank.js so the student engine and the
+    admin Live Test Manager pull questions with the exact same rules.
+
+student-practice-attempt.html / student-attempt.html
+  - Both load question-bank.js and rely on
+    Student.getTestQuestions / Practice.getRandomQuestions which now
+    always delegate to the shared QuestionBank loader.
+
+live-test-admin.html
+  - Unchanged legacy scheduler kept for reference. Primary live-test
+    management is in admin.html → Live Tests tab.

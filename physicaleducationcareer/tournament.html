@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>6th Alwar Cup — Taekwondo Championship Portal</title>
+  <meta name="description" content="Public portal for the Alwar Cup Taekwondo Championship: tournaments, live results, draws, medals and certificate verification.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://physicaleducationcareer.in/tournament.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tournament.css">
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="config/firebase-init.js"></script>
+  <script src="config/tournament-config.js"></script>
+  <script src="js/qrcode-generator.js"></script>
+  <script src="js/tournament-qr.js"></script>
+  <script src="js/tournament-core.js"></script>
+  <script src="js/tournament-fixture.js"></script>
+  <script src="js/tournament-printables.js"></script>
+</head>
+<body class="t-page">
+
+<header class="t-top">
+  <div class="t-wrap t-top-in">
+    <a href="tournament.html" class="t-brand">
+      <div class="t-brand-mark">??</div>
+      <div>
+        <b>6th ALWAR CUP</b>
+        <small>Taekwondo Championship</small>
+      </div>
+    </a>
+    <nav class="t-topnav t-no-print">
+      <a href="#tournaments">Tournaments</a>
+      <a href="#results">Live Results</a>
+      <a href="#draws">Draw Sheets</a>
+      <a href="#medals">Medal Tally</a>
+      <a href="#search">Player Search</a>
+      <a href="tournament-verify.html">Verify</a>
+      <a href="index.html">? Main Website</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="t-hero t-wrap">
+    <span class="t-eyebrow">6th Edition · Taekwondo</span>
+    <h1>6th Alwar Cup<br>Taekwondo Championship</h1>
+    <p>Complete tournament management — online player registration by coaches, automatic age &amp; weight categorisation, official ID cards, category draws, live results, medal tally and digital certificates.</p>
+    <div class="t-hero-actions t-no-print">
+      <a href="tournament-coach.html" class="t-btn t-btn-gold">Coach Login / Register Players</a>
+      <a href="#results" class="t-btn t-btn-ghost">View Live Results</a>
+      <a href="tournament-verify.html" class="t-btn t-btn-ghost">Verify Certificate</a>
+    </div>
+    <div class="t-grid t-g4">
+      <div class="t-stat"><div class="n" id="stTournaments">0</div><div class="l">Tournaments</div></div>
+      <div class="t-stat"><div class="n" id="stPlayers">0</div><div class="l">Registered Players</div></div>
+      <div class="t-stat"><div class="n" id="stAcademies">0</div><div class="l">Academies</div></div>
+      <div class="t-stat"><div class="n" id="stMedals">0</div><div class="l">Medals Awarded</div></div>
+    </div>
+  </section>
+
+  <section id="tournaments" class="t-section">
+    <div class="t-wrap">
+      <div class="t-sec-head">
+        <h2>Tournaments</h2>
+        <p>Upcoming, live and completed championships.</p>
+      </div>
+      <div id="tourList" class="t-grid t-g2"><div class="t-loader">Loading tournaments…</div></div>
+    </div>
+  </section>
+
+  <section id="results" class="t-section">
+    <div class="t-wrap">
+      <div class="t-sec-head">
+        <h2>Live Results</h2>
+        <p>Category-wise winners update instantly as the admin publishes them.</p>
+      </div>
+      <div class="t-card">
+        <div class="t-filters t-no-print">
+          <div class="t-field"><label>Tournament</label><select id="rTour" class="t-select"></select></div>
+          <div class="t-field"><label>Age Category</label><select id="rAge" class="t-select"><option value="">All</option></select></div>
+          <div class="t-field"><label>Gender</label><select id="rGender" class="t-select"><option value="">All</option><option value="male">Boys</option><option value="female">Girls</option></select></div>
+        </div>
+        <div id="resultBox" class="t-table-wrap"><div class="t-empty">Select a tournament.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="draws" class="t-section">
+    <div class="t-wrap">
+      <div class="t-sec-head">
+        <h2>Draw Sheets</h2>
+        <p>Official single-elimination draws published by the organising committee.</p>
+      </div>
+      <div class="t-card">
+        <div class="t-row t-no-print" style="margin-bottom:14px">
+          <select id="dCat" class="t-select" style="max-width:360px"><option value="">— Select a published draw —</option></select>
+          <button type="button" id="dPrint" class="t-btn t-btn-ghost t-btn-sm">Print / PDF</button>
+        </div>
+        <div id="drawBox" class="t-fixture-host"><div class="t-empty" style="color:#8892b2;padding:40px">Select a tournament above to load published draws.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="medals" class="t-section">
+    <div class="t-wrap">
+      <div class="t-sec-head">
+        <h2>Medal Tally</h2>
+        <p>Gold 5 pts · Silver 3 pts · Bronze 1 pt.</p>
+      </div>
+      <div class="t-card">
+        <div class="t-tabs t-medal-tabs t-no-print">
+          <button type="button" class="t-tab active" data-mt="academy">By Academy</button>
+          <button type="button" class="t-tab" data-mt="district">By District</button>
+          <button type="button" class="t-tab" data-mt="school">By School</button>
+          <button type="button" class="t-tab" data-mt="state">By State</button>
+        </div>
+        <div id="medalBox" class="t-table-wrap"><div class="t-empty">Select a tournament above.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="search" class="t-section">
+    <div class="t-wrap">
+      <div class="t-sec-head">
+        <h2>Player Search</h2>
+        <p>Search by name, registration number, academy, district or category.</p>
+      </div>
+      <div class="t-card">
+        <div class="t-filters t-no-print">
+          <div class="t-field" style="flex:2"><label>Search</label><input id="pSearch" class="t-input" placeholder="Name, reg no, academy…"></div>
+          <button type="button" id="pSearchBtn" class="t-btn t-btn-gold">Search</button>
+        </div>
+        <div id="searchBox" class="t-table-wrap"><div class="t-empty">Type a name or registration number.</div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="t-foot t-wrap">6th Alwar Cup Taekwondo Championship · A module of Physical Education Career</footer>
+
+<script>
+(function () {
+  var T = window.TCore, TF = window.TFixture, E = T.esc, D = window.TOURNAMENT_DEFAULTS;
+  var state = { tournaments: [], players: [], results: [], draws: [], medalMode: 'academy', tid: '' };
+
+  (function injectPreviewStyles() {
+    if (TF.ensureStyles) TF.ensureStyles();
+    if (document.getElementById('tournament-preview-styles')) return;
+    var s = document.createElement('style');
+    s.id = 'tournament-preview-styles';
+    document.head.appendChild(s);
+  })();
+
+  function statusChip(s) {
+    if (s === 'live') return '<span class="t-chip live">LIVE</span>';
+    if (s === 'completed') return '<span class="t-chip ok">Completed</span>';
+    return '<span class="t-chip">Upcoming</span>';
+  }
+
+  function renderTournaments() {
+    var box = document.getElementById('tourList');
+    if (!state.tournaments.length) { box.innerHTML = '<div class="t-empty">No tournaments published yet.</div>'; return; }
+    box.innerHTML = state.tournaments.map(function (t) {
+      var actions = '<a href="tournament-coach.html?t=' + encodeURIComponent(t.id) + '" class="t-btn t-btn-gold t-btn-sm">Register Players</a>' +
+        '<button type="button" class="t-btn t-btn-ghost t-btn-sm" data-jump="' + E(t.id) + '">View Results</button>';
+      if (t.publicPlayerList) {
+        actions += ' <a href="tournament-players.html?tournamentId=' + encodeURIComponent(t.id) + '" class="t-btn t-btn-ghost t-btn-sm">View Players</a>';
+      }
+      return '<div class="t-card">' +
+        '<div class="t-row" style="margin-bottom:8px"><span class="t-chip">' + E(t.sport || 'Taekwondo') + '</span>' + statusChip(t.status) + '</div>' +
+        '<h3>' + E(t.name || 'Untitled') + '</h3>' +
+        '<p class="t-sub">' + E(t.venue || 'Venue TBA') + ' · ' + T.fmtDate(t.date) + (t.city ? ' · ' + E(t.city) : '') + '</p>' +
+        '<p style="font-size:13px;color:var(--t-ink-soft);margin:10px 0">' + E(t.description || '') + '</p>' +
+        '<div class="t-row t-no-print">' + actions + '</div></div>';
+    }).join('');
+    box.querySelectorAll('[data-jump]').forEach(function (b) {
+      b.onclick = function () {
+        document.getElementById('rTour').value = b.dataset.jump;
+        loadTournamentData(b.dataset.jump);
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+      };
+    });
+  }
+
+  function fillTourSelect() {
+    document.getElementById('rTour').innerHTML = '<option value="">— Select tournament —</option>' +
+      state.tournaments.map(function (t) { return '<option value="' + E(t.id) + '">' + E(t.name || 'Untitled') + '</option>'; }).join('');
+  }
+
+  function fillAgeSelect() {
+    var r = T.getRules().ageRules, s = document.getElementById('rAge');
+    s.innerHTML = '<option value="">All</option>' + r.map(function (a) { return '<option value="' + E(a.key) + '">' + E(a.name) + '</option>'; }).join('');
+  }
+
+  function loadTournamentData(tid) {
+    state.tid = tid;
+    if (!tid) { document.getElementById('resultBox').innerHTML = '<div class="t-empty">Select a tournament.</div>'; return; }
+    document.getElementById('resultBox').innerHTML = '<div class="t-loader">Loading results…</div>';
+    Promise.all([T.listPlayers({ tournamentId: tid }), T.listResults(tid)]).then(function (r) {
+      state.players = r[0]; state.results = r[1];
+      renderResults(); renderMedals();
+    });
+    if (window.__unsubRes) window.__unsubRes();
+    window.__unsubRes = T.watchResults(tid, function (res) { state.results = res; renderResults(); renderMedals(); });
+    if (window.__unsubDraw) window.__unsubDraw();
+    window.__unsubDraw = T.watchDraws(tid, function (ds) { state.draws = ds; fillDrawSelect(); renderDraw(); });
+  }
+
+  function fillDrawSelect() {
+    var sel = document.getElementById('dCat'), cur = sel.value;
+    var list = (state.draws || []).slice().sort(function (a, b) { return String(a.categoryLabel).localeCompare(String(b.categoryLabel)); });
+    sel.innerHTML = '<option value="">— Select a published draw —</option>' + list.map(function (d) {
+      return '<option value="' + E(d.id) + '">' + E(d.categoryLabel || d.id) + ' (' + (d.entries || 0) + ' entries)</option>';
+    }).join('');
+    if (cur) sel.value = cur;
+  }
+
+  function currentTour() { return state.tournaments.filter(function (t) { return t.id === state.tid; })[0] || {}; }
+
+  function renderDraw() {
+    var id = document.getElementById('dCat').value;
+    var d = (state.draws || []).filter(function (x) { return x.id === id; })[0];
+    if (!d) {
+      document.getElementById('drawBox').innerHTML = '<div class="t-empty" style="color:#8892b2;padding:40px">No draw selected. Published draws appear here.</div>';
+      return;
+    }
+    var html = TF.renderSheet({
+      drawData: { rounds: d.rounds, placements: d.placements, byes: d.byes, size: d.size },
+      tournament: currentTour(),
+      brand: D,
+      categoryLabel: d.categoryLabel,
+      gender: d.gender,
+      weight: d.weight,
+      entries: d.entries,
+      byes: d.byes
+    });
+    document.getElementById('drawBox').innerHTML = html;
+  }
+
+  document.getElementById('dCat').onchange = renderDraw;
+  document.getElementById('dPrint').onclick = function () {
+    if (!document.getElementById('dCat').value) return T.toast('Select a draw first', 'error');
+    var id = document.getElementById('dCat').value;
+    var d = (state.draws || []).filter(function (x) { return x.id === id; })[0];
+    var html = TF.renderPrintSheet({
+      drawData: { rounds: d.rounds, placements: d.placements, byes: d.byes, size: d.size },
+      tournament: currentTour(),
+      brand: D,
+      categoryLabel: d.categoryLabel,
+      gender: d.gender,
+      weight: d.weight,
+      entries: d.entries,
+      byes: d.byes
+    });
+    T.printHTML('Draw Sheet — ' + (d.categoryLabel || ''), html, TF.printCSS(), true);
+  };
+
+  function pname(id) {
+    var p = state.players.filter(function (x) { return x.id === id; })[0];
+    return p ? p.name + ' (' + (p.academy || '—') + ')' : '—';
+  }
+
+  function renderResults() {
+    var age = document.getElementById('rAge').value, g = document.getElementById('rGender').value;
+    var rows = state.results.filter(function (r) {
+      return (!age || r.ageKey === age) && (!g || r.gender === g) && r.published !== false;
+    });
+    var box = document.getElementById('resultBox');
+    if (!rows.length) { box.innerHTML = '<div class="t-empty">No results published for this selection yet.</div>'; return; }
+    box.innerHTML = '<table class="t-table"><thead><tr><th>Category</th><th>?? Gold</th><th>?? Silver</th><th>?? Bronze</th><th>?? Bronze</th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        return '<tr><td>' + E(r.categoryLabel || '') + '</td>' +
+          '<td>' + E(pname(r.gold)) + '</td><td>' + E(pname(r.silver)) + '</td>' +
+          '<td>' + E(pname(r.bronze1)) + '</td><td>' + E(pname(r.bronze2)) + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  function renderMedals() {
+    var rows = T.medalTable(state.results, state.players, state.medalMode);
+    var box = document.getElementById('medalBox');
+    if (!rows.length) { box.innerHTML = '<div class="t-empty">No medals awarded yet.</div>'; return; }
+    var col = state.medalMode === 'academy' ? 'Academy' : (state.medalMode === 'district' ? 'District' : (state.medalMode === 'school' ? 'School' : 'State'));
+    box.innerHTML = '<table class="t-table"><thead><tr><th>#</th><th>' + col + '</th><th>??</th><th>??</th><th>??</th><th>Pts</th></tr></thead><tbody>' +
+      rows.map(function (r, i) {
+        return '<tr><td>' + (i + 1) + '</td><td>' + E(r.name) + '</td><td>' + r.gold + '</td><td>' + r.silver + '</td><td>' + r.bronze + '</td><td>' + r.points + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  function renderSearch() {
+    var q = document.getElementById('pSearch').value.trim().toLowerCase();
+    var box = document.getElementById('searchBox');
+    if (!q) { box.innerHTML = '<div class="t-empty">Type a name or registration number.</div>'; return; }
+    box.innerHTML = '<div class="t-loader">Searching…</div>';
+    T.listPlayers(state.tid ? { tournamentId: state.tid } : null).then(function (all) {
+      var rows = all.filter(function (p) {
+        return [p.name, p.regNo, p.academy, p.district, p.state, p.categoryLabel]
+          .some(function (v) { return String(v || '').toLowerCase().indexOf(q) > -1; });
+      }).filter(function (p) { return p.status === 'approved'; });
+      if (!rows.length) { box.innerHTML = '<div class="t-empty">No approved players matched "' + E(q) + '".</div>'; return; }
+      box.innerHTML = '<table class="t-table"><thead><tr><th>Reg No</th><th>Name</th><th>Category</th><th>Academy</th><th>District</th></tr></thead><tbody>' +
+        rows.map(function (p) {
+          return '<tr><td>' + E(p.regNo || '—') + '</td><td>' + E(p.name) + '</td><td>' + E(p.categoryLabel || '—') + '</td><td>' + E(p.academy || '—') + '</td><td>' + E(p.district || '—') + '</td></tr>';
+        }).join('') + '</tbody></table>';
+    });
+  }
+
+  function loadStats() {
+    Promise.all([T.listPlayers(null), T.listResults(null)]).then(function (r) {
+      var players = r[0], results = r[1];
+      document.getElementById('stPlayers').textContent = players.length;
+      var acad = {}; players.forEach(function (p) { if (p.academy) acad[p.academy] = 1; });
+      document.getElementById('stAcademies').textContent = Object.keys(acad).length;
+      var m = 0; results.forEach(function (x) { ['gold', 'silver', 'bronze1', 'bronze2'].forEach(function (k) { if (x[k]) m++; }); });
+      document.getElementById('stMedals').textContent = m;
+    }).catch(function () {});
+  }
+
+  document.getElementById('rTour').onchange = function () { loadTournamentData(this.value); };
+  document.getElementById('rAge').onchange = renderResults;
+  document.getElementById('rGender').onchange = renderResults;
+  document.getElementById('pSearchBtn').onclick = renderSearch;
+  document.getElementById('pSearch').addEventListener('keydown', function (e) { if (e.key === 'Enter') renderSearch(); });
+  document.querySelectorAll('[data-mt]').forEach(function (tab) {
+    tab.onclick = function () {
+      document.querySelectorAll('[data-mt]').forEach(function (x) { x.classList.remove('active'); });
+      tab.classList.add('active');
+      state.medalMode = tab.dataset.mt;
+      renderMedals();
+    };
+  });
+
+  T.loadCategoryRules().then(fillAgeSelect);
+  T.watchTournaments(function (list) {
+    state.tournaments = list.sort(function (a, b) { return String(b.date || '').localeCompare(String(a.date || '')); });
+    document.getElementById('stTournaments').textContent = list.length;
+    renderTournaments();
+    fillTourSelect();
+    var qp = new URLSearchParams(location.search).get('t');
+    if (qp) { document.getElementById('rTour').value = qp; loadTournamentData(qp); }
+    else if (!state.tid && list.length) {
+      var live = list.filter(function (t) { return t.status === 'live'; })[0] || list[0];
+      document.getElementById('rTour').value = live.id;
+      loadTournamentData(live.id);
+    }
+  });
+loadStats();
+ })();
+</script>
+  
+
+
+</body>
+</html>
+
