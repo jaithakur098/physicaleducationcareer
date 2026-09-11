@@ -140,6 +140,20 @@ footer{background:var(--navy-deep);color:rgba(255,255,255,.8);padding:60px 0 0}
 }
 @media (max-width:480px){.footer-grid{grid-template-columns:1fr}.topbar .container span{display:none}}
 
+/* Breadcrumb styles */
+.breadcrumb{font-family:'Inter',system-ui,sans-serif;font-size:13px;color:var(--muted);padding:12px 0}
+.breadcrumb a{color:var(--navy);text-decoration:none;font-weight:500}
+.breadcrumb a:hover{color:var(--red)}
+.breadcrumb span[aria-hidden="true"]{margin:0 8px;color:#9aa3b5}
+.breadcrumb .current{color:var(--muted)}
+
+/* Portal crumbs */
+.portal-crumbs{font-family:'Inter',system-ui,sans-serif;font-size:13px;color:var(--muted);padding:12px 0}
+.portal-crumbs a{color:var(--navy);text-decoration:none;font-weight:500}
+.portal-crumbs a:hover{color:var(--red)}
+.portal-crumbs .sep{margin:0 8px;color:#9aa3b5}
+.portal-crumbs .cur{color:var(--muted)}
+
 /* ---- Static promotional notice (replaces removed blinking bars) ---- */
 .site-notice{
   background:#ffffff;
