@@ -235,7 +235,7 @@
 (function () {
   var T = window.TCore, TP = window.TPrint, E = T.esc, D = window.TOURNAMENT_DEFAULTS;
   var S = { user: null, coach: null, tournaments: [], players: [], results: [], resultMap: {},
-            resultFilter: '', playerListener: null, resultListener: null };
+            resultFilter: '', playerListener: null, resultListener: null, photoUpload: null };
 
   (function injectPreviewStyles() {
     if (!window.TPrint || document.getElementById('tournament-preview-styles')) return;
@@ -344,17 +344,27 @@ if (!user) { showLogin(); return; }
 
   function boot() {
     T.loadCategoryRules().then(recalc);
-    T.listTournaments().then(function (list) {
-      S.tournaments = list;
-      var opts = list.map(function (t) { return '<option value="' + E(t.id) + '">' + E(t.name) + ' — ' + T.fmtDate(t.date) + '</option>'; }).join('');
-      document.querySelector('#playerForm [name=tournamentId]').innerHTML = '<option value="">— Select —</option>' + opts;
-      document.getElementById('myTourFilter').innerHTML = '<option value="">All tournaments</option>' + opts;
-      var qp = new URLSearchParams(location.search).get('t');
-      if (qp) document.querySelector('#playerForm [name=tournamentId]').value = qp;
-      else if (list.length) document.getElementById('myTourFilter').value = list[0].id;
-    });
     T.getCoach(S.user.uid).then(function (c) {
       S.coach = c || {};
+      T.participatedTournaments(S.user.uid).then(function (list) {
+        S.participatedTournaments = list || [];
+        S.participatedIds = (list || []).map(function (t) { return t.id; });
+        T.listTournaments().then(function (list) {
+          S.tournaments = list.filter(function (t) {
+            return t.status !== 'completed' || (S.participatedIds || []).indexOf(t.id) > -1;
+          });
+          var opts = S.tournaments.map(function (t) { return '<option value="' + E(t.id) + '">' + E(t.name) + ' — ' + T.fmtDate(t.date) + '</option>'; }).join('');
+          document.querySelector('#playerForm [name=tournamentId]').innerHTML = '<option value="">— Select —</option>' + opts;
+          document.getElementById('myTourFilter').innerHTML = '<option value="">All tournaments</option>' + opts;
+          var qp = new URLSearchParams(location.search).get('t');
+          if (qp && S.tournaments.some(function (t) { return t.id === qp; })) {
+            document.querySelector('#playerForm [name=tournamentId]').value = qp;
+            document.getElementById('myTourFilter').value = qp;
+          } else if (S.tournaments.length) {
+            document.getElementById('myTourFilter').value = S.tournaments[0].id;
+          }
+        });
+      });
       var f = document.getElementById('coachForm');
       f.name.value = (c && c.name) || S.user.displayName || '';
       f.email.value = S.user.email || '';
@@ -387,8 +397,16 @@ if (!user) { showLogin(); return; }
      loadCerts();
   }
 
+  function selectedTournament() {
+    var tid = currentTournamentId();
+    var t = S.tournaments.filter(function (x) { return x.id === tid; })[0];
+    if (t) return t;
+    if (S.tournaments.length) return S.tournaments[0];
+    return { name: D.brandLine || 'Tournament', venue: D.eventLocation || '' };
+  }
+
   function activeTournament() {
-    return S.tournaments[0] || { name: D.brandLine || 'Tournament', venue: D.eventLocation || '' };
+    return selectedTournament();
   }
 
   function renderCoachIdCard() {
@@ -444,28 +462,46 @@ document.getElementById('btnPrintCoachIdCard').onclick = function () {
 
   document.querySelector('#coachForm [name=photoFile]').onchange = function (e) {
     var f = e.target.files[0]; if (!f) return;
-    T.uploadImage(f, 'tournament/coaches').then(function (url) {
-      S.photoCoach = url; document.getElementById('coachPhotoPrev').src = url; T.toast('Photo uploaded', 'success');
-    }).catch(function (err) { T.toast(err.message, 'error'); });
+    var input = e.target;
+    input.disabled = true;
+    S.photoUpload = T.uploadImage(f, 'tournament/coaches').then(function (url) {
+      S.photoCoach = url;
+      var preview = document.getElementById('coachPhotoPrev');
+      if (preview) { preview.src = url; preview.style.display = ''; }
+      T.toast('Photo uploaded', 'success');
+      return url;
+    }).catch(function (err) {
+      S.photoUpload = null;
+      input.disabled = false;
+      T.toast(err.message || 'Photo upload failed', 'error');
+    });
   };
 
   document.getElementById('coachForm').onsubmit = function (e) {
     e.preventDefault();
     var f = e.target;
-    var data = {
-      uid: S.user.uid, name: f.name.value.trim(), email: S.user.email || '', phone: f.phone.value.trim(),
-      academy: f.academy.value.trim(), district: f.district.value.trim(), state: f.state.value.trim(),
-      address: f.address.value.trim(), experience: Number(f.experience.value || 0), photo: S.photoCoach,
-      coachId: (S.coach && S.coach.coachId) || '', status: (S.coach && S.coach.status) || 'pending',
-      idCardGenerated: !!(S.coach && S.coach.idCardGenerated),
-      idCardGeneratedAt: (S.coach && S.coach.idCardGeneratedAt) || null
+    var save = function () {
+      var data = {
+        uid: S.user.uid, name: f.name.value.trim(), email: S.user.email || '', phone: f.phone.value.trim(),
+        academy: f.academy.value.trim(), district: f.district.value.trim(), state: f.state.value.trim(),
+        address: f.address.value.trim(), experience: Number(f.experience.value || 0), photo: S.photoCoach,
+        coachId: (S.coach && S.coach.coachId) || '', status: (S.coach && S.coach.status) || 'pending',
+        idCardGenerated: !!(S.coach && S.coach.idCardGenerated),
+        idCardGeneratedAt: (S.coach && S.coach.idCardGeneratedAt) || null
+      };
+      T.saveCoach(S.user.uid, data).then(function (saved) {
+        S.coach = Object.assign({}, S.coach, saved);
+        S.photoUpload = null;
+        document.getElementById('coachIdLbl').textContent = saved.coachId;
+        renderCoachIdCard();
+        T.toast('Profile saved', 'success');
+      }).catch(function (err) { T.toast(err.message, 'error'); });
     };
-    T.saveCoach(S.user.uid, data).then(function (saved) {
-      S.coach = Object.assign({}, S.coach, saved);
-      document.getElementById('coachIdLbl').textContent = saved.coachId;
-      renderCoachIdCard();
-      T.toast('Profile saved', 'success');
-    }).catch(function (err) { T.toast(err.message, 'error'); });
+    if (S.photoUpload) {
+      S.photoUpload.then(save).catch(function (err) { T.toast(err.message || 'Photo upload failed', 'error'); });
+    } else {
+      save();
+    }
   };
 
   function recalc() {
@@ -541,7 +577,14 @@ T.savePlayer(data, editing || null, t.date).then(function () {
   function watchTournament() {
     unsubscribeListeners();
     var tid = currentTournamentId();
-    S.playerListener = T.watchPlayers(tid ? { tournamentId: tid } : null, function (list) {
+    if (tid && !S.tournaments.some(function (t) { return t.id === tid; })) {
+      T.toast('That tournament is not available for your account', 'error');
+      var tf = document.getElementById('myTourFilter');
+      if (tf) tf.value = '';
+      tid = '';
+    }
+    var playerFilter = tid ? { tournamentId: tid, coachUid: S.user.uid } : { coachUid: S.user.uid };
+    S.playerListener = T.watchPlayers(playerFilter, function (list) {
       S.players = list.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
       renderPlayers();
       renderCards();
@@ -553,8 +596,8 @@ T.savePlayer(data, editing || null, t.date).then(function () {
       renderCoachResults();
       renderCoachMedals();
     });
-    var tf = document.getElementById('myTourFilter');
-    if (tf) tf.onchange = function () { watchTournament(); };
+    var tf2 = document.getElementById('myTourFilter');
+    if (tf2) tf2.onchange = function () { watchTournament(); };
   }
 
   function statusChip(s) {
@@ -760,11 +803,20 @@ var cert = T.buildPlayerCert(p, t, medal);
   function loadCerts() {
     if (!S.user) return;
     T.listCertificates(null).then(function (all) {
-      var mine = all.filter(function (c) {
-        if (c.holderType === 'coach' && c.holderId === S.user.uid) return true;
-        return S.players.some(function (p) { return p.id === c.holderId && p.coachUid === S.user.uid; }) ||
-          (c.academy && S.coach && c.academy === S.coach.academy);
-      });
+      var allowedIds = S.tournaments.map(function (t) { return t.id; });
+      var allowed = {};
+      allowedIds.forEach(function (id) { allowed[id] = true; });
+      Promise.all(allowedIds.map(function (tid) {
+        return T.listPlayers({ tournamentId: tid, coachUid: S.user.uid }).catch(function () { return []; });
+      })).then(function (playerLists) {
+        var allPlayers = [];
+        playerLists.forEach(function (list) { allPlayers = allPlayers.concat(list || []); });
+        var mine = all.filter(function (c) {
+          if (c.tournamentId && !allowed[c.tournamentId]) return false;
+          if (c.holderType === 'coach' && c.holderId === S.user.uid) return true;
+          return allPlayers.some(function (p) { return p.id === c.holderId && p.coachUid === S.user.uid; }) ||
+            (c.academy && S.coach && c.academy === S.coach.academy);
+        });
       var box = document.getElementById('certsBox');
       if (!mine.length) { box.innerHTML = '<div class="t-empty">No certificates issued yet.</div>'; return; }
       box.innerHTML = '<table class="t-table"><thead><tr><th>Cert No</th><th>Name</th><th>Type</th><th>Category</th><th>Tournament</th><th></th></tr></thead><tbody>' +
@@ -779,11 +831,15 @@ var cert = T.buildPlayerCert(p, t, medal);
           printCert(c);
         };
       });
-    });
-  }
-
-function printCert(c) {
+       });
+     });
+   }
+     function printCert(c) {
      if (!c) return;
+     if (c.tournamentId && !S.tournaments.some(function (x) { return x.id === c.tournamentId; })) {
+       T.toast('This certificate is not available for your account', 'error');
+       return;
+     }
      var t = S.tournaments.filter(function (x) { return x.id === c.tournamentId; })[0] || {};
     var isMerit = c.type && c.type.indexOf('Merit') >= 0;
     var html = isMerit ? TP.meritCertHTML(c, t, D) : TP.participationCertHTML(c, t, D);

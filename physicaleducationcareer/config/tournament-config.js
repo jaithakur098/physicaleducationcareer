@@ -35,11 +35,11 @@
   };
 
   root.TOURNAMENT_DEFAULTS = {
-    moduleName: '6th ALWAR CUP TAEKWONDO CHAMPIONSHIP',
-    shortName: '6th Alwar Cup',
-    edition: '6th',
+    moduleName: 'SMART TAEKWONDO MODULE',
+    shortName: 'Smart Taekwondo Module',
+    edition: 'Smart',
     sport: 'Taekwondo',
-    brandLine: '6th ALWAR CUP TAEKWONDO CHAMPIONSHIP',
+    brandLine: 'SMART TAEKWONDO MODULE',
     eventFullName: '6TH ALWAR CUP TAEKWONDO CHAMPIONSHIP 2026',
     eventYear: '2026',
     eventLocation: 'ALWAR, RAJASTHAN',

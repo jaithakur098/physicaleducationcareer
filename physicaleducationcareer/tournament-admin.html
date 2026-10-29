@@ -150,7 +150,14 @@
               <div class="t-field"><label>Registration Closes</label><input class="t-input" type="date" name="regClose"></div>
               <div class="t-field"><label>Entry Fee (₹)</label><input class="t-input" type="number" name="fee" min="0"></div>
             </div>
-            <div class="t-field"><label>Logo</label><input class="t-input" type="file" name="logoFile" accept="image/*"></div>
+            <div class="t-field"><label>Tournament Logo</label><input class="t-input" type="file" name="logoFile" accept="image/*"></div>
+            <div class="t-field"><label>Certificate Template</label><select class="t-select" name="certificateTemplate"><option value="1">Template 1</option><option value="2">Template 2</option><option value="3">Template 3</option><option value="4">Template 4</option><option value="5">Template 5</option></select></div>
+            <div class="t-field"><label>ID Card Template</label><select class="t-select" name="idCardTemplate"><option value="1">Template 1</option><option value="2">Template 2</option><option value="3">Template 3</option><option value="4">Template 4</option><option value="5">Template 5</option></select></div>
+            <div class="t-field"><label>Certificate Authority Name</label><input class="t-input" name="certificateAuthority"></div>
+            <div class="t-field"><label>Certificate Designation</label><input class="t-input" name="certificateDesignation"></div>
+            <div class="t-field"><label>Certificate Logo</label><input class="t-input" type="file" name="certLogoFile" accept="image/*"></div>
+            <div class="t-field"><label>Certificate Signature</label><input class="t-input" type="file" name="certSignatureFile" accept="image/*"></div>
+            <div class="t-field"><label>ID Card Logo</label><input class="t-input" type="file" name="idCardLogoFile" accept="image/*"></div>
             <div class="t-field"><label>Description</label><textarea class="t-textarea" name="description"></textarea></div>
             <div class="t-row">
               <button type="button" id="btnTourReset" class="t-btn t-btn-ghost">Clear</button>
@@ -223,6 +230,11 @@
               <small class="t-dz-hint">Competitors sheet required · Max 10 MB</small>
             </div>
             <div id="fileInfo" class="t-dz-info t-hide"></div>
+          </div>
+          <div class="t-field" id="importCoachField" class="t-hide" style="margin-top:12px">
+            <label>Import as coach (ownership)</label>
+            <select class="t-select" id="importCoach"><option value="">— Select coach —</option></select>
+            <small class="t-dz-info">Players will be owned by the selected coach so they appear in that coach’s portal.</small>
           </div>
         </div>
 
@@ -386,6 +398,11 @@
         <h3>Export Reports</h3>
         <p class="t-sub">Download player lists and medal data for the active tournament.</p>
         <div class="t-grid t-g3 t-no-print" style="margin-top:16px" id="reportBtns"></div>
+        <div class="t-field t-no-print" style="margin-top:16px">
+          <button type="button" id="btnExportPlayersJson" class="t-btn t-btn-ghost">Export Players JSON</button>
+          <span id="exportPlayersStatus" class="t-hint" style="margin-left:8px"></span>
+        </div>
+        <div id="migrationPreview" class="t-no-print" style="margin-top:16px"></div>
       </div>
     </section>
 
@@ -618,7 +635,7 @@
       if (cur) setTour(cur);
       renderTourTable();
     });
-    T.watchCoaches(function (list) { S.coaches = list; renderCoaches(); });
+    T.watchCoaches(function (list) { S.coaches = list; renderCoaches(); if (window.populateImportCoaches) window.populateImportCoaches(); });
     T.listReferees().then(function (r) { S.refs = r; renderRefs(); });
   };
 
@@ -701,28 +718,47 @@
   }
 
   /* tournaments */
-  var logoUrl = '';
+  var logoUrl = '', certLogoUrl = '', certSigUrl = '', idLogoUrl = '';
   document.querySelector('#tourForm [name=logoFile]').onchange = function (e) {
     var f = e.target.files[0]; if (!f) return;
     T.uploadImage(f, 'tournament/logos').then(function (u) { logoUrl = u; T.toast('Logo uploaded', 'success'); });
+  };
+  document.querySelector('#tourForm [name=certLogoFile]').onchange = function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    T.uploadImage(f, 'tournament/certificates').then(function (u) { certLogoUrl = u; T.toast('Certificate logo uploaded', 'success'); });
+  };
+  document.querySelector('#tourForm [name=certSignatureFile]').onchange = function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    T.uploadImage(f, 'tournament/certificates').then(function (u) { certSigUrl = u; T.toast('Signature uploaded', 'success'); });
+  };
+  document.querySelector('#tourForm [name=idCardLogoFile]').onchange = function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    T.uploadImage(f, 'tournament/idcards').then(function (u) { idLogoUrl = u; T.toast('ID card logo uploaded', 'success'); });
   };
   document.getElementById('btnTourReset').onclick = function () {
     document.getElementById('tourForm').reset();
     document.querySelector('#tourForm [name=id]').value = '';
     document.querySelector('#tourForm [name=sport]').value = 'Taekwondo';
-    logoUrl = '';
+    logoUrl = ''; certLogoUrl = ''; certSigUrl = ''; idLogoUrl = '';
     document.getElementById('tourFormTitle').textContent = 'Create Tournament';
   };
   document.getElementById('tourForm').onsubmit = function (e) {
     e.preventDefault();
     var f = e.target;
     var data = {
-      name: f.name.value.trim() || '6th Alwar Cup Taekwondo Championship',
+      name: f.name.value.trim() || 'Taekwondo Championship',
       sport: f.sport.value.trim(), date: f.date.value, venue: f.venue.value.trim(),
       city: f.city.value.trim(), status: f.status.value, regClose: f.regClose.value,
-      fee: Number(f.fee.value || 0), description: f.description.value.trim()
+      fee: Number(f.fee.value || 0), description: f.description.value.trim(),
+      certificateTemplate: Number(f.certificateTemplate.value || 1),
+      idCardTemplate: Number(f.idCardTemplate.value || 1),
+      certificateAuthority: f.certificateAuthority.value.trim(),
+      certificateDesignation: f.certificateDesignation.value.trim()
     };
     if (logoUrl) data.logo = logoUrl;
+    if (certLogoUrl) data.certificateLogo = certLogoUrl;
+    if (certSigUrl) data.certificateSignature = certSigUrl;
+    if (idLogoUrl) data.idCardLogo = idLogoUrl;
     T.saveTournament(data, f.id.value || null).then(function () {
       T.toast('Tournament saved', 'success');
       document.getElementById('btnTourReset').click();
@@ -746,6 +782,11 @@
         f.date.value = t.date || ''; f.venue.value = t.venue || ''; f.city.value = t.city || '';
         f.status.value = t.status || 'upcoming'; f.regClose.value = t.regClose || '';
         f.fee.value = t.fee || ''; f.description.value = t.description || '';
+        f.certificateTemplate.value = t.certificateTemplate || 1;
+        f.idCardTemplate.value = t.idCardTemplate || 1;
+        f.certificateAuthority.value = t.certificateAuthority || '';
+        f.certificateDesignation.value = t.certificateDesignation || '';
+        logoUrl = t.logo || ''; certLogoUrl = t.certificateLogo || ''; certSigUrl = t.certificateSignature || ''; idLogoUrl = t.idCardLogo || '';
         document.getElementById('tourFormTitle').textContent = 'Edit — ' + t.name;
       };
     });
@@ -860,6 +901,102 @@
   }
   document.getElementById('btnExcel').onclick = function () { var r = exportRows(); r.length ? T.exportExcel('players', r) : T.toast('Nothing to export', 'error'); };
   document.getElementById('btnCsv').onclick = function () { var r = exportRows(); r.length ? T.exportCSV('players', r) : T.toast('Nothing to export', 'error'); };
+
+  /* -------- Export Players JSON (raw Firestore dump for migration preview) -------- */
+  document.getElementById('btnExportPlayersJson').onclick = function () {
+    exportPlayersJson();
+  };
+
+  var E = window.E || function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+
+  async function exportPlayersJson() {
+    var btn = document.getElementById('btnExportPlayersJson');
+    var status = document.getElementById('exportPlayersStatus');
+    var preview = document.getElementById('migrationPreview');
+    btn.disabled = true;
+    status.textContent = 'Exporting from Firestore…';
+    preview.innerHTML = '';
+    try {
+      var snap = await firebase.firestore().collection('players').get();
+      var players = snap.docs.map(function (d) {
+        var d2 = Object.assign({ id: d.id }, d.data());
+        return d2;
+      });
+      if (!players.length) {
+        status.textContent = 'No players found.';
+        btn.disabled = false;
+        return;
+      }
+      var blob = new Blob([JSON.stringify(players, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'players-export.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      status.textContent = 'Exported ' + players.length + ' players → players-export.json';
+      status.style.color = '#2e7d32';
+      runMigrationPreview(players);
+    } catch (e) {
+      status.textContent = 'Export failed: ' + (e.message || e);
+      status.style.color = '#c62828';
+      btn.disabled = false;
+    }
+  }
+
+  function runMigrationPreview(players) {
+    var preview = document.getElementById('migrationPreview');
+    preview.innerHTML = '';
+    if (!players || !players.length) { preview.textContent = 'No players to analyze.'; return; }
+
+    // Parse regNo sequence like ACC2026-0045 → 45
+    function parseRegNoSeq(regNo) {
+      if (regNo == null) return null;
+      var m = String(regNo).match(/-(\d{4,})\s*$/);
+      if (!m) return null;
+      return parseInt(m[1], 10) || null;
+    }
+
+    var highestByTour = {};
+    var examplesByTour = {};
+    var missing = [];
+    players.forEach(function (p) {
+      var tid = p.tournamentId;
+      if (!tid) { missing.push(p.id || p.name || 'unknown'); return; }
+      var seq = parseRegNoSeq(p.regNo);
+      if (seq == null) { missing.push((p.id || p.name || 'unknown') + ' (bad regNo: ' + p.regNo + ')'); return; }
+      if (!highestByTour[tid] || seq > highestByTour[tid]) {
+        highestByTour[tid] = seq;
+        examplesByTour[tid] = p.regNo;
+      }
+    });
+
+    var tourIds = Object.keys(highestByTour).sort();
+    if (!tourIds.length) {
+      preview.innerHTML = '<div class="t-card"><h3>Migration Preview</h3><p class="t-hint">No tournaments found in player records.</p></div>';
+      return;
+    }
+
+    var html = ['<div class="t-card"><h3>Migration Preview (read-only)</h3>',
+      '<table class="t-table"><thead><tr><th>Tournament ID</th><th>Highest Player Seq</th><th>Highest RegNo</th><th>Proposed Counter</th><th>Action</th></tr></thead><tbody>'];
+    tourIds.forEach(function (tid) {
+      var seq = highestByTour[tid];
+      var proposed = seq; // no existing counter file; start from highest player seq
+      var action = 'create';
+      html.push('<tr><td>' + E(tid) + '</td><td>' + seq + '</td><td>' + E(examplesByTour[tid]) + '</td><td>' + proposed + '</td><td>' + action + '</td></tr>');
+    });
+    html.push('</tbody></table>');
+    if (missing.length) {
+      html.push('<p class="t-hint" style="color:#c62828">Skipped ' + missing.length + ' record(s) with missing/invalid tournamentId or regNo:</p><ul>');
+      missing.slice(0, 10).forEach(function (m) { html.push('<li>' + E(m) + '</li>'); });
+      if (missing.length > 10) html.push('<li class="t-hint">…and ' + (missing.length - 10) + ' more.</li>');
+      html.push('</ul>');
+    }
+    html.push('<p class="t-hint">Run: <code>node scripts/migrate-registration-counters-preview.js --players players-export.json</code> to verify against existing counters.</p></div>');
+    preview.innerHTML = html.join('');
+  }
 
   /* category editors */
   function renderCatEditors() {
@@ -1511,6 +1648,10 @@
     var selCount = document.getElementById('impSelectionCount');
     var btnErrors = document.getElementById('btnDownloadErrors');
     var btnExecute = document.getElementById('btnImportExecute');
+    var importCoachSelect = document.getElementById('importCoach');
+    var importCoachUid = '';
+    var importCoachName = '';
+    var importCoachId = '';
 
     btnPick.onclick = function () { fileInput.click(); };
     fileInput.onchange = handleFileSelect;
@@ -2012,7 +2153,16 @@
 
       if (!toImport.length) { T.toast('No valid entries selected', 'error'); return; }
 
-      if (!confirm('Import ' + toImport.length + ' player(s) into tournament "' + (tour().name || S.tid) + '"?')) return;
+      if (!importCoachSelect || !importCoachSelect.value) {
+        T.toast('Select a coach for import ownership before importing', 'error');
+        return;
+      }
+      importCoachUid = importCoachSelect.value;
+      var selectedCoach = S.coaches.find(function (c) { return c.id === importCoachUid; }) || {};
+      importCoachName = selectedCoach.name || selectedCoach.academy || 'Imported';
+      importCoachId = selectedCoach.coachId || '';
+
+      if (!confirm('Import ' + toImport.length + ' player(s) into tournament "' + (tour().name || S.tid) + '" as coach "' + importCoachName + '"?')) return;
 
       btnExecute.disabled = true;
       btnExecute.textContent = 'Importing…';
@@ -2078,6 +2228,9 @@
         categoryId: categoryId,
         academy: p.school,
         school: p.school,
+        coachUid: importCoachUid,
+        coachName: importCoachName,
+        coachId: importCoachId,
         district: '',
         state: '',
         phone: p.phone,
@@ -2098,6 +2251,25 @@
       return sanitizePlayerData(data);
     }
     
+    function populateImportCoaches() {
+      if (!importCoachSelect) return;
+      importCoachSelect.innerHTML = '<option value="">— Select coach —</option>';
+      if (S.coaches && S.coaches.length) {
+        document.getElementById('importCoachField').classList.remove('t-hide');
+        S.coaches.forEach(function (c) {
+          var st = T.normalizeCoachStatus(c.status);
+          var label = (c.name || c.academy || 'Coach') + ' · ' + c.coachId + ' · ' + st;
+          var opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = label;
+          opt.disabled = st !== 'approved';
+          importCoachSelect.appendChild(opt);
+        });
+      } else {
+        document.getElementById('importCoachField').classList.add('t-hide');
+      }
+    }
+
     function sanitizePlayerData(data) {
       var out = {};
       Object.keys(data).forEach(function(k) {

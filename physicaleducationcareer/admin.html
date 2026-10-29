@@ -351,6 +351,7 @@
     <div class="side-title">Data</div>
     <a class="side-link" data-tab="manager" onclick="showTab('manager');return false;"><i class="fa-solid fa-file-import"></i> Import</a>
     <a class="side-link" data-tab="manager" onclick="showTab('manager');return false;"><i class="fa-solid fa-file-export"></i> Export</a>
+    <a class="side-link" data-tab="players" onclick="showTab('players');return false;"><i class="fa-solid fa-users"></i> Export Players JSON</a>
 
     <div class="side-title">System</div>
     <a class="side-link" data-tab="dashboard" onclick="showTab('dashboard');return false;"><i class="fa-solid fa-user-graduate"></i> Students</a>
@@ -651,6 +652,23 @@
             </table>
           </div>
         </div>
+      </section>
+    </div>
+
+    <!-- PLAYER EXPORT (temporary) -->
+    <div id="playersSection" style="display:none">
+      <section class="panel">
+        <div class="section-title" style="margin-bottom:16px">
+          <div>
+            <h3><i class="fa-solid fa-users"></i> Player <span style="color:var(--gold-400);font-family:'Playfair Display',serif">Export</span></h3>
+            <p style="color:var(--ink-mute);font-size:13px;margin-top:4px">Reads all documents in <b>/players</b> under the current signed-in admin session and downloads them as <code>players-export.json</code> (doc IDs included). Then runs the registration-counters migration preview automatically. Read-only: no Firestore rules changed, no writes.</p>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" id="exportPlayersBtn" onclick="exportPlayers()"><i class="fa-solid fa-file-export"></i> Export Players JSON</button>
+        </div>
+        <div id="playersExportMsg" style="margin-top:12px;font-size:13px;color:var(--ink-soft)">Click <b>Export Players JSON</b> to begin.</div>
+        <div id="playersExportWrap" style="display:none;margin-top:14px"></div>
       </section>
     </div>
 
@@ -1363,7 +1381,7 @@ async function runMigration(){
 
 /* ============ TABS ============ */
 function showTab(tab){
-  const map={dashboard:'dashboardSection', manager:'questionManagerSection', livetests:'liveTestsSection', masterdata:'masterDataSection', pending:'pendingSection'};
+  const map={dashboard:'dashboardSection', manager:'questionManagerSection', livetests:'liveTestsSection', masterdata:'masterDataSection', pending:'pendingSection', players:'playersSection'};
   Object.values(map).forEach(id=>{const el=document.getElementById(id); if(el) el.style.display='none';});
   const active=document.getElementById(map[tab]); if(active) active.style.display='';
   document.querySelectorAll('.side-link').forEach(x=>x.classList.remove('active'));
@@ -1617,8 +1635,138 @@ async function deleteMasterChapter(id){
   if(!confirm('Delete this chapter?')) return;
   startLoad();
   try{ await AdminData.deleteChapter(id); toast('Chapter deleted','success'); await renderMasterChapters(); }
-  catch(e){ toast('Delete failed: '+e.message,'danger'); }
+  catch(e){ toast('Failed: '+e.message,'danger'); }
   finally{ stopLoad(); }
+}
+
+/* ========================================================================
+   TEMP: EXPORT PLAYERS JSON + MIGRATION PREVIEW
+   Reads /players under the signed-in admin session (Firestore rules allow
+   admin read of /players), downloads players-export.json with doc IDs, then
+   runs the registration-counters migration preview automatically. Read-only.
+   ======================================================================== */
+function _firestoreValue(v){
+  if(v && typeof v.toDate === 'function') return v.toDate().toISOString();
+  if(Array.isArray(v)) return v.map(_firestoreValue);
+  if(v && typeof v === 'object'){
+    const o = {};
+    for(const k in v) o[k] = _firestoreValue(v[k]);
+    return o;
+  }
+  return v;
+}
+function cleanDoc(doc){
+  const o = { id: doc.id };
+  const data = doc.data() || {};
+  for(const k in data) o[k] = _firestoreValue(data[k]);
+  return o;
+}
+function parseRegNoSeq(regNo){
+  if(regNo == null) return null;
+  const m = String(regNo).match(/-(\d{4,})\s*$/);
+  if(!m) return null;
+  return parseInt(m[1], 10) || null;
+}
+function computeMigrationPreview(players, counters = {}){
+  const highestByTour = {}, examplesByTour = {};
+  players.forEach(function(p){
+    const tid = p.tournamentId;
+    if(!tid) return;
+    const seq = parseRegNoSeq(p.regNo);
+    if(seq == null) return;
+    if(!highestByTour[tid] || seq > highestByTour[tid]){
+      highestByTour[tid] = seq;
+      examplesByTour[tid] = p.regNo;
+    }
+  });
+  const tourIds = Object.keys(highestByTour);
+  Object.keys(counters).forEach(function(tid){ if(tourIds.indexOf(tid) === -1) tourIds.push(tid); });
+  const preview = tourIds.map(function(tid){
+    const current = counters[tid];
+    const currentCount = current ? Number(current.count || 0) : 0;
+    const highestSeq = highestByTour[tid] || 0;
+    const proposed = Math.max(currentCount, highestSeq);
+    let action = 'none';
+    if(proposed > currentCount) action = 'create-or-update';
+    else if(currentCount > highestSeq) action = 'none (keep existing higher counter)';
+    return {
+      tournamentId: tid, currentCount: currentCount, highestPlayerSeq: highestSeq,
+      highestPlayerRegNo: examplesByTour[tid] || null, proposedCount: proposed,
+      action: action,
+      payload: { count: proposed, tournamentId: tid, updatedAt: new Date().toISOString() }
+    };
+  });
+  preview.sort(function(a,b){ return a.tournamentId.localeCompare(b.tournamentId); });
+  return preview;
+}
+function renderPlayersPreview(preview, playerCount){
+  const wrap = document.getElementById('playersExportWrap');
+  let html = '<h4 style="margin:0 0 8px"><i class="fa-solid fa-magnifying-glass-chart"></i> Registration-Counters Migration Preview (read-only)</h4>'+
+    '<p style="font-size:12px;color:var(--ink-mute);margin-bottom:10px">Computed from '+playerCount+' exported player(s). Proposed counter = max(existing counter, highest player regNo sequence). Never writes to Firestore.</p>';
+  if(!preview.length){
+    html += '<div style="color:var(--ink-mute);font-size:13px">No tournamentId found in players — no counter actions proposed.</div>';
+  } else {
+    html += '<table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr>'+
+      '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--glass-border)">TournamentId</th>'+
+      '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--glass-border)">Current</th>'+
+      '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--glass-border)">Highest seq</th>'+
+      '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--glass-border)">Proposed</th>'+
+      '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--glass-border)">Action</th>'+
+      '<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--glass-border)">Highest regNo</th>'+
+    '</tr></thead><tbody>';
+    preview.forEach(function(r){
+      var color = r.action === 'create-or-update' ? 'var(--success)' : (r.action === 'none' ? 'var(--ink-mute)' : 'var(--gold-400)');
+      html += '<tr>'+
+        '<td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-family:monospace">'+escapeHtml(r.tournamentId)+'</td>'+
+        '<td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04)">'+r.currentCount+'</td>'+
+        '<td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04)">'+r.highestPlayerSeq+'</td>'+
+        '<td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04)">'+r.proposedCount+'</td>'+
+        '<td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04);color:'+color+';font-weight:600">'+escapeHtml(r.action)+'</td>'+
+        '<td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04)">'+escapeHtml(r.highestPlayerRegNo || '—')+'</td>'+
+      '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '<div style="margin-top:10px;font-size:12px;color:var(--ink-mute);max-height:200px;overflow:auto;border:1px solid var(--glass-border);border-radius:8px;background:rgba(10,22,51,.35);padding:8px">';
+    var anyUpdate = false;
+    preview.forEach(function(r){
+      if(r.action === 'create-or-update'){ anyUpdate = true;
+        html += 'firestore().collection("registrationCounters").doc("'+escapeHtml(r.tournamentId)+'").set('+JSON.stringify(r.payload)+', { merge: true });<br>';
+      }
+    });
+    if(!anyUpdate) html += '// No counter updates needed.';
+    html += '</div>';
+  }
+  wrap.innerHTML = html;
+}
+async function exportPlayers(){
+  var btn = document.getElementById('exportPlayersBtn');
+  var msg = document.getElementById('playersExportMsg');
+  var wrap = document.getElementById('playersExportWrap');
+  btn.disabled = true;
+  wrap.style.display = 'none';
+  msg.textContent = 'Reading /players…';
+  try{
+    var snap = await db.collection('players').get();
+    var players = snap.docs.map(cleanDoc);
+    var blob = new Blob([JSON.stringify(players, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'players-export.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    msg.innerHTML = '<span style="color:var(--success)">Exported '+players.length+' player(s) to players-export.json.</span> Running migration preview…';
+    var preview = computeMigrationPreview(players);
+    renderPlayersPreview(preview, players.length);
+    wrap.style.display = 'block';
+    toast('Players exported — players-export.json downloaded', 'success');
+  }catch(e){
+    console.error('[export players]', e);
+    var text = String(e.message || e);
+    msg.innerHTML = '<span style="color:var(--danger)">Export failed: '+escapeHtml(text)+'</span>';
+    toast('Export failed: '+text, 'danger');
+  } finally {
+    btn.disabled = false;
+  }
 }
 </script>
 

@@ -47,8 +47,11 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  function resolveEventName(tournament, brand) {
+    if (tournament && tournament.name) return tournament.name;
+    return eventFullName(brand);
+  }
   function eventFullName(brand) {
-    if (brand && brand.eventFullName) return brand.eventFullName;
     if (root.TOURNAMENT_DEFAULTS && root.TOURNAMENT_DEFAULTS.eventFullName) {
       return root.TOURNAMENT_DEFAULTS.eventFullName;
     }
@@ -459,16 +462,17 @@
     var verifyUrl = verifyUrlForRole(holder, role, tournament);
     var tourDate = fmtDate(tournament.startDate || tournament.date);
     var approved = holder.status === 'approved' || holder.status === undefined;
-    var logo = logoImage(brand);
+    var logo = tournament.idCardLogo || tournament.logo || logoImage(brand);
     var wm = isTeamUltimate(holder)
       ? '<img src="' + esc(logo) + '" alt="" class="tp-pass-wm-img" onerror="this.style.display=\'none\'" />'
       : '';
     var displayName = holder.name || holder.coachName || '';
 
-    return '<div class="tp-pass ' + theme.cls + '">' +
+    var template = Number(tournament.idCardTemplate || 1);
+    return '<div class="tp-pass ' + theme.cls + ' tp-id-template-' + template + '">' +
       '<div class="tp-pass-wm">' + wm + '</div>' +
       '<div class="tp-pass-topbar">' +
-        '<div class="tp-pass-top-event">' + esc(eventFullName(brand)) + '</div>' +
+        '<div class="tp-pass-top-event">' + esc(resolveEventName(tournament, brand)) + '</div>' +
         '<div class="tp-pass-top-site">' + esc(website(brand)) + '</div>' +
       '</div>' +
       '<div class="tp-pass-role-banner">' + esc(theme.label) + '</div>' +
@@ -486,7 +490,7 @@
         '</div>' +
       '</div>' +
       '<div class="tp-pass-bottom">' +
-        '<div class="tp-pass-bottom-event">' + esc(eventFullName(brand)) + '</div>' +
+        '<div class="tp-pass-bottom-event">' + esc(resolveEventName(tournament, brand)) + '</div>' +
         '<div class="tp-pass-bottom-meta">' + esc(tourDate) + ' · ' + esc(eventLocation(brand)) + '</div>' +
         '<div class="tp-pass-bottom-sig">' +
           digSigSvg(SIGNATORIES.left.sig, 'rgba(255,255,255,0.75)') +
@@ -529,12 +533,13 @@
     var certId = cert.certNo || cert.certNumber || cert.certId || cert.id || '';
     var playerName = (cert.studentName || cert.name || '').toUpperCase();
     var dateStr = fmtDate(cert.date || tournament.startDate || tournament.date);
-    var tourLogo = logoImage(brand);
+    var tourLogo = tournament.certificateLogo || tournament.logo || logoImage(brand);
     var pecLogo = pecLogoImage(brand);
     var academyLine = academySchoolLine(cert);
     var pro = pronoun(cert.gender);
     var proObj = pronounObj(cert.gender);
-    var eventName = eventFullName(brand);
+    var eventName = resolveEventName(tournament, brand);
+    var authoritySig = tournament.certificateAuthority ? { name: tournament.certificateAuthority, lines: [tournament.certificateDesignation || ''], sig: (SIGNATORIES.left && SIGNATORIES.left.sig) || '' } : SIGNATORIES.left;
 
     var body =
       refCertHeader(brand, tourLogo, pecLogo) +
@@ -550,14 +555,14 @@
       refCertMetaGrid(cert, certId, dateStr) +
       '<footer class="tcr-foot">' +
         refDecorMedal('tcr-medal-part') +
-        '<div class="tcr-sigs">' + refSigBlockLarge(SIGNATORIES.left) + refSigBlockLarge(SIGNATORIES.right) + '</div>' +
+        '<div class="tcr-sigs">' + (tournament.certificateSignature ? '<div class="tcr-sig"><img src="' + esc(tournament.certificateSignature) + '" alt="" style="max-height:42px;max-width:160px;object-fit:contain;margin-bottom:4px"><div class="tcr-sig-name">' + esc(authoritySig.name) + '</div>' + (authoritySig.lines || []).map(function (l) { return '<div class="tcr-sig-line-txt">' + esc(l) + '</div>'; }).join('') + '</div>' : refSigBlockLarge(authoritySig)) + refSigBlockLarge(SIGNATORIES.right) + '</div>' +
         '<div class="tcr-qr-wrap">' +
           qrImg(verifyUrl, 'tcr-qr', 200) +
           '<div class="tcr-qr-lbl">SCAN TO VERIFY</div>' +
         '</div>' +
       '</footer>';
 
-    return refCertShell('tcr-part', '', body);
+    return refCertShell('tcr-part tp-cert-template-' + (Number(tournament.certificateTemplate || 1)), '', body);
   }
 
   function meritCertHTML(cert, tournament, brand) {
@@ -571,13 +576,14 @@
     var medalCls = medalClass(medal).replace('tp-merit-', 'tcr-medal-');
     var ordinal = meritOrdinal(medal);
     var dateStr = fmtDate(cert.date || tournament.startDate || tournament.date);
-    var tourLogo = logoImage(brand);
+    var tourLogo = tournament.certificateLogo || tournament.logo || logoImage(brand);
     var pecLogo = pecLogoImage(brand);
     var academyLine = academySchoolLine(cert);
     var pro = pronoun(cert.gender);
     var proObj = pronounObj(cert.gender);
-    var eventName = eventFullName(brand);
+    var eventName = resolveEventName(tournament, brand);
     var catLine = ageWeightLine(cert);
+    var authoritySig = tournament.certificateAuthority ? { name: tournament.certificateAuthority, lines: [tournament.certificateDesignation || ''], sig: (SIGNATORIES.left && SIGNATORIES.left.sig) || '' } : SIGNATORIES.left;
 
     var body =
       refCertHeader(brand, tourLogo, pecLogo) +
@@ -596,14 +602,14 @@
       refCertMetaGrid(cert, certId, dateStr) +
       '<footer class="tcr-foot">' +
         refDecorMedal(medalCls) +
-        '<div class="tcr-sigs">' + refSigBlockLarge(SIGNATORIES.left) + refSigBlockLarge(SIGNATORIES.right) + '</div>' +
+        '<div class="tcr-sigs">' + (tournament.certificateSignature ? '<div class="tcr-sig"><img src="' + esc(tournament.certificateSignature) + '" alt="" style="max-height:42px;max-width:160px;object-fit:contain;margin-bottom:4px"><div class="tcr-sig-name">' + esc(authoritySig.name) + '</div>' + (authoritySig.lines || []).map(function (l) { return '<div class="tcr-sig-line-txt">' + esc(l) + '</div>'; }).join('') + '</div>' : refSigBlockLarge(authoritySig)) + refSigBlockLarge(SIGNATORIES.right) + '</div>' +
         '<div class="tcr-qr-wrap">' +
           qrImg(verifyUrl, 'tcr-qr', 200) +
           '<div class="tcr-qr-lbl">SCAN TO VERIFY</div>' +
         '</div>' +
       '</footer>';
 
-    return refCertShell('tcr-merit', medalCls, body);
+    return refCertShell('tcr-merit tp-cert-template-' + (Number(tournament.certificateTemplate || 1)), medalCls, body);
   }
 
   /* ── CSS ─────────────────────────────────────────────────────────────── */

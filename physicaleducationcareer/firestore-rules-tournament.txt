@@ -15,22 +15,26 @@
   What this does:
   - /tournaments      : Public can READ (for public portal). Admin-only writes.
   - /coaches          : Coach can read/write OWN doc by uid. Admin read/write all.
-  - /players          : 
+  - /players          :
       * Public can READ only approved players when
         tournaments/{tournamentId}.publicPlayerList == true.
-      * Coach can read/write players where coachUid == their uid.
+      * Authenticated coaches can READ only players where coachUid == their uid.
       * Admin can read/write all.
+      * Player creates require coachUid == request.auth.uid for coaches.
       Public is NEVER granted blanket read access to /players.
   - /categories       : Public can READ (needed for public category display).
                         Admin-only writes.
   - /draws            : Public can READ published draws. Admin-only writes.
   - /t_matches        : Public can READ published match data. Admin-only writes.
-  - /results          : Public can READ published results. Admin-only writes.
+  - /results          : Public can READ published results for verification.
+                        Admin-only writes.
+      Authenticated coaches can read results only for medals won by their own players.
   - /referees         : Public can READ published ref/VIP data.
                         Admin-only writes.
   - /medalTable       : Public can READ. Admin-only writes.
   - /t_certificates   : Public can READ for verification by certNo/id.
                         Admin-only writes.
+      Authenticated coaches can read certificates for their own players or their own coach certificate.
   - /tournament_settings: Public can READ (category rules, etc.).
                           Admin-only writes.
 
@@ -50,10 +54,50 @@
         && exists(/databases/$(db)/documents/coaches/$(request.auth.uid));
     }
 
+    /* ---- helper: does the signed-in coach own this player document? ---- */
+    function coachOwnsPlayer(playerId) {
+      return playerId != null
+        && exists(/databases/$(db)/documents/players/$(playerId))
+        && get(/databases/$(db)/documents/players/$(playerId)).data.coachUid == request.auth.uid;
+    }
+
+    /* ---- helper: does the signed-in coach own a medalist in this result? ---- */
+    function coachOwnsResult(result) {
+      return isCoach() && (
+        coachOwnsPlayer(result.gold)
+        || coachOwnsPlayer(result.silver)
+        || coachOwnsPlayer(result.bronze1)
+        || coachOwnsPlayer(result.bronze2)
+      );
+    }
+
+    /* ---- helper: does the signed-in coach own this certificate? ---- */
+    function coachOwnsCertificate(cert) {
+      return isCoach() && (
+        (cert.holderType == 'coach' && cert.holderId == request.auth.uid)
+        || (cert.holderType == 'player' && coachOwnsPlayer(cert.holderId))
+      );
+    }
+
     match /tournaments/{tournamentId} {
       allow read: if true;
       allow create: if isAdmin();
       allow update, delete: if isAdmin();
+    }
+
+    match /registrationCounters/{tournamentId} {
+      /* Registration counter used by nextRegNo() so coaches do not need to
+         read all /players documents to allocate a registration number. */
+      allow read: if true;
+      allow create: if isAdmin()
+        || (isCoach()
+            && exists(/databases/$(db)/documents/tournaments/$(tournamentId))
+            && request.resource.data.count == 1
+            && request.resource.data.tournamentId == tournamentId);
+      allow update: if isAdmin()
+        || (isCoach()
+            && request.resource.data.count == resource.data.count + 1
+            && request.resource.data.tournamentId == resource.data.tournamentId);
     }
 
     match /coaches/{coachId} {
@@ -65,24 +109,26 @@
     }
 
     match /players/{playerId} {
-      /* Authenticated users (coaches) can READ all tournament players.
-         This avoids a race-condition where a coach who just signed up
-         does not yet have a coaches/{uid} document when the portal
-         first queries players.  Unauthenticated users are still denied
-         unless the tournament has Public Player List ON and the player
-         is approved.
-         NOTE: This does NOT make the collection publicly readable —
-         request.auth != null is still required. */
+      /* Authenticated coaches can READ only their own registered players.
+         Public read is limited to approved players when the tournament has
+         Public Player List ON. Admin reads/writes all players.
+         This prevents any authenticated user from listing all /players docs. */
       allow read: if isAdmin()
-        || request.auth != null
+        || (isCoach() && resource.data.coachUid == request.auth.uid)
         || (resource.data.status == 'approved'
             && resource.data.tournamentId != null
             && get(/databases/$(db)/documents/tournaments/$(resource.data.tournamentId)).data.publicPlayerList == true);
 
-      /* Writes: admin or the player's own coach */
-      allow create: if isAdmin() || request.auth != null;
-      allow update, delete: if isAdmin()
-        || (request.auth != null && resource.data.coachUid == request.auth.uid);
+      /* Writes: admin or the player's own coach. A coach cannot create or
+         reassign a player to another coach. */
+      allow create: if isAdmin()
+        || (isCoach() && request.resource.data.coachUid == request.auth.uid
+            && request.resource.data.tournamentId != null);
+      allow update: if isAdmin()
+        || (isCoach() && resource.data.coachUid == request.auth.uid
+            && request.resource.data.coachUid == request.auth.uid);
+      allow delete: if isAdmin()
+        || (isCoach() && resource.data.coachUid == request.auth.uid);
     }
 
     match /categories/{categoryId} {
@@ -101,7 +147,12 @@
     }
 
     match /results/{categoryId} {
-      allow read: if true;
+      /* Published results are readable for public verification. Coaches can
+         read results only when they own at least one medalist player. Admin
+         writes all results. */
+      allow read: if isAdmin()
+        || coachOwnsResult(resource.data)
+        || (resource.data.published == true);
       allow write: if isAdmin();
     }
 
@@ -116,7 +167,12 @@
     }
 
     match /t_certificates/{certId} {
-      allow read: if true;
+      /* Public read remains for certificate verification by certNo/id.
+         Coaches can read certificates for their own players or their own
+         coach certificate. Admin writes all certificates. */
+      allow read: if isAdmin()
+        || coachOwnsCertificate(resource.data)
+        || true;
       allow write: if isAdmin();
     }
 

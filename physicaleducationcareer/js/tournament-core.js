@@ -136,14 +136,21 @@
   function uploadImage(file, path) {
     return new Promise(function (resolve, reject) {
       if (!file) return resolve('');
+      if (!/^image\/(jpeg|jpg|png|webp|gif)$/i.test(file.type || '')) return reject(new Error('Please choose a JPG, PNG, WebP or GIF image.'));
       if (file.size > 3 * 1024 * 1024) return reject(new Error('Image must be under 3 MB'));
+      function tryBase64() {
+        toBase64(file).then(function (url) {
+          if (url.length > 900000) return reject(new Error('Image is too large to store inline. Use a smaller image.'));
+          resolve(url);
+        }).catch(reject);
+      }
       if (storage) {
         var ref = storage.ref().child(path + '/' + Date.now() + '_' + file.name.replace(/[^\w.\-]/g, '_'));
         ref.put(file).then(function (snap) { return snap.ref.getDownloadURL(); })
           .then(resolve)
-          .catch(function () { toBase64(file).then(resolve).catch(reject); });
+          .catch(tryBase64);
       } else {
-        toBase64(file).then(resolve).catch(reject);
+        tryBase64();
       }
     });
   }
@@ -265,7 +272,17 @@
       .then(function (d) { return d.exists; }).catch(function () { return false; });
   }
 
-  /* ---------------------------------------------------------- tournaments */
+  function participatedTournaments(coachUid) {
+    if (!coachUid) return Promise.resolve([]);
+    return db.collection(C.players).where('coachUid', '==', coachUid).get().then(function (s) {
+      var ids = {};
+      s.docs.forEach(function (d) { var t = d.data().tournamentId; if (t) ids[t] = true; });
+      var keys = Object.keys(ids);
+      if (!keys.length) return [];
+      return Promise.all(keys.map(function (id) { return getTournament(id); }))
+        .then(function (ts) { return ts.filter(Boolean); });
+    }).catch(function () { return []; });
+  }
   function listTournaments() {
     return db.collection(C.tournaments).get().then(function (s) {
       return s.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
@@ -353,13 +370,25 @@
     };
   }
 
-  function nextRegNo(tournamentId) {
-    return db.collection(C.players).where('tournamentId', '==', tournamentId).get()
-      .then(function (s) {
-        var yr = new Date().getFullYear();
-        return 'ACC' + yr + '-' + pad(s.size + 1, 4);
-      });
-  }
+function nextRegNo(tournamentId) {
+  var counterRef = db.collection('registrationCounters').doc(tournamentId);
+  return db.runTransaction(function (tx) {
+    return tx.get(counterRef).then(function (doc) {
+      var count = doc.exists ? Number(doc.data().count || 0) : 0;
+      var next = count + 1;
+      if (doc.exists) {
+        tx.update(counterRef, { count: next, tournamentId: tournamentId, updatedAt: Date.now() });
+      } else {
+        tx.set(counterRef, { count: next, tournamentId: tournamentId, updatedAt: Date.now() });
+      }
+      var yr = new Date().getFullYear();
+      return 'ACC' + yr + '-' + pad(next, 4);
+    });
+  }).catch(function () {
+    var yr = new Date().getFullYear();
+    return 'ACC' + yr + '-' + pad(Math.floor(Math.random() * 9000) + 1000, 4);
+  });
+}
 
   function savePlayer(data, id, tournamentRefDate) {
     var cat = buildPlayerCategories(data, tournamentRefDate);
@@ -640,7 +669,13 @@
       var rec = {
         tournamentId: tournament.id,
         tournamentName: tournament.name || '',
-        tournamentLogo: tournament.logo || '',
+        tournamentLogo: tournament.logo || tournament.certificateLogo || '',
+        certificateTemplate: Number(tournament.certificateTemplate || 1),
+        idCardTemplate: Number(tournament.idCardTemplate || 1),
+        certificateAuthority: tournament.certificateAuthority || '',
+        certificateDesignation: tournament.certificateDesignation || '',
+        certificateSignature: tournament.certificateSignature || '',
+        certificateLogo: tournament.certificateLogo || '',
         categoryId: catId,
         holderType: holderType,
         holderId: holder.id || holder.uid || '',
@@ -680,7 +715,13 @@
     var rec = {
       tournamentId: tournament.id,
       tournamentName: tournament.name || '',
-      tournamentLogo: tournament.logo || '',
+      tournamentLogo: tournament.logo || tournament.certificateLogo || '',
+      certificateTemplate: Number(tournament.certificateTemplate || 1),
+      idCardTemplate: Number(tournament.idCardTemplate || 1),
+      certificateAuthority: tournament.certificateAuthority || '',
+      certificateDesignation: tournament.certificateDesignation || '',
+      certificateSignature: tournament.certificateSignature || '',
+      certificateLogo: tournament.certificateLogo || '',
       holderType: holderType,
       holderId: holder.id || '',
       name: holder.name || holder.coachName || '',
@@ -1271,6 +1312,7 @@
     friendlyAuthError: friendlyAuthError, initAuthRedirect: initAuthRedirect,
     googleLogin: googleLogin, emailLogin: emailLogin, emailSignUp: emailSignUp,
     logout: logout, onAuth: onAuth, currentUser: currentUser, isAdmin: isAdmin,
+    participatedTournaments: participatedTournaments,
     listTournaments: listTournaments, getTournament: getTournament, saveTournament: saveTournament,
     deleteTournament: deleteTournament, watchTournaments: watchTournaments,
     getCoach: getCoach, saveCoach: saveCoach, setCoachStatus: setCoachStatus,

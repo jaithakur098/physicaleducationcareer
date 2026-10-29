@@ -23,5 +23,8 @@
   "homepage": "https://github.com/jaithakur098/physicaleducationcareer#readme",
   "dependencies": {
     "puppeteer-core": "^23.11.1"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0"
   }
 }
