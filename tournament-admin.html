@@ -1391,14 +1391,8 @@
     list = list || S.certs || [];
     if (list.length) {
       var sample = list[0];
-    var brand = Object.assign({}, D, {
-      certificateTemplate: (tour() || {}).certificateTemplate || D.certificateTemplate,
-      idCardTemplate: (tour() || {}).idCardTemplate || D.idCardTemplate,
-      certificateAuthority: (tour() || {}).certificateAuthority || '',
-      certificateDesignation: (tour() || {}).certificateDesignation || '',
-      certLogo: (tour() || {}).certLogo || '',
-      certSignature: (tour() || {}).certSignature || ''
-    });
+    var brand = brandFromForm();
+    var t = tourFromForm();
     document.getElementById('certPreview').innerHTML =
       (sample.type && sample.type.indexOf('Merit') >= 0
         ? TP.meritCertHTML(sample, tour(), brand)
@@ -1422,19 +1416,35 @@
   document.getElementById('btnPreviewClose').onclick = function () {
     previewBody.innerHTML = ''; document.getElementById('certPreviewModal').classList.remove('open');
   };
-  function brandForPreview() {
+  function brandFromForm() {
+    var f = document.getElementById('tourForm');
     var t = tour();
     return Object.assign({}, D, {
-      certificateTemplate: t.certificateTemplate || D.certificateTemplate,
-      idCardTemplate: t.idCardTemplate || D.idCardTemplate,
-      certificateAuthority: t.certificateAuthority || '',
-      certificateDesignation: t.certificateDesignation || '',
-      certLogo: t.certLogo || '',
-      certSignature: t.certSignature || ''
+      certificateTemplate: (f && f.certificateTemplate ? f.certificateTemplate.value : '') || t.certificateTemplate || D.certificateTemplate,
+      idCardTemplate: (f && f.idCardTemplate ? f.idCardTemplate.value : '') || t.idCardTemplate || D.idCardTemplate,
+      certificateAuthority: (f && f.certificateAuthority ? f.certificateAuthority.value : '') || t.certificateAuthority || '',
+      certificateDesignation: (f && f.certificateDesignation ? f.certificateDesignation.value : '') || t.certificateDesignation || '',
+      certLogo: certLogoUrl || t.certLogo || '',
+      certSignature: certSignatureUrl || t.certSignature || '',
+      eventFullName: (f && f.name ? f.name.value.trim() : '') || t.name || D.shortName || 'Tournament',
+      eventLocation: (f && f.venue ? f.venue.value : '') || t.venue || '',
+      eventSub: (f && f.city ? f.city.value : '') || t.city || ''
+    });
+  }
+  function tourFromForm() {
+    var f = document.getElementById('tourForm');
+    var t = tour() || {};
+    return Object.assign({}, t, {
+      id: t.id || '',
+      name: (f && f.name ? f.name.value.trim() : '') || t.name || D.shortName || 'Tournament',
+      date: (f && f.date ? f.date.value : '') || t.date || '',
+      venue: (f && f.venue ? f.venue.value : '') || t.venue || '',
+      city: (f && f.city ? f.city.value : '') || t.city || '',
+      sport: (f && f.sport ? f.sport.value : '') || t.sport || D.sport || 'Taekwondo'
     });
   }
   function sampleCertRecord() {
-    var t = tour(), players = S.players.filter(function (p) { return p.status === 'approved'; });
+    var t = tourFromForm(), players = S.players.filter(function (p) { return p.status === 'approved'; });
     if (!players.length) return null;
     var p = players[0], medal = '';
     var r = S.results.filter(function (x) {
@@ -1450,18 +1460,20 @@
     };
   }
   document.getElementById('btnPreviewCert').onclick = function () {
-    var t = tour(); if (!t || !t.id) return T.toast('Select a tournament first', 'error');
+    var f = document.getElementById('tourForm'); var t = tourFromForm();
+    if (!t.id) return T.toast('Select a tournament first', 'error');
     var cert = sampleCertRecord(); if (!cert) return T.toast('No approved players to preview', 'error');
-    var brand = brandForPreview();
+    var brand = brandFromForm();
     var html = (cert.type.indexOf('Merit') >= 0 ? TP.meritCertHTML : TP.participationCertHTML)(cert, t, brand);
     previewBody.innerHTML = html;
     document.getElementById('previewModalTitle').textContent = 'Certificate Preview — ' + brand.certificateTemplate;
     document.getElementById('certPreviewModal').classList.add('open');
   };
   document.getElementById('btnPreviewIdCard').onclick = function () {
-    var t = tour(); if (!t || !t.id) return T.toast('Select a tournament first', 'error');
+    var f = document.getElementById('tourForm'); var t = tourFromForm();
+    if (!t.id) return T.toast('Select a tournament first', 'error');
     var p = S.players.filter(function (x) { return x.status === 'approved'; })[0]; if (!p) return T.toast('No approved players to preview', 'error');
-    var brand = brandForPreview();
+    var brand = brandFromForm();
     previewBody.innerHTML = TP.idCardHTML(p, t, brand);
     document.getElementById('previewModalTitle').textContent = 'ID Card Preview — ' + brand.idCardTemplate;
     document.getElementById('certPreviewModal').classList.add('open');

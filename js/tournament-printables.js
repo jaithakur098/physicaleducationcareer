@@ -408,14 +408,16 @@
   }
 
   function refCertHeader(brand, tourLogo, pecLogo) {
+    var evName = brand && brand.eventFullName ? esc(brand.eventFullName) : 'Championship';
+    var evSub = brand && brand.eventSub ? esc(brand.eventSub) : '';
     return '<header class="tcr-head">' +
       '<div class="tcr-head-logo-l">' +
         '<img src="' + esc(tourLogo) + '" alt="Tournament" class="tcr-seal" onerror="this.style.display=\'none\'" />' +
       '</div>' +
       '<div class="tcr-head-center">' +
         refDecorTrophy() +
-        '<div class="tcr-event-main">6<sup>TH</sup> ALWAR CUP</div>' +
-        '<div class="tcr-event-sub">TAEKWONDO CHAMPIONSHIP 2026</div>' +
+        '<div class="tcr-event-main">' + evName + '</div>' +
+        (evSub ? '<div class="tcr-event-sub">' + evSub + '</div>' : '') +
         '<div class="tcr-stars">★ ★ ★</div>' +
       '</div>' +
       '<div class="tcr-head-logo-r">' +
@@ -484,6 +486,11 @@
     holder = holder || {};
     tournament = tournament || {};
     brand = brand || {};
+    brand = Object.assign({}, brand, {
+      eventFullName: tournament.name || brand.eventFullName || D.eventFullName || 'Championship',
+      eventLocation: tournament.venue || brand.eventLocation || D.eventLocation || '',
+      eventSub: tournament.city || brand.eventSub || D.eventSub || ''
+    });
     var role = detectCardRole(holder, roleOverride);
     var theme = ROLE_THEMES[role];
     var verifyUrl = verifyUrlForRole(holder, role, tournament);
@@ -555,6 +562,11 @@
     cert = cert || {};
     tournament = tournament || {};
     brand = brand || {};
+    brand = Object.assign({}, brand, {
+      eventFullName: tournament.name || brand.eventFullName || D.eventFullName || 'Championship',
+      eventLocation: tournament.venue || brand.eventLocation || D.eventLocation || '',
+      eventSub: tournament.city || brand.eventSub || D.eventSub || ''
+    });
     var verifyUrl = verifyCertUrl(cert);
     var certId = cert.certNo || cert.certNumber || cert.certId || cert.id || '';
     var playerName = (cert.studentName || cert.name || '').toUpperCase();
@@ -597,6 +609,11 @@
     cert = cert || {};
     tournament = tournament || {};
     brand = brand || {};
+    brand = Object.assign({}, brand, {
+      eventFullName: tournament.name || brand.eventFullName || D.eventFullName || 'Championship',
+      eventLocation: tournament.venue || brand.eventLocation || D.eventLocation || '',
+      eventSub: tournament.city || brand.eventSub || D.eventSub || ''
+    });
     var verifyUrl = verifyCertUrl(cert);
     var certId = cert.certNo || cert.certNumber || cert.certId || cert.id || '';
     var playerName = (cert.studentName || cert.name || '').toUpperCase();
