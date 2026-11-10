@@ -1434,8 +1434,9 @@
   function tourFromForm() {
     var f = document.getElementById('tourForm');
     var t = tour() || {};
+    var formId = (f && f.id ? f.id.value : '') || t.id || '';
     return Object.assign({}, t, {
-      id: t.id || '',
+      id: formId || 'preview-tournament-' + Date.now(),
       name: (f && f.name ? f.name.value.trim() : '') || t.name || D.shortName || 'Tournament',
       date: (f && f.date ? f.date.value : '') || t.date || '',
       venue: (f && f.venue ? f.venue.value : '') || t.venue || '',
@@ -1443,36 +1444,40 @@
       sport: (f && f.sport ? f.sport.value : '') || t.sport || D.sport || 'Taekwondo'
     });
   }
+  function previewSamplePlayer() {
+    return {
+      id: 'preview-player', name: 'SAMPLE ATHLETE', regNo: 'SAMPLE-0001',
+      academy: 'SAMPLE ACADEMY', school: 'Sample School', district: 'ALWAR',
+      state: 'Rajasthan', gender: 'male', ageCategory: 'Junior',
+      weightCategory: '-50 KG', category: 'Junior Male -50 Kg', coachName: 'Sample Coach'
+    };
+  }
   function sampleCertRecord() {
-    var t = tourFromForm(), players = S.players.filter(function (p) { return p.status === 'approved'; });
-    if (!players.length) return null;
-    var p = players[0], medal = '';
-    var r = S.results.filter(function (x) {
-      return x.categoryId === p.categoryId && (x.gold === p.id || x.silver === p.id || x.bronze1 === p.id || x.bronze2 === p.id);
-    })[0];
-    if (r) { D.medals.forEach(function (m) { if (r[m] === p.id) medal = m.indexOf('bronze') === 0 ? 'bronze' : m; }); }
+    var t = tourFromForm();
+    var p = previewSamplePlayer();
     return {
       id: 'preview-cert', name: p.name, regNo: p.regNo, academy: p.academy, school: p.school,
       district: p.district, state: p.state, gender: p.gender, ageCategory: p.ageCategory,
-      weightCategory: p.weightCategory, category: p.categoryLabel,
-      type: medal ? 'Merit Certificate' : 'Participation Certificate', medal: medal,
-      certNo: p.regNo || 'ACC-0001', date: t.date, tournamentName: t.name
+      weightCategory: p.weightCategory, category: p.category,
+      type: 'Participation Certificate', medal: '',
+      certNo: p.regNo, date: t.date, tournamentName: t.name
     };
+  }
+  function sampleIdCardPlayer() {
+    return previewSamplePlayer();
   }
   document.getElementById('btnPreviewCert').onclick = function () {
     var f = document.getElementById('tourForm'); var t = tourFromForm();
-    if (!t.id) return T.toast('Select a tournament first', 'error');
-    var cert = sampleCertRecord(); if (!cert) return T.toast('No approved players to preview', 'error');
+    var cert = sampleCertRecord();
     var brand = brandFromForm();
-    var html = (cert.type.indexOf('Merit') >= 0 ? TP.meritCertHTML : TP.participationCertHTML)(cert, t, brand);
+    var html = TP.participationCertHTML(cert, t, brand);
     previewBody.innerHTML = html;
     document.getElementById('previewModalTitle').textContent = 'Certificate Preview — ' + brand.certificateTemplate;
     document.getElementById('certPreviewModal').classList.add('open');
   };
   document.getElementById('btnPreviewIdCard').onclick = function () {
     var f = document.getElementById('tourForm'); var t = tourFromForm();
-    if (!t.id) return T.toast('Select a tournament first', 'error');
-    var p = S.players.filter(function (x) { return x.status === 'approved'; })[0]; if (!p) return T.toast('No approved players to preview', 'error');
+    var p = sampleIdCardPlayer();
     var brand = brandFromForm();
     previewBody.innerHTML = TP.idCardHTML(p, t, brand);
     document.getElementById('previewModalTitle').textContent = 'ID Card Preview — ' + brand.idCardTemplate;
