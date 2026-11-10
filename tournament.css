@@ -742,6 +742,85 @@ table.t-table tr:hover td { background: rgba(255, 255, 255, .035); }
 .t-cert .qr { position: absolute; right: 22px; bottom: 22px; width: 78px; height: 78px; }
 .t-cert .no { position: absolute; left: 22px; bottom: 22px; font-size: 11px; color: #6b7794; }
 
+/* ---------- certificate & id card settings section ---------- */
+.t-cert-section {
+  border: 1px solid var(--t-border);
+  border-radius: var(--t-radius);
+  padding: 16px 18px 14px;
+  background: rgba(5, 11, 31, .35);
+  margin-bottom: 18px;
+}
+.t-cert-section legend {
+  color: var(--t-gold-3);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 0 8px;
+  margin-bottom: 10px;
+}
+
+/* ---------- certificate template variants ---------- */
+.tcr-cert.tp-cert-template-1 .tcr-ribbon { border-color: var(--t-gold); }
+.tcr-cert.tp-cert-template-1 .tcr-event-sub { color: #b91c3a; }
+.tcr-cert.tp-cert-template-1 .tcr-medal-seal svg circle:first-of-type { fill: #e4c65a; }
+
+.tcr-cert.tp-cert-template-2 .tcr-frame-outer { border-color: #b91c3a; border-width: 3px; border-style: solid; }
+.tcr-cert.tp-cert-template-2 .tcr-ribbon { background: linear-gradient(180deg, #b91c3a, #7f1d1d); border-color: #b91c3a; }
+.tcr-cert.tp-cert-template-2 .tcr-event-sub { color: #b91c3a; }
+
+.tcr-cert.tp-cert-template-3 .tcr-frame-outer { border-color: #1a56db; border-width: 2px; border-style: solid; }
+.tcr-cert.tp-cert-template-3 .tcr-ribbon { background: linear-gradient(180deg, #1a56db, #0f2d5c); border-color: #1a56db; }
+.tcr-cert.tp-cert-template-3 .tcr-event-sub { color: #1a56db; }
+.tcr-cert.tp-cert-template-3 .tcr-stars { color: #5aa9ff; }
+
+.tcr-cert.tp-cert-template-4 .tcr-frame-outer { border-color: #064e3b; border-width: 2px; border-style: solid; }
+.tcr-cert.tp-cert-template-4 .tcr-ribbon { background: linear-gradient(180deg, #064e3b, #0d6b4a); border-color: #064e3b; }
+.tcr-cert.tp-cert-template-4 .tcr-event-sub { color: #064e3b; }
+.tcr-cert.tp-cert-template-4 .tcr-stars { color: #10b981; }
+
+.tcr-cert.tp-cert-template-5 .tcr-frame-outer { border-color: #450a0a; border-width: 2px; border-style: solid; }
+.tcr-cert.tp-cert-template-5 .tcr-ribbon { background: linear-gradient(180deg, #7f1d1d, #450a0a); border-color: #7f1d1d; }
+.tcr-cert.tp-cert-template-5 .tcr-event-sub { color: #b91c3a; }
+.tcr-cert.tp-cert-template-5 .tcr-stars { color: #e4c65a; }
+
+/* ---------- id card template variants ---------- */
+.tp-id-template-1 .tp-pass-topbar, .tp-id-template-1 .tp-pass-bottom { background: linear-gradient(135deg, var(--t-navy), var(--t-navy-700)); }
+.tp-id-template-1 .tp-pass-role-banner { background: linear-gradient(90deg, #0f2d5c, #1a56db 50%, #0f2d5c); }
+.tp-id-template-2 .tp-pass-topbar, .tp-id-template-2 .tp-pass-bottom { background: linear-gradient(135deg, #b91c3a, #7f1d1d); }
+.tp-id-template-2 .tp-pass-role-banner { background: linear-gradient(90deg, #7f1d1d, #b91c3a 50%, #7f1d1d); }
+.tp-id-template-3 .tp-pass-topbar, .tp-id-template-3 .tp-pass-bottom { background: linear-gradient(135deg, #1a56db, #0f2d5c); }
+.tp-id-template-3 .tp-pass-role-banner { background: linear-gradient(90deg, #0f2d5c, #5aa9ff 50%, #0f2d5c); }
+.tp-id-template-4 .tp-pass-topbar, .tp-id-template-4 .tp-pass-bottom { background: linear-gradient(135deg, #064e3b, #0d6b4a); }
+.tp-id-template-4 .tp-pass-role-banner { background: linear-gradient(90deg, #0d6b4a, #10b981 50%, #064e3b); }
+.tp-id-template-5 .tp-pass-topbar, .tp-id-template-5 .tp-pass-bottom { background: linear-gradient(135deg, #d4af37, #b8912b); color: #0a1633; }
+.tp-id-template-5 .tp-pass-role-banner { background: linear-gradient(90deg, #b8912b, #f2d97a 50%, #d4af37); color: #0a1633; }
+.tp-id-template-5 .tp-pass-fields .tp-info-val { color: #0a1633; }
+
+/* ---------- certificate authority + uploaded signature ---------- */
+.tcr-authority {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 2mm 0 1mm;
+  padding: 2mm 3mm;
+  background: rgba(6, 20, 40, .03);
+  border: 1px dashed rgba(184, 148, 31, .35);
+  border-radius: 2mm;
+}
+.tcr-authority-logo { flex-shrink: 0; }
+.tcr-authority-img {
+  width: 16mm; height: 16mm; object-fit: contain;
+  border: 1px solid rgba(184, 148, 31, .4); border-radius: 2mm; background: #fff;
+}
+.tcr-authority-text { display: flex; flex-direction: column; gap: 1mm; }
+.tcr-authority-name {
+  font-family: Cinzel, Georgia, serif; font-size: 4.6mm; font-weight: 800;
+  color: var(--t-navy); letter-spacing: .04em;
+}
+.tcr-authority-designation { font-size: 2.8mm; font-weight: 700; color: #4a5568; }
+.tcr-uploaded-sig { width: 42mm; height: auto; display: block; margin: 0 auto 1mm; }
+
 /* ---------- verify card ---------- */
 .t-verify-card {
   max-width: 640px;

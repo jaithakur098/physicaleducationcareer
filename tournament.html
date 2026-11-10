@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>6th Alwar Cup — Taekwondo Championship Portal</title>
-  <meta name="description" content="Public portal for the Alwar Cup Taekwondo Championship: tournaments, live results, draws, medals and certificate verification.">
+  <title>Tournament Portal — Taekwondo Championship</title>
+  <meta name="description" content="Public portal for taekwondo tournaments: live results, draws, medals and certificate verification.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="https://physicaleducationcareer.in/tournament.html">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,11 +27,11 @@
 
 <header class="t-top">
   <div class="t-wrap t-top-in">
-    <a href="tournament.html" class="t-brand">
+    <a href="tournament.html" class="t-brand" id="pubBrand">
       <div class="t-brand-mark">🥋</div>
       <div>
-        <b>6th ALWAR CUP</b>
-        <small>Taekwondo Championship</small>
+        <b id="pubBrandName">Taekwondo Championship</b>
+        <small id="pubBrandSub">Tournament Portal</small>
       </div>
     </a>
     <nav class="t-topnav t-no-print">
@@ -48,9 +48,9 @@
 
 <main>
   <section class="t-hero t-wrap">
-    <span class="t-eyebrow">6th Edition · Taekwondo</span>
-    <h1>6th Alwar Cup<br>Taekwondo Championship</h1>
-    <p>Complete tournament management — online player registration by coaches, automatic age &amp; weight categorisation, official ID cards, category draws, live results, medal tally and digital certificates.</p>
+    <span class="t-eyebrow" id="pubEyebrow">Taekwondo</span>
+    <h1 id="pubHeroTitle">Taekwondo Championship</h1>
+    <p id="pubHeroDesc">Complete tournament management — online player registration by coaches, automatic age &amp; weight categorisation, official ID cards, category draws, live results, medal tally and digital certificates.</p>
     <div class="t-hero-actions t-no-print">
       <a href="tournament-coach.html" class="t-btn t-btn-gold">Coach Login / Register Players</a>
       <a href="#results" class="t-btn t-btn-ghost">View Live Results</a>
@@ -142,7 +142,7 @@
   </section>
 </main>
 
-<footer class="t-foot t-wrap">6th Alwar Cup Taekwondo Championship · A module of Physical Education Career</footer>
+<footer class="t-foot t-wrap" id="pubFooter">Taekwondo Championship · A module of Physical Education Career</footer>
 
 <script>
 (function () {
@@ -200,6 +200,7 @@
 
   function loadTournamentData(tid) {
     state.tid = tid;
+    setPubBrand();
     if (!tid) { document.getElementById('resultBox').innerHTML = '<div class="t-empty">Select a tournament.</div>'; return; }
     document.getElementById('resultBox').innerHTML = '<div class="t-loader">Loading results…</div>';
     Promise.all([T.listPlayers({ tournamentId: tid }), T.listResults(tid)]).then(function (r) {
@@ -222,6 +223,24 @@
   }
 
   function currentTour() { return state.tournaments.filter(function (t) { return t.id === state.tid; })[0] || {}; }
+
+  function setPubBrand() {
+    var t = currentTour();
+    var elName = document.getElementById('pubBrandName');
+    var elSub = document.getElementById('pubBrandSub');
+    var elHero = document.getElementById('pubHeroTitle');
+    var elEyebrow = document.getElementById('pubEyebrow');
+    var elDesc = document.getElementById('pubHeroDesc');
+    var elFooter = document.getElementById('pubFooter');
+    var name = t.name || D.shortName || 'Tournament';
+    if (elName) elName.textContent = name;
+    if (elSub) elSub.textContent = (t.sport || 'Taekwondo') + ' Championship';
+    if (elHero) elHero.textContent = name;
+    if (elEyebrow) elEyebrow.textContent = (t.sport || 'Taekwondo') + ' · ' + (t.edition || '');
+    if (elDesc) elDesc.textContent = t.description || 'Complete tournament management — live results, draws, medals and digital certificates.';
+    if (elFooter) elFooter.textContent = name + ' · A module of Physical Education Career';
+    document.title = name + ' — Tournament Portal';
+  }
 
   function renderDraw() {
     var id = document.getElementById('dCat').value;
@@ -337,10 +356,11 @@
 
   T.loadCategoryRules().then(fillAgeSelect);
   T.watchTournaments(function (list) {
-    state.tournaments = list.sort(function (a, b) { return String(b.date || '').localeCompare(String(a.date || '')); });
+    state.tournaments = list.filter(function (t) { return !t.hidden; }).sort(function (a, b) { return String(b.date || '').localeCompare(String(a.date || '')); });
     document.getElementById('stTournaments').textContent = list.length;
     renderTournaments();
     fillTourSelect();
+    setPubBrand();
     var qp = new URLSearchParams(location.search).get('t');
     if (qp) { document.getElementById('rTour').value = qp; loadTournamentData(qp); }
     else if (!state.tid && list.length) {

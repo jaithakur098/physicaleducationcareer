@@ -25,11 +25,11 @@
 
 <header class="t-top">
   <div class="t-wrap t-top-in">
-    <a href="tournament.html" class="t-brand">
+    <a href="tournament.html" class="t-brand" id="coachBrand">
       <div class="t-brand-mark">🥋</div>
       <div>
-        <b>6th ALWAR CUP</b>
-        <small>Coach Dashboard</small>
+        <b id="coachBrandName">Taekwondo Championship</b>
+        <small id="coachBrandSub">Coach Dashboard</small>
       </div>
     </a>
     <nav class="t-topnav t-no-print">
@@ -229,7 +229,7 @@
   </div>
 </div>
 
-<footer class="t-foot t-wrap">6th Alwar Cup Taekwondo Championship · Coach Portal</footer>
+<footer class="t-foot t-wrap" id="coachFooter">Taekwondo Championship · Coach Portal</footer>
 
 <script>
 (function () {
@@ -345,13 +345,14 @@ if (!user) { showLogin(); return; }
   function boot() {
     T.loadCategoryRules().then(recalc);
     T.listTournaments().then(function (list) {
-      S.tournaments = list;
+      S.tournaments = list.filter(function (t) { return !t.hidden; });
       var opts = list.map(function (t) { return '<option value="' + E(t.id) + '">' + E(t.name) + ' — ' + T.fmtDate(t.date) + '</option>'; }).join('');
       document.querySelector('#playerForm [name=tournamentId]').innerHTML = '<option value="">— Select —</option>' + opts;
       document.getElementById('myTourFilter').innerHTML = '<option value="">All tournaments</option>' + opts;
       var qp = new URLSearchParams(location.search).get('t');
       if (qp) document.querySelector('#playerForm [name=tournamentId]').value = qp;
       else if (list.length) document.getElementById('myTourFilter').value = list[0].id;
+      setCoachBrand();
     });
     T.getCoach(S.user.uid).then(function (c) {
       S.coach = c || {};
@@ -388,7 +389,25 @@ if (!user) { showLogin(); return; }
   }
 
   function activeTournament() {
+    var tf = document.getElementById('myTourFilter');
+    var tid = tf ? tf.value : '';
+    if (tid) {
+      var t = S.tournaments.filter(function (x) { return x.id === tid; })[0];
+      if (t) return t;
+    }
     return S.tournaments[0] || { name: D.brandLine || 'Tournament', venue: D.eventLocation || '' };
+  }
+
+  function setCoachBrand() {
+    var t = activeTournament();
+    var elName = document.getElementById('coachBrandName');
+    var elSub = document.getElementById('coachBrandSub');
+    var elFooter = document.getElementById('coachFooter');
+    var name = t.name || D.shortName || 'Tournament';
+    if (elName) elName.textContent = name;
+    if (elSub) elSub.textContent = (t.sport || 'Taekwondo') + ' · Coach Dashboard';
+    if (elFooter) elFooter.textContent = name + ' · Coach Portal';
+    document.title = name + ' — Coach Dashboard';
   }
 
   function renderCoachIdCard() {
@@ -554,7 +573,7 @@ T.savePlayer(data, editing || null, t.date).then(function () {
       renderCoachMedals();
     });
     var tf = document.getElementById('myTourFilter');
-    if (tf) tf.onchange = function () { watchTournament(); };
+    if (tf) tf.onchange = function () { watchTournament(); setCoachBrand(); };
   }
 
   function statusChip(s) {

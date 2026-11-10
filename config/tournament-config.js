@@ -35,14 +35,14 @@
   };
 
   root.TOURNAMENT_DEFAULTS = {
-    moduleName: '6th ALWAR CUP TAEKWONDO CHAMPIONSHIP',
-    shortName: '6th Alwar Cup',
-    edition: '6th',
+    moduleName: 'Taekwondo Championship',
+    shortName: 'Tournament',
+    edition: '',
     sport: 'Taekwondo',
-    brandLine: '6th ALWAR CUP TAEKWONDO CHAMPIONSHIP',
-    eventFullName: '6TH ALWAR CUP TAEKWONDO CHAMPIONSHIP 2026',
-    eventYear: '2026',
-    eventLocation: 'ALWAR, RAJASTHAN',
+    brandLine: 'Taekwondo Championship',
+    eventFullName: 'Taekwondo Championship',
+    eventYear: '',
+    eventLocation: '',
     website: 'physicaleducationcareer.in',
     logoImage: 'ultimate-logo.svg',
     ageRules: DEFAULT_AGE_RULES,
@@ -64,6 +64,10 @@
     medals: ['gold', 'silver', 'bronze1', 'bronze2'],
     statuses: ['upcoming', 'live', 'completed'],
     coachStatuses: ['pending', 'approved', 'rejected'],
-    playerStatuses: ['pending', 'approved', 'rejected']
+    playerStatuses: ['pending', 'approved', 'rejected'],
+    certificateTemplates: ['Template 1', 'Template 2', 'Template 3', 'Template 4', 'Template 5'],
+    idCardTemplates: ['Template 1', 'Template 2', 'Template 3', 'Template 4', 'Template 5'],
+    certificateTemplate: 'Template 1',
+    idCardTemplate: 'Template 1'
   };
 })(window);

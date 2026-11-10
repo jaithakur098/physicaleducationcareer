@@ -52,7 +52,7 @@
     if (root.TOURNAMENT_DEFAULTS && root.TOURNAMENT_DEFAULTS.eventFullName) {
       return root.TOURNAMENT_DEFAULTS.eventFullName;
     }
-    return '6TH ALWAR CUP TAEKWONDO CHAMPIONSHIP 2026';
+    return 'Taekwondo Championship';
   }
 
   function eventLocation(brand) {
@@ -270,6 +270,36 @@
       cert.category || cert.eventName || '';
   }
 
+  function templateKey(value) {
+    var s = String(value || 'Template 1').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return s.replace(/^template-?/, '') || '1';
+  }
+  function certTemplateClass(brand) { return 'tp-cert-template-' + templateKey(brand && brand.certificateTemplate); }
+  function idTemplateClass(brand) { return 'tp-id-template-' + templateKey(brand && brand.idCardTemplate); }
+  function authorityBlock(brand) {
+    brand = brand || {};
+    var name = brand.certificateAuthority || '', desig = brand.certificateDesignation || '', logo = brand.certLogo || '';
+    if (!name && !desig && !logo) return '';
+    return '<div class="tcr-authority">' +
+      (logo ? '<div class="tcr-authority-logo"><img src="' + esc(logo) + '" alt="Authority" class="tcr-authority-img" onerror="this.style.display=\'none\'" /></div>' : '') +
+      '<div class="tcr-authority-text">' +
+      (name ? '<div class="tcr-authority-name">' + esc(name) + '</div>' : '') +
+      (desig ? '<div class="tcr-authority-designation">' + esc(desig) + '</div>' : '') +
+      '</div>' +
+    '</div>';
+  }
+  function sigImageBlock(brand, sig) {
+    sig = sig || SIGNATORIES.left;
+    var linesHtml = sig.lines.map(function (l) { return '<div class="tcr-sig-detail">' + esc(l) + '</div>'; }).join('');
+    if (brand && brand.certSignature) {
+      return '<div class="tp-sig-block">' +
+        '<img src="' + esc(brand.certSignature) + '" alt="Signature" class="tcr-uploaded-sig" onerror="this.style.display=\'none\'" />' +
+        '<div class="tcr-sig-name">' + esc(sig.name) + '</div>' + linesHtml +
+      '</div>';
+    }
+    return sigBlockOne(sig);
+  }
+
   function infoCell(label, value) {
     if (!value) return '';
     return '<div class="tp-info-cell"><span class="tp-info-lbl">' + esc(label) + '</span><span class="tp-info-val">' + esc(value) + '</span></div>';
@@ -460,12 +490,12 @@
     var tourDate = fmtDate(tournament.startDate || tournament.date);
     var approved = holder.status === 'approved' || holder.status === undefined;
     var logo = logoImage(brand);
-    var wm = isTeamUltimate(holder)
-      ? '<img src="' + esc(logo) + '" alt="" class="tp-pass-wm-img" onerror="this.style.display=\'none\'" />'
-      : '';
+    var wmSrc = brand.certLogo || (isTeamUltimate(holder) ? logo : '');
+    var wm = wmSrc ? '<img src="' + esc(wmSrc) + '" alt="" class="tp-pass-wm-img" onerror="this.style.display=\'none\'" />' : '';
+    var idTemplateCls = idTemplateClass(brand);
     var displayName = holder.name || holder.coachName || '';
 
-    return '<div class="tp-pass ' + theme.cls + '">' +
+    return '<div class="tp-pass ' + theme.cls + ' ' + idTemplateCls + '">' +
       '<div class="tp-pass-wm">' + wm + '</div>' +
       '<div class="tp-pass-topbar">' +
         '<div class="tp-pass-top-event">' + esc(eventFullName(brand)) + '</div>' +
@@ -535,29 +565,32 @@
     var pro = pronoun(cert.gender);
     var proObj = pronounObj(cert.gender);
     var eventName = eventFullName(brand);
+    var templateCls = certTemplateClass(brand);
+    var authority = authorityBlock(brand);
 
     var body =
       refCertHeader(brand, tourLogo, pecLogo) +
+      authority +
       refCertRibbon('OF PARTICIPATION') +
       '<section class="tcr-body">' +
-        '<p class="tcr-certify">THIS IS TO CERTIFY THAT</p>' +
-        '<h2 class="tcr-player">' + esc(playerName) + '</h2>' +
-        (academyLine ? '<p class="tcr-of">of <strong>' + esc(academyLine) + '</strong></p>' : '') +
-        '<p class="tcr-statement">has participated in the <strong class="tcr-event-red">' + esc(eventName) + '</strong></p>' +
-        '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(eventLocation(brand)) + '.</p>' +
-        '<p class="tcr-wish">We wish ' + proObj + ' great success in all future endeavors.</p>' +
+      '<p class="tcr-certify">THIS IS TO CERTIFY THAT</p>' +
+      '<h2 class="tcr-player">' + esc(playerName) + '</h2>' +
+      (academyLine ? '<p class="tcr-of">of <strong>' + esc(academyLine) + '</strong></p>' : '') +
+      '<p class="tcr-statement">has participated in the <strong class="tcr-event-red">' + esc(eventName) + '</strong></p>' +
+      '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(eventLocation(brand)) + '.</p>' +
+      '<p class="tcr-wish">We wish ' + proObj + ' great success in all future endeavors.</p>' +
       '</section>' +
       refCertMetaGrid(cert, certId, dateStr) +
       '<footer class="tcr-foot">' +
         refDecorMedal('tcr-medal-part') +
-        '<div class="tcr-sigs">' + refSigBlockLarge(SIGNATORIES.left) + refSigBlockLarge(SIGNATORIES.right) + '</div>' +
+        '<div class="tcr-sigs">' + sigImageBlock(brand, SIGNATORIES.left) + sigImageBlock(brand, SIGNATORIES.right) + '</div>' +
         '<div class="tcr-qr-wrap">' +
           qrImg(verifyUrl, 'tcr-qr', 200) +
           '<div class="tcr-qr-lbl">SCAN TO VERIFY</div>' +
         '</div>' +
       '</footer>';
 
-    return refCertShell('tcr-part', '', body);
+    return refCertShell('tcr-part ' + templateCls, '', body);
   }
 
   function meritCertHTML(cert, tournament, brand) {
@@ -578,32 +611,35 @@
     var proObj = pronounObj(cert.gender);
     var eventName = eventFullName(brand);
     var catLine = ageWeightLine(cert);
+    var templateCls = certTemplateClass(brand);
+    var authority = authorityBlock(brand);
 
     var body =
       refCertHeader(brand, tourLogo, pecLogo) +
+      authority +
       refCertRibbon('OF MERIT') +
       '<section class="tcr-body">' +
-        '<p class="tcr-certify">THIS IS TO CERTIFY THAT</p>' +
-        '<h2 class="tcr-player">' + esc(playerName) + '</h2>' +
-        (academyLine ? '<p class="tcr-of">of <strong>' + esc(academyLine) + '</strong></p>' : '') +
-        '<p class="tcr-statement">has participated in the <strong class="tcr-event-red">' + esc(eventName) + '</strong></p>' +
-        '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(eventLocation(brand)) + '.</p>' +
-        (ordinal && catLine ?
-          '<p class="tcr-merit-line"><span class="tcr-merit-pro">' + pro + '</span> secured <strong class="tcr-merit-pos">' + esc(ordinal.toUpperCase()) + '</strong> position in <strong class="tcr-merit-cat">' + esc(catLine) + '</strong>.</p>' :
-          '') +
-        '<p class="tcr-wish">We wish ' + proObj + ' great success in all future endeavors.</p>' +
+      '<p class="tcr-certify">THIS IS TO CERTIFY THAT</p>' +
+      '<h2 class="tcr-player">' + esc(playerName) + '</h2>' +
+      (academyLine ? '<p class="tcr-of">of <strong>' + esc(academyLine) + '</strong></p>' : '') +
+      '<p class="tcr-statement">has participated in the <strong class="tcr-event-red">' + esc(eventName) + '</strong></p>' +
+      '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(eventLocation(brand)) + '.</p>' +
+      (ordinal && catLine ?
+        '<p class="tcr-merit-line"><span class="tcr-merit-pro">' + pro + '</span> secured <strong class="tcr-merit-pos">' + esc(ordinal.toUpperCase()) + '</strong> position in <strong class="tcr-merit-cat">' + esc(catLine) + '</strong>.</p>' :
+        '') +
+      '<p class="tcr-wish">We wish ' + proObj + ' great success in all future endeavors.</p>' +
       '</section>' +
       refCertMetaGrid(cert, certId, dateStr) +
       '<footer class="tcr-foot">' +
         refDecorMedal(medalCls) +
-        '<div class="tcr-sigs">' + refSigBlockLarge(SIGNATORIES.left) + refSigBlockLarge(SIGNATORIES.right) + '</div>' +
+        '<div class="tcr-sigs">' + sigImageBlock(brand, SIGNATORIES.left) + sigImageBlock(brand, SIGNATORIES.right) + '</div>' +
         '<div class="tcr-qr-wrap">' +
           qrImg(verifyUrl, 'tcr-qr', 200) +
           '<div class="tcr-qr-lbl">SCAN TO VERIFY</div>' +
         '</div>' +
       '</footer>';
 
-    return refCertShell('tcr-merit', medalCls, body);
+    return refCertShell('tcr-merit ' + templateCls, medalCls, body);
   }
 
   /* ── CSS ─────────────────────────────────────────────────────────────── */

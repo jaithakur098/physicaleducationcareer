@@ -21,11 +21,11 @@
 
 <header class="t-top">
   <div class="t-wrap t-top-in">
-    <a href="tournament.html" class="t-brand">
+    <a href="tournament.html" class="t-brand" id="playersBrand">
       <div class="t-brand-mark">🥋</div>
       <div>
-        <b>6th ALWAR CUP</b>
-        <small>Taekwondo Championship</small>
+        <b id="playersBrandName">Taekwondo Championship</b>
+        <small id="playersBrandSub">Tournament Players</small>
       </div>
     </a>
     <nav class="t-topnav t-no-print">
@@ -78,7 +78,7 @@
   </section>
 </main>
 
-<footer class="t-foot t-wrap">6th Alwar Cup Taekwondo Championship · A module of Physical Education Career</footer>
+<footer class="t-foot t-wrap" id="playersFooter">Taekwondo Championship · A module of Physical Education Career</footer>
 
 <script>
 (function () {
@@ -120,6 +120,10 @@
       state.tournament = t || {};
       document.getElementById('tourTitle').textContent = (t && t.name) ? 'Players — ' + t.name : 'Tournament Players';
       document.getElementById('tourSub').textContent = (t && t.venue) ? t.venue + ' · ' + T.fmtDate(t.date) : 'View registered players.';
+      var bName = document.getElementById('playersBrandName');
+      var bSub = document.getElementById('playersBrandSub');
+      if (t && t.name) { bName.textContent = t.name; bSub.textContent = (t.sport || 'Taekwondo') + ' · Players'; }
+      document.title = ((t && t.name) || 'Tournament') + ' — Players';
       if (!t || t.publicPlayerList !== true) {
         document.getElementById('privateBox').classList.remove('t-hide');
         document.getElementById('publicBox').classList.add('t-hide');

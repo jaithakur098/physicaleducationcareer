@@ -135,10 +135,10 @@
       <div class="t-grid t-g2">
         <div class="t-card">
           <h3 id="tourFormTitle">Create Tournament</h3>
-          <p class="t-sub">Default: 6th Alwar Cup Taekwondo Championship</p>
+          <p class="t-sub">Create a new tournament. All fields below are saved to its own Firestore document.</p>
           <form id="tourForm">
             <input type="hidden" name="id">
-            <div class="t-field"><label>Tournament Name *</label><input class="t-input" name="name" placeholder="6th Alwar Cup Taekwondo Championship" required></div>
+            <div class="t-field"><label>Tournament Name *</label><input class="t-input" name="name" placeholder="e.g. 6th Alwar Cup Taekwondo Championship" required></div>
             <div class="t-field"><label>Sport / Discipline</label><input class="t-input" name="sport" value="Taekwondo"></div>
             <div class="t-g2 t-grid">
               <div class="t-field"><label>Date *</label><input class="t-input" type="date" name="date" required></div>
@@ -152,6 +152,21 @@
             </div>
             <div class="t-field"><label>Logo</label><input class="t-input" type="file" name="logoFile" accept="image/*"></div>
             <div class="t-field"><label>Description</label><textarea class="t-textarea" name="description"></textarea></div>
+            <fieldset class="t-cert-section">
+              <legend>Certificate &amp; ID Card Settings</legend>
+              <div class="t-g2 t-grid">
+                <div class="t-field"><label>Certificate Template</label><select class="t-select" name="certificateTemplate"><option>Template 1</option><option>Template 2</option><option>Template 3</option><option>Template 4</option><option>Template 5</option></select></div>
+                <div class="t-field"><label>ID Card Template</label><select class="t-select" name="idCardTemplate"><option>Template 1</option><option>Template 2</option><option>Template 3</option><option>Template 4</option><option>Template 5</option></select></div>
+              </div>
+              <div class="t-field"><label>Certificate Authority Name</label><input class="t-input" name="certificateAuthority" placeholder="e.g. Tournament Director"></div>
+              <div class="t-field"><label>Certificate Designation</label><input class="t-input" name="certificateDesignation" placeholder="e.g. Head of Physical Education"></div>
+              <div class="t-field"><label>Certificate Logo Upload</label><input class="t-input" type="file" name="certLogoFile" accept="image/*"><img id="certLogoPrev" class="t-photo-prev" style="margin-top:8px;display:none" alt="Certificate logo"></div>
+              <div class="t-field"><label>Certificate Signature Upload</label><input class="t-input" type="file" name="certSignatureFile" accept="image/*"><img id="certSignaturePrev" class="t-photo-prev" style="margin-top:8px;display:none" alt="Certificate signature"></div>
+              <div class="t-row">
+                <button type="button" class="t-btn t-btn-ghost t-btn-sm" id="btnPreviewCert">Preview Certificate</button>
+                <button type="button" class="t-btn t-btn-ghost t-btn-sm" id="btnPreviewIdCard">Preview ID Card</button>
+              </div>
+            </fieldset>
             <div class="t-row">
               <button type="button" id="btnTourReset" class="t-btn t-btn-ghost">Clear</button>
               <button type="submit" class="t-btn t-btn-gold">Save Tournament</button>
@@ -160,6 +175,13 @@
         </div>
         <div class="t-card">
           <h3>All Tournaments</h3>
+          <div class="t-filters t-no-print" style="margin-bottom:10px">
+            <label class="t-switch" style="margin-right:10px">
+              <input type="checkbox" id="showHiddenTours">
+              <span class="t-switch-slider"></span>
+            </label>
+            <span id="hiddenTourLabel" style="font-size:12px;color:var(--t-ink-mute)">Show hidden tournaments</span>
+          </div>
           <div id="tourTable" class="t-table-wrap"><div class="t-empty">Loading…</div></div>
         </div>
       </div>
@@ -491,6 +513,18 @@
   </div>
 </div>
 
+<!-- Certificate / ID card preview modal -->
+<div id="certPreviewModal" class="t-modal t-no-print">
+  <div class="t-modal-box" style="max-width:980px">
+    <h3 id="previewModalTitle">Preview</h3>
+    <div id="previewModalBody" style="overflow:auto;max-height:70vh;background:#0a1633;border-radius:8px;padding:8px"></div>
+    <div class="t-row" style="margin-top:14px">
+      <button type="button" id="btnPreviewClose" class="t-btn t-btn-ghost">Close</button>
+      <button type="button" id="btnPreviewPrint" class="t-btn t-btn-gold">Print Preview</button>
+    </div>
+  </div>
+</div>
+
 <!-- Fixture player edit modal -->
 <div id="playerEditModal" class="t-modal t-no-print">
   <div class="t-modal-box" style="max-width:560px">
@@ -509,7 +543,7 @@
   </div>
 </div>
 
-<footer class="t-foot t-wrap-wide t-no-print">6th Alwar Cup Taekwondo Championship · Admin Panel</footer>
+<footer class="t-foot t-wrap-wide t-no-print" id="tAdminFooter">Taekwondo Championship · Admin Panel</footer>
 </div>
 
 <script>
@@ -609,11 +643,14 @@
     T.loadCategoryRules().then(function () { renderCatEditors(); fillAgeFilter(); buildReportBtns(); });
     T.watchTournaments(function (list) {
       S.tours = list.sort(function (a, b) { return String(b.date || '').localeCompare(String(a.date || '')); });
+      var visible = S.tours.filter(function (t) { return !t.hidden; });
       var sel = document.getElementById('tourPick'), cur = S.tid;
-      sel.innerHTML = '<option value="">— Select tournament —</option>' + S.tours.map(function (t) {
+      sel.innerHTML = '<option value="">— Select tournament —</option>' + visible.map(function (t) {
         return '<option value="' + E(t.id) + '">' + E(t.name) + ' — ' + T.fmtDate(t.date) + '</option>';
       }).join('');
-      if (!cur && S.tours.length) cur = S.tours[0].id;
+      if (!cur || S.tours.filter(function (x) { return x.id === cur; })[0].hidden) {
+        cur = visible.length ? visible[0].id : '';
+      }
       sel.value = cur || '';
       if (cur) setTour(cur);
       renderTourTable();
@@ -625,6 +662,8 @@
   document.getElementById('tourPick').onchange = function () { setTour(this.value); };
 
   function setTour(tid) {
+    var t = S.tours.filter(function (x) { return x.id === tid; })[0];
+    if (t && t.hidden) { T.toast('Cannot activate a hidden tournament', 'error'); return; }
     S.tid = tid;
     document.getElementById('tourChip').textContent = tid ? (tour().status || 'upcoming').toUpperCase() : '—';
     if (window.__uP) window.__uP();
@@ -701,43 +740,74 @@
   }
 
   /* tournaments */
-  var logoUrl = '';
+  var logoUrl = '', certLogoUrl = '', certSignatureUrl = '';
   document.querySelector('#tourForm [name=logoFile]').onchange = function (e) {
     var f = e.target.files[0]; if (!f) return;
     T.uploadImage(f, 'tournament/logos').then(function (u) { logoUrl = u; T.toast('Logo uploaded', 'success'); });
+  };
+  document.querySelector('#tourForm [name=certLogoFile]').onchange = function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    T.uploadImage(f, 'tournament/cert-logos').then(function (u) {
+      certLogoUrl = u; var img = document.getElementById('certLogoPrev'); img.src = u; img.style.display = 'block';
+      T.toast('Certificate logo uploaded', 'success');
+    }).catch(function (err) { T.toast(err.message || 'Upload failed', 'error'); });
+  };
+  document.querySelector('#tourForm [name=certSignatureFile]').onchange = function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    T.uploadImage(f, 'tournament/cert-signatures').then(function (u) {
+      certSignatureUrl = u; var img = document.getElementById('certSignaturePrev'); img.src = u; img.style.display = 'block';
+      T.toast('Certificate signature uploaded', 'success');
+    }).catch(function (err) { T.toast(err.message || 'Upload failed', 'error'); });
   };
   document.getElementById('btnTourReset').onclick = function () {
     document.getElementById('tourForm').reset();
     document.querySelector('#tourForm [name=id]').value = '';
     document.querySelector('#tourForm [name=sport]').value = 'Taekwondo';
-    logoUrl = '';
+    logoUrl = ''; certLogoUrl = ''; certSignatureUrl = '';
+    document.getElementById('certLogoPrev').style.display = 'none';
+    document.getElementById('certSignaturePrev').style.display = 'none';
     document.getElementById('tourFormTitle').textContent = 'Create Tournament';
   };
   document.getElementById('tourForm').onsubmit = function (e) {
     e.preventDefault();
     var f = e.target;
     var data = {
-      name: f.name.value.trim() || '6th Alwar Cup Taekwondo Championship',
+      name: f.name.value.trim() || D.shortName || 'Tournament',
       sport: f.sport.value.trim(), date: f.date.value, venue: f.venue.value.trim(),
       city: f.city.value.trim(), status: f.status.value, regClose: f.regClose.value,
-      fee: Number(f.fee.value || 0), description: f.description.value.trim()
+      fee: Number(f.fee.value || 0), description: f.description.value.trim(),
+      certificateTemplate: f.certificateTemplate.value,
+      idCardTemplate: f.idCardTemplate.value,
+      certificateAuthority: f.certificateAuthority.value.trim(),
+      certificateDesignation: f.certificateDesignation.value.trim()
     };
     if (logoUrl) data.logo = logoUrl;
+    if (certLogoUrl) data.certLogo = certLogoUrl;
+    if (certSignatureUrl) data.certSignature = certSignatureUrl;
     T.saveTournament(data, f.id.value || null).then(function () {
       T.toast('Tournament saved', 'success');
       document.getElementById('btnTourReset').click();
     }).catch(function (err) { T.toast(err.message, 'error'); });
   };
   function renderTourTable() {
-    document.getElementById('tourTable').innerHTML = S.tours.length
-      ? '<table class="t-table"><thead><tr><th>Name</th><th>Date</th><th>Venue</th><th>Status</th><th></th></tr></thead><tbody>' +
-        S.tours.map(function (t) {
+    var showHidden = document.getElementById('showHiddenTours').checked;
+    var visible = S.tours.filter(function (t) { return showHidden ? true : !t.hidden; });
+    var hiddenCount = S.tours.filter(function (t) { return !!t.hidden; }).length;
+    var label = document.getElementById('hiddenTourLabel');
+    if (label) label.textContent = showHidden ? 'Hide hidden tournaments (' + hiddenCount + ' hidden)' : 'Show hidden tournaments (' + hiddenCount + ' hidden)';
+    document.getElementById('tourTable').innerHTML = visible.length
+      ? '<table class="t-table"><thead><tr><th>Name</th><th>Date</th><th>Venue</th><th>Status</th><th>Hidden</th><th></th></tr></thead><tbody>' +
+        visible.map(function (t) {
+          var hideBtn = t.hidden
+            ? '<button type="button" class="t-btn t-btn-success t-btn-sm" data-rt="' + E(t.id) + '">Restore</button>'
+            : '<button type="button" class="t-btn t-btn-ghost t-btn-sm" data-ht="' + E(t.id) + '">Hide</button>';
           return '<tr><td>' + E(t.name) + '</td><td>' + T.fmtDate(t.date) + '</td><td>' + E(t.venue || '—') + '</td>' +
             '<td><span class="t-chip">' + E((t.status || 'upcoming').toUpperCase()) + '</span></td>' +
+            '<td>' + (t.hidden ? '<span class="t-chip warn">Hidden</span>' : '<span class="t-chip">Visible</span>') + '</td>' +
             '<td><button type="button" class="t-btn t-btn-ghost t-btn-sm" data-et="' + E(t.id) + '">Edit</button> ' +
-            '<button type="button" class="t-btn t-btn-danger t-btn-sm" data-dt="' + E(t.id) + '">Delete</button></td></tr>';
+            hideBtn + ' <button type="button" class="t-btn t-btn-danger t-btn-sm" data-dt="' + E(t.id) + '">Delete</button></td></tr>';
         }).join('') + '</tbody></table>'
-      : '<div class="t-empty">No tournaments yet.</div>';
+      : '<div class="t-empty">No tournaments ' + (showHidden ? '' : 'visible ') + 'yet.</div>';
     document.querySelectorAll('[data-et]').forEach(function (b) {
       b.onclick = function () {
         var t = S.tours.filter(function (x) { return x.id === b.dataset.et; })[0];
@@ -746,6 +816,13 @@
         f.date.value = t.date || ''; f.venue.value = t.venue || ''; f.city.value = t.city || '';
         f.status.value = t.status || 'upcoming'; f.regClose.value = t.regClose || '';
         f.fee.value = t.fee || ''; f.description.value = t.description || '';
+        f.certificateTemplate.value = t.certificateTemplate || 'Template 1';
+        f.idCardTemplate.value = t.idCardTemplate || 'Template 1';
+        f.certificateAuthority.value = t.certificateAuthority || '';
+        f.certificateDesignation.value = t.certificateDesignation || '';
+        certLogoUrl = t.certLogo || ''; certSignatureUrl = t.certSignature || '';
+        var cl = document.getElementById('certLogoPrev'); cl.src = certLogoUrl || ''; cl.style.display = certLogoUrl ? 'block' : 'none';
+        var cs = document.getElementById('certSignaturePrev'); cs.src = certSignatureUrl || ''; cs.style.display = certSignatureUrl ? 'block' : 'none';
         document.getElementById('tourFormTitle').textContent = 'Edit — ' + t.name;
       };
     });
@@ -754,6 +831,17 @@
         if (confirm('Delete this tournament?')) T.deleteTournament(b.dataset.dt).then(function () { T.toast('Deleted', 'success'); });
       };
     });
+    document.querySelectorAll('[data-ht]').forEach(function (b) {
+      b.onclick = function () {
+        T.saveTournament({ hidden: true }, b.dataset.ht).then(function () { T.toast('Tournament hidden', 'success'); renderTourTable(); });
+      };
+    });
+    document.querySelectorAll('[data-rt]').forEach(function (b) {
+      b.onclick = function () {
+        T.saveTournament({ hidden: false }, b.dataset.rt).then(function () { T.toast('Tournament restored', 'success'); renderTourTable(); });
+      };
+    });
+    document.getElementById('showHiddenTours').onchange = renderTourTable;
   }
 
   /* coaches */
@@ -1303,10 +1391,18 @@
     list = list || S.certs || [];
     if (list.length) {
       var sample = list[0];
-      document.getElementById('certPreview').innerHTML =
-        (sample.type && sample.type.indexOf('Merit') >= 0
-          ? TP.meritCertHTML(sample, tour(), D)
-          : TP.participationCertHTML(sample, tour(), D));
+    var brand = Object.assign({}, D, {
+      certificateTemplate: (tour() || {}).certificateTemplate || D.certificateTemplate,
+      idCardTemplate: (tour() || {}).idCardTemplate || D.idCardTemplate,
+      certificateAuthority: (tour() || {}).certificateAuthority || '',
+      certificateDesignation: (tour() || {}).certificateDesignation || '',
+      certLogo: (tour() || {}).certLogo || '',
+      certSignature: (tour() || {}).certSignature || ''
+    });
+    document.getElementById('certPreview').innerHTML =
+      (sample.type && sample.type.indexOf('Merit') >= 0
+        ? TP.meritCertHTML(sample, tour(), brand)
+        : TP.participationCertHTML(sample, tour(), brand));
     }
     document.getElementById('certTable').innerHTML = list.length
       ? '<table class="t-table"><thead><tr><th>Cert No</th><th>Name</th><th>Type</th><th>Medal</th><th>Category</th></tr></thead><tbody>' +
@@ -1320,6 +1416,61 @@
       }));
     };
   }
+
+  /* certificate / id card preview */
+  var previewBody = document.getElementById('previewModalBody');
+  document.getElementById('btnPreviewClose').onclick = function () {
+    previewBody.innerHTML = ''; document.getElementById('certPreviewModal').classList.remove('open');
+  };
+  function brandForPreview() {
+    var t = tour();
+    return Object.assign({}, D, {
+      certificateTemplate: t.certificateTemplate || D.certificateTemplate,
+      idCardTemplate: t.idCardTemplate || D.idCardTemplate,
+      certificateAuthority: t.certificateAuthority || '',
+      certificateDesignation: t.certificateDesignation || '',
+      certLogo: t.certLogo || '',
+      certSignature: t.certSignature || ''
+    });
+  }
+  function sampleCertRecord() {
+    var t = tour(), players = S.players.filter(function (p) { return p.status === 'approved'; });
+    if (!players.length) return null;
+    var p = players[0], medal = '';
+    var r = S.results.filter(function (x) {
+      return x.categoryId === p.categoryId && (x.gold === p.id || x.silver === p.id || x.bronze1 === p.id || x.bronze2 === p.id);
+    })[0];
+    if (r) { D.medals.forEach(function (m) { if (r[m] === p.id) medal = m.indexOf('bronze') === 0 ? 'bronze' : m; }); }
+    return {
+      id: 'preview-cert', name: p.name, regNo: p.regNo, academy: p.academy, school: p.school,
+      district: p.district, state: p.state, gender: p.gender, ageCategory: p.ageCategory,
+      weightCategory: p.weightCategory, category: p.categoryLabel,
+      type: medal ? 'Merit Certificate' : 'Participation Certificate', medal: medal,
+      certNo: p.regNo || 'ACC-0001', date: t.date, tournamentName: t.name
+    };
+  }
+  document.getElementById('btnPreviewCert').onclick = function () {
+    var t = tour(); if (!t || !t.id) return T.toast('Select a tournament first', 'error');
+    var cert = sampleCertRecord(); if (!cert) return T.toast('No approved players to preview', 'error');
+    var brand = brandForPreview();
+    var html = (cert.type.indexOf('Merit') >= 0 ? TP.meritCertHTML : TP.participationCertHTML)(cert, t, brand);
+    previewBody.innerHTML = html;
+    document.getElementById('previewModalTitle').textContent = 'Certificate Preview — ' + brand.certificateTemplate;
+    document.getElementById('certPreviewModal').classList.add('open');
+  };
+  document.getElementById('btnPreviewIdCard').onclick = function () {
+    var t = tour(); if (!t || !t.id) return T.toast('Select a tournament first', 'error');
+    var p = S.players.filter(function (x) { return x.status === 'approved'; })[0]; if (!p) return T.toast('No approved players to preview', 'error');
+    var brand = brandForPreview();
+    previewBody.innerHTML = TP.idCardHTML(p, t, brand);
+    document.getElementById('previewModalTitle').textContent = 'ID Card Preview — ' + brand.idCardTemplate;
+    document.getElementById('certPreviewModal').classList.add('open');
+  };
+  document.getElementById('btnPreviewPrint').onclick = function () {
+    var html = previewBody.innerHTML; if (!html.trim()) return;
+    var isCert = document.getElementById('previewModalTitle').textContent.indexOf('Certificate') >= 0;
+    T.printHTML('Preview', html, TP.previewCSS(), isCert);
+  };
 
   /* reports */
   function buildReportBtns() {
