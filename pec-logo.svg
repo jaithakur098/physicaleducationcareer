@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Physical Education Career">
+  <defs>
+    <linearGradient id="pecg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a56db"/>
+      <stop offset="100%" stop-color="#0d9488"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="56" fill="#fff" stroke="url(#pecg)" stroke-width="3"/>
+  <circle cx="60" cy="60" r="48" fill="none" stroke="#e4c65a" stroke-width="1.5"/>
+  <text x="60" y="38" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="800" fill="#061428">PHYSICAL</text>
+  <text x="60" y="48" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="800" fill="#061428">EDUCATION</text>
+  <text x="60" y="58" text-anchor="middle" font-family="Arial,sans-serif" font-size="7" font-weight="800" fill="#b91c3a">CAREER</text>
+  <circle cx="38" cy="72" r="6" fill="#1a56db" opacity="0.85"/>
+  <circle cx="52" cy="78" r="5" fill="#0d9488" opacity="0.85"/>
+  <circle cx="68" cy="78" r="5" fill="#b91c3a" opacity="0.85"/>
+  <circle cx="82" cy="72" r="6" fill="#e4c65a" opacity="0.9"/>
+  <path d="M48 68 L60 58 L72 68 L68 82 L52 82 Z" fill="#061428" opacity="0.15"/>
+</svg>

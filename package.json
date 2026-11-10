@@ -1,0 +1,27 @@
+{
+  "name": "physicaleducationcareer",
+  "version": "1.0.0",
+  "description": "A single-page, fully responsive, SEO-ready starter.",
+  "main": "class12-ch1-questions.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaithakur098/physicaleducationcareer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jaithakur098/physicaleducationcareer/issues"
+  },
+  "homepage": "https://github.com/jaithakur098/physicaleducationcareer#readme",
+  "dependencies": {
+    "puppeteer-core": "^23.11.1"
+  }
+}
