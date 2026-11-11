@@ -54,7 +54,11 @@
   }
   function certificateLogoUrl(tournament, brand) {
     var t = tournament || {};
+    if (brand && brand.certLogo) return String(brand.certLogo);
+    if (brand && brand.certificateLogo) return String(brand.certificateLogo);
     if (t.certificateLogo) return String(t.certificateLogo);
+    if (t.tournamentLogo) return String(t.tournamentLogo);
+    if (t.logo) return String(t.logo);
     return '';
   }
   function pecLogoUrl(brand) {
@@ -69,6 +73,8 @@
   }
   function certificateSignatureUrl(tournament, brand) {
     var t = tournament || {};
+    if (brand && brand.certSignature) return String(brand.certSignature);
+    if (brand && brand.certificateSignature) return String(brand.certificateSignature);
     if (t.certificateSignature) return String(t.certificateSignature);
     return '';
   }
@@ -659,7 +665,7 @@
       '.tcr-ribbon-sub:before { right: calc(50% + 16mm); } .tcr-ribbon-sub:after { left: calc(50% + 16mm); }' +
       '.tcr-body { text-align: center; padding: 0 8mm; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; }' +
       '.tcr-certify { font-family: "Source Sans 3", sans-serif; font-size: 3.8mm; font-weight: 800; letter-spacing: 0.14em; color: ' + NAVY2 + '; margin: 0 0 1.5mm; }' +
-      '.tcr-player { font-family: Cinzel, Georgia, serif; font-size: 11.5mm; font-weight: 800; color: ' + NAVY + '; margin: 2.5mm 0 1mm 0; line-height: 1.05; letter-spacing: 0.04em; word-break: break-word; }' +
+      '.tcr-player { font-family: Cinzel, Georgia, serif; font-size: 11.5mm; font-weight: 800; color: ' + NAVY + '; margin: 2.5mm 0 1mm 0; line-height: 1.2; letter-spacing: 0.04em; word-break: break-word; }' +
       '.tcr-of { font-family: "Libre Baskerville", Georgia, serif; font-size: 3.8mm; color: #3d4a5c; margin: 1mm 0; }' +
       '.tcr-statement, .tcr-held, .tcr-wish, .tcr-merit-line { font-family: "Libre Baskerville", Georgia, serif; font-size: 4.2mm; line-height: 1.55; color: #2d3748; margin: 1mm 0; }' +
       '.tcr-event-red { color: #b91c3a; font-weight: 700; }' +

@@ -1457,7 +1457,9 @@
       date: (f && f.date ? f.date.value : '') || t.date || '',
       venue: (f && f.venue ? f.venue.value : '') || t.venue || '',
       city: (f && f.city ? f.city.value : '') || t.city || '',
-      sport: (f && f.sport ? f.sport.value : '') || t.sport || D.sport || 'Taekwondo'
+      sport: (f && f.sport ? f.sport.value : '') || t.sport || D.sport || 'Taekwondo',
+      certificateLogo: certLogoUrl || t.certificateLogo || t.certLogo || '',
+      certificateSignature: certSignatureUrl || t.certificateSignature || t.certSignature || ''
     });
   }
   function previewSamplePlayer() {
