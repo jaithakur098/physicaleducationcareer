@@ -158,6 +158,10 @@
                 <div class="t-field"><label>Certificate Template</label><select class="t-select" name="certificateTemplate"><option>Template 1</option><option>Template 2</option><option>Template 3</option><option>Template 4</option><option>Template 5</option></select></div>
                 <div class="t-field"><label>ID Card Template</label><select class="t-select" name="idCardTemplate"><option>Template 1</option><option>Template 2</option><option>Template 3</option><option>Template 4</option><option>Template 5</option></select></div>
               </div>
+              <div class="t-g2 t-grid">
+                <div class="t-field"><label>Certificate Type</label><select class="t-select" name="certificateType"><option>Participation Certificate</option><option>Winner Certificate</option><option>Runner-up Certificate</option><option>Bronze Medal Certificate</option><option>Merit Certificate</option></select></div>
+                <div class="t-field"><label>Brand Color</label><select class="t-select" name="brandColor"><option value="#d4af37">Gold</option><option value="#b91c3a">Crimson</option><option value="#1a56db">Royal Blue</option><option value="#064e3b">Emerald Green</option><option value="#7f1d1d">Deep Red</option></select></div>
+              </div>
               <div class="t-field"><label>Certificate Authority Name</label><input class="t-input" name="certificateAuthority" placeholder="e.g. Tournament Director"></div>
               <div class="t-field"><label>Certificate Designation</label><input class="t-input" name="certificateDesignation" placeholder="e.g. Head of Physical Education"></div>
               <div class="t-field"><label>Certificate Logo Upload</label><input class="t-input" type="file" name="certLogoFile" accept="image/*"><img id="certLogoPrev" class="t-photo-prev" style="margin-top:8px;display:none" alt="Certificate logo"></div>
@@ -782,6 +786,8 @@
       fee: Number(f.fee.value || 0), description: f.description.value.trim(),
       certificateTemplate: f.certificateTemplate.value,
       idCardTemplate: f.idCardTemplate.value,
+      certificateType: f.certificateType.value,
+      brandColor: f.brandColor.value,
       certificateAuthority: f.certificateAuthority.value.trim(),
       certificateDesignation: f.certificateDesignation.value.trim()
     };
@@ -822,6 +828,8 @@
         f.fee.value = t.fee || ''; f.description.value = t.description || '';
         f.certificateTemplate.value = t.certificateTemplate || 'Template 1';
         f.idCardTemplate.value = t.idCardTemplate || 'Template 1';
+        f.certificateType.value = t.certificateType || 'Participation Certificate';
+        f.brandColor.value = t.brandColor || '#d4af37';
         f.certificateAuthority.value = t.certificateAuthority || '';
         f.certificateDesignation.value = t.certificateDesignation || '';
         certLogoUrl = t.certificateLogo || t.certLogo || ''; certSignatureUrl = t.certificateSignature || t.certSignature || '';
@@ -1458,6 +1466,8 @@
       venue: (f && f.venue ? f.venue.value : '') || t.venue || '',
       city: (f && f.city ? f.city.value : '') || t.city || '',
       sport: (f && f.sport ? f.sport.value : '') || t.sport || D.sport || 'Taekwondo',
+      certificateType: (f && f.certificateType ? f.certificateType.value : '') || t.certificateType || 'Participation Certificate',
+      brandColor: (f && f.brandColor ? f.brandColor.value : '') || t.brandColor || '#d4af37',
       certificateLogo: certLogoUrl || t.certificateLogo || t.certLogo || '',
       certificateSignature: certSignatureUrl || t.certificateSignature || t.certSignature || ''
     });
@@ -1505,7 +1515,7 @@
   document.getElementById('btnPreviewPrint').onclick = function () {
     var html = previewBody.innerHTML; if (!html.trim()) return;
     var isCert = document.getElementById('previewModalTitle').textContent.indexOf('Certificate') >= 0;
-    T.printHTML('Preview', html, TP.previewCSS(), isCert);
+    T.printHTML('Preview', html, TP.previewCSS(t.brandColor || '#d4af37'), isCert);
   };
 
   /* reports */

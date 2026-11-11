@@ -294,6 +294,26 @@
     return html;
   }
 
+  function certificateTypeLabel(type) {
+    var t = String(type || '').toLowerCase();
+    if (t.indexOf('participation') >= 0) return 'OF PARTICIPATION';
+    if (t.indexOf('winner') >= 0 || t.indexOf('champion') >= 0) return 'OF VICTORY';
+    if (t.indexOf('runner') >= 0) return 'OF ACHIEVEMENT';
+    if (t.indexOf('bronze') >= 0) return 'OF MERIT';
+    if (t.indexOf('merit') >= 0) return 'OF DISTINCTION';
+    return 'OF PARTICIPATION';
+  }
+
+  function certificateTypeStatement(type) {
+    var t = String(type || '').toLowerCase();
+    if (t.indexOf('participation') >= 0) return 'has participated in the';
+    if (t.indexOf('winner') >= 0 || t.indexOf('champion') >= 0) return 'has emerged as the winner in the';
+    if (t.indexOf('runner') >= 0) return 'has participated and achieved runner-up position in the';
+    if (t.indexOf('bronze') >= 0) return 'has secured the bronze medal in the';
+    if (t.indexOf('merit') >= 0) return 'has demonstrated merit in the';
+    return 'has participated in the';
+  }
+
   function meritOrdinal(medal) {
     var m = String(medal || '').toLowerCase();
     if (m === 'gold') return '1st';
@@ -553,12 +573,12 @@
 
     var body =
       refCertHeader(tournament, brand, tourLogo, pecLogo) +
-      refCertRibbon('OF PARTICIPATION') +
+      refCertRibbon(certificateTypeLabel(cert.type)) +
       '<section class="tcr-body">' +
         '<p class="tcr-certify">THIS IS TO CERTIFY THAT</p>' +
         '<h2 class="tcr-player">' + esc(playerName) + '</h2>' +
         (academyLine ? '<p class="tcr-of">of <strong>' + esc(academyLine) + '</strong></p>' : '') +
-        '<p class="tcr-statement">has participated in the <strong class="tcr-event-red">' + esc(eventNameText) + '</strong></p>' +
+        '<p class="tcr-statement">' + esc(certificateTypeStatement(cert.type)) + ' <strong class="tcr-event-red">' + esc(eventNameText) + '</strong></p>' +
         '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(place) + '.</p>' +
         '<p class="tcr-wish">We wish ' + proObj + ' great success in all future endeavors.</p>' +
       '</section>' +
@@ -600,12 +620,12 @@
 
     var body =
       refCertHeader(tournament, brand, tourLogo, pecLogo) +
-      refCertRibbon('OF MERIT') +
+      refCertRibbon(certificateTypeLabel(cert.type)) +
       '<section class="tcr-body">' +
         '<p class="tcr-certify">THIS IS TO CERTIFY THAT</p>' +
         '<h2 class="tcr-player">' + esc(playerName) + '</h2>' +
         (academyLine ? '<p class="tcr-of">of <strong>' + esc(academyLine) + '</strong></p>' : '') +
-        '<p class="tcr-statement">has participated in the <strong class="tcr-event-red">' + esc(eventNameText) + '</strong></p>' +
+        '<p class="tcr-statement">' + esc(certificateTypeStatement(cert.type)) + ' <strong class="tcr-event-red">' + esc(eventNameText) + '</strong></p>' +
         '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(place) + '.</p>' +
         (ordinal && catLine ?
           '<p class="tcr-merit-line"><span class="tcr-merit-pro">' + pro + '</span> secured <strong class="tcr-merit-pos">' + esc(ordinal.toUpperCase()) + '</strong> position in <strong class="tcr-merit-cat">' + esc(catLine) + '</strong>.</p>' :
@@ -635,6 +655,7 @@
     return fontImport() +
       '@page { size: A4 landscape; margin: 0; }' +
       '.tcr-cert { width: 297mm; height: 210mm; position: relative; overflow: hidden; page-break-after: always; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
+      '.tcr-cert:last-child { page-break-after: auto; }' +
       '.tcr-paper { position: absolute; inset: 0; background: radial-gradient(ellipse at 55% 20%, rgba(228,198,90,0.08), transparent 55%), linear-gradient(180deg, #fffefb 0%, ' + IVORY + ' 45%, #f3ede2 100%); z-index: 0; }' +
       '.tcr-frame-outer { position: absolute; top: 5mm; left: 5mm; right: 5mm; bottom: 5mm; border: 2.5px double ' + GOLD + '; z-index: 1; pointer-events: none; }' +
       '.tcr-frame-inner { position: absolute; top: 7mm; left: 7mm; right: 7mm; bottom: 7mm; border: 1px solid rgba(6,20,40,0.18); z-index: 1; pointer-events: none; }' +
@@ -654,30 +675,30 @@
       '.tcr-seal, .tcr-pec-logo { width: 22mm; height: 22mm; object-fit: contain; display: block; margin: 0 auto; filter: drop-shadow(0 1px 2px rgba(6,20,40,0.12)); }' +
       '.tcr-head-center { text-align: center; padding-top: 0.5mm; }' +
       '.tcr-trophy { width: 14mm; height: auto; display: block; margin: 0 auto 1mm; }' +
-      '.tcr-event-main { font-family: Cinzel, Georgia, serif; font-size: 11mm; font-weight: 800; letter-spacing: 0.04em; color: ' + NAVY + '; line-height: 1; }' +
+      '.tcr-event-main { font-family: Cinzel, Georgia, serif; font-size: 11mm; font-weight: 800; letter-spacing: 0.04em; color: ' + NAVY + '; line-height: 1.05; word-break: break-word; }' +
       '.tcr-event-main sup { font-size: 0.45em; vertical-align: super; }' +
-      '.tcr-event-sub { font-family: "Source Sans 3", sans-serif; font-size: 5.2mm; font-weight: 800; letter-spacing: 0.08em; color: #b91c3a; margin-top: 1mm; }' +
+      '.tcr-event-sub { font-family: "Source Sans 3", sans-serif; font-size: 5.2mm; font-weight: 800; letter-spacing: 0.08em; color: #b91c3a; margin-top: 1mm; word-break: break-word; }' +
       '.tcr-stars { color: ' + GOLD2 + '; font-size: 4mm; letter-spacing: 3mm; margin-top: 1mm; }' +
       '.tcr-pec-site { font-family: "Source Sans 3", sans-serif; font-size: 2.6mm; font-weight: 700; color: ' + NAVY2 + '; text-align: center; letter-spacing: 0.05em; margin-top: 1mm; text-transform: lowercase; }' +
-      '.tcr-ribbon-wrap { display: block; text-align: center; margin: 0 0 2.5mm 0; padding: 0; }' +
-      '.tcr-ribbon { display: inline-block; position: relative; background: linear-gradient(180deg, ' + NAVY2 + ', ' + NAVY + '); color: ' + GOLD2 + '; padding: 2mm 18mm; border: 1.5px solid ' + GOLD + '; clip-path: polygon(3% 0, 97% 0, 100% 50%, 97% 100%, 3% 100%, 0 50%); }' +
+      '.tcr-ribbon-wrap { display: block; text-align: center; margin: 0 0 3mm 0; padding: 0; }' +
+      '.tcr-ribbon { display: inline-block; position: relative; background: linear-gradient(180deg, ' + NAVY2 + ', ' + NAVY + '); color: ' + GOLD2 + '; padding: 2.5mm 20mm; border: 1.5px solid ' + GOLD + '; clip-path: polygon(3% 0, 97% 0, 100% 50%, 97% 100%, 3% 100%, 0 50%); }' +
       '.tcr-ribbon span { font-family: Cinzel, Georgia, serif; font-size: 8mm; font-weight: 800; letter-spacing: 0.18em; display: block; }' +
-      '.tcr-ribbon-sub { display: block; font-family: Cinzel, Georgia, serif; font-size: 4.5mm; font-weight: 700; letter-spacing: 0.28em; color: ' + NAVY + '; margin-top: 1.5mm; position: relative; }' +
+      '.tcr-ribbon-sub { display: block; font-family: Cinzel, Georgia, serif; font-size: 4.5mm; font-weight: 700; letter-spacing: 0.28em; color: ' + NAVY + '; margin-top: 2mm; position: relative; }' +
       '.tcr-ribbon-sub:before, .tcr-ribbon-sub:after { content: ""; position: absolute; top: 50%; width: 22mm; height: 1px; background: linear-gradient(90deg, transparent, ' + GOLD + ', transparent); }' +
-      '.tcr-ribbon-sub:before { right: calc(50% + 16mm); } .tcr-ribbon-sub:after { left: calc(50% + 16mm); }' +
+      '.tcr-ribbon-sub:before { right: calc(50% + 18mm); } .tcr-ribbon-sub:after { left: calc(50% + 18mm); }' +
       '.tcr-body { text-align: center; padding: 0 8mm; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; }' +
-      '.tcr-certify { font-family: "Source Sans 3", sans-serif; font-size: 3.8mm; font-weight: 800; letter-spacing: 0.14em; color: ' + NAVY2 + '; margin: 0 0 1.5mm; }' +
-      '.tcr-player { font-family: Cinzel, Georgia, serif; font-size: 11.5mm; font-weight: 800; color: ' + NAVY + '; margin: 2.5mm 0 1mm 0; line-height: 1.2; letter-spacing: 0.04em; word-break: break-word; }' +
+      '.tcr-certify { font-family: "Source Sans 3", sans-serif; font-size: 3.8mm; font-weight: 800; letter-spacing: 0.14em; color: ' + NAVY2 + '; margin: 0 0 2mm; }' +
+      '.tcr-player { font-family: Cinzel, Georgia, serif; font-size: 12mm; font-weight: 800; color: ' + NAVY + '; margin: 3mm 0 2mm 0; line-height: 1.25; letter-spacing: 0.04em; word-break: break-word; }' +
       '.tcr-of { font-family: "Libre Baskerville", Georgia, serif; font-size: 3.8mm; color: #3d4a5c; margin: 1.5mm 0; }' +
-      '.tcr-statement, .tcr-held, .tcr-wish, .tcr-merit-line { font-family: "Libre Baskerville", Georgia, serif; font-size: 4.2mm; line-height: 1.55; color: #2d3748; margin: 1mm 0; }' +
+      '.tcr-statement, .tcr-held, .tcr-wish, .tcr-merit-line { font-family: "Libre Baskerville", Georgia, serif; font-size: 4.2mm; line-height: 1.6; color: #2d3748; margin: 1.2mm 0; }' +
       '.tcr-event-red { color: #b91c3a; font-weight: 700; }' +
       '.tcr-merit-pos { font-family: Cinzel, Georgia, serif; font-size: 5.5mm; color: ' + GOLD + '; letter-spacing: 0.06em; }' +
       '.tcr-merit-cat { color: ' + NAVY + '; }' +
-      '.tcr-meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm 5mm; padding: 2.5mm 4mm; background: rgba(6,20,40,0.04); border: 1px solid rgba(184,148,31,0.35); border-radius: 2mm; }' +
-      '.tcr-foot { display: grid; grid-template-columns: 20mm 1fr 26mm; gap: 3mm; align-items: end; padding-top: 1mm; }' +
+      '.tcr-meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.5mm 5mm; padding: 3mm 4mm; background: rgba(6,20,40,0.04); border: 1px solid rgba(184,148,31,0.35); border-radius: 2mm; }' +
+      '.tcr-foot { display: grid; grid-template-columns: 20mm 1fr 26mm; gap: 3mm; align-items: end; padding-top: 2mm; }' +
       '.tcr-medal-seal { width: 20mm; justify-self: start; } .tcr-medal-seal svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 2px 4px rgba(6,20,40,0.15)); }' +
       '.tcr-medal-gold svg circle:first-of-type { filter: drop-shadow(0 0 4px rgba(255,215,0,0.4)); }' +
-      '.tcr-sigs { display: flex; justify-content: center; gap: 10mm; align-items: flex-end; }' +
+      '.tcr-sigs { display: flex; justify-content: center; gap: 12mm; align-items: flex-end; }' +
       '.tcr-sig { text-align: center; min-width: 55mm; max-width: 72mm; }' +
       '.tcr-sig-img { width: 42mm; height: auto; max-height: 17mm; display: block; margin: 0 auto 2mm; object-fit: contain; }' +
       '.tcr-sig-name { font-family: Cinzel, Georgia, serif; font-size: 4.2mm; font-weight: 800; color: #b91c3a; letter-spacing: 0.05em; line-height: 1.15; }' +
@@ -766,6 +787,16 @@
 
   function certCSS() {
     return sharedCertCSS() + certTemplateCSS();
+  }
+
+  function certCSSWithBrand(brandColor) {
+    var accent = brandColor || '#d4af37';
+    var accentDark = accent;
+    return sharedCertCSS() + certTemplateCSS() +
+      '.tcr-ribbon { border-color: ' + accent + ' !important; }' +
+      '.tcr-corner { border-color: ' + accent + ' !important; }' +
+      '.tcr-frame-outer { border-color: ' + accent + ' !important; }' +
+      '.tcr-merit-pos { color: ' + accent + ' !important; }';
   }
 
   function baseIdCardCSS() {
@@ -863,8 +894,8 @@
     return baseIdCardCSS() + idTemplateCSS();
   }
 
-  function previewCSS() {
-    return idCardCSS() + certCSS() +
+  function previewCSS(brandColor) {
+    return idCardCSS() + certCSSWithBrand(brandColor) +
       '.t-cert-preview-host, .cert-host { overflow: auto; background: #12182b; padding: 16px; border-radius: 8px; }' +
       '.t-cert-preview-host .tcr-cert, .cert-host .tcr-cert { transform: scale(0.38); transform-origin: top left; margin-bottom: -128mm; }' +
       '.t-idcard-preview-host, .id-host { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; }' +
@@ -883,6 +914,7 @@
     participationCertCSS: function () { return sharedCertCSS() + certTemplateCSS(); },
     meritCertCSS: function () { return sharedCertCSS() + certTemplateCSS(); },
     idCardCSS: idCardCSS,
-    previewCSS: previewCSS
+    previewCSS: previewCSS,
+    certCSSWithBrand: certCSSWithBrand
   };
 })(window);
