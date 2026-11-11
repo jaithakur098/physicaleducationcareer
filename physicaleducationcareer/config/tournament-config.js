@@ -66,6 +66,10 @@
     medals: ['gold', 'silver', 'bronze1', 'bronze2'],
     statuses: ['upcoming', 'live', 'completed'],
     coachStatuses: ['pending', 'approved', 'rejected'],
-    playerStatuses: ['pending', 'approved', 'rejected']
+    playerStatuses: ['pending', 'approved', 'rejected'],
+    certificateTemplates: ['Template 6'],
+    idCardTemplates: ['Template 1'],
+    certificateTemplate: 'Template 6',
+    idCardTemplate: 'Template 1'
   };
 })(window);

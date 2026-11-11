@@ -151,12 +151,28 @@
               <div class="t-field"><label>Entry Fee (₹)</label><input class="t-input" type="number" name="fee" min="0"></div>
             </div>
             <div class="t-field"><label>Tournament Logo</label><input class="t-input" type="file" name="logoFile" accept="image/*"></div>
-            <div class="t-field"><label>Certificate Template</label><select class="t-select" name="certificateTemplate"><option value="1">Template 1</option><option value="2">Template 2</option><option value="3">Template 3</option><option value="4">Template 4</option><option value="5">Template 5</option></select></div>
-            <div class="t-field"><label>ID Card Template</label><select class="t-select" name="idCardTemplate"><option value="1">Template 1</option><option value="2">Template 2</option><option value="3">Template 3</option><option value="4">Template 4</option><option value="5">Template 5</option></select></div>
-            <div class="t-field"><label>Certificate Authority Name</label><input class="t-input" name="certificateAuthority"></div>
-            <div class="t-field"><label>Certificate Designation</label><input class="t-input" name="certificateDesignation"></div>
-            <div class="t-field"><label>Certificate Logo</label><input class="t-input" type="file" name="certLogoFile" accept="image/*"></div>
-            <div class="t-field"><label>Certificate Signature</label><input class="t-input" type="file" name="certSignatureFile" accept="image/*"></div>
+              <fieldset class="t-cert-section">
+                <legend>Certificate Settings</legend>
+                <div class="t-auth-section">
+                  <div class="t-auth-header">
+                    <span class="t-auth-label">Certificate Authorities (max 3)</span>
+                    <span id="authCount" class="t-auth-count">1 of 3</span>
+                  </div>
+                  <div id="certificateAuthoritiesContainer">
+                    <div class="t-auth-row" data-auth-index="0">
+                      <div class="t-g2 t-grid">
+                        <div class="t-field"><label>Authority Name <span class="t-req">*</span></label><input class="t-input auth-name" placeholder="e.g. Tournament Director"></div>
+                        <div class="t-field"><label>Designation</label><input class="t-input auth-desig" placeholder="e.g. Head of Physical Education"></div>
+                      </div>
+                      <div class="t-field"><label>Signature Upload</label><input class="t-input" type="file" name="authSignatureFile" data-auth-index="0" accept="image/*"><img class="t-photo-prev auth-sig-preview" data-auth-index="0" style="margin-top:8px;display:none" alt="Authority signature"></div>
+                      <button type="button" class="t-btn t-btn-danger t-btn-sm t-btn-remove-auth" data-auth-index="0" style="display:none">Remove</button>
+                    </div>
+                  </div>
+                  <button type="button" class="t-btn t-btn-ghost t-btn-sm" id="btnAddAuth">+ Add Authority</button>
+                </div>
+                <div class="t-field"><label>Certificate Logo</label><input class="t-input" type="file" name="certLogoFile" accept="image/*"></div>
+                <div class="t-field"><label>Certificate Signature</label><input class="t-input" type="file" name="certSignatureFile" accept="image/*"></div>
+              </fieldset>
             <div class="t-field"><label>ID Card Logo</label><input class="t-input" type="file" name="idCardLogoFile" accept="image/*"></div>
             <div class="t-field"><label>Description</label><textarea class="t-textarea" name="description"></textarea></div>
             <div class="t-row">
@@ -729,6 +745,7 @@
 
   /* tournaments */
   var logoUrl = '', certLogoUrl = '', certSigUrl = '', idLogoUrl = '';
+  var authSignatureUrls = [];
   document.querySelector('#tourForm [name=logoFile]').onchange = function (e) {
     var f = e.target.files[0]; if (!f) return;
     T.uploadImage(f, 'tournament/logos').then(function (u) { logoUrl = u; T.toast('Logo uploaded', 'success'); });
@@ -736,6 +753,18 @@
   document.querySelector('#tourForm [name=certLogoFile]').onchange = function (e) {
     var f = e.target.files[0]; if (!f) return;
     T.uploadImage(f, 'tournament/certificates').then(function (u) { certLogoUrl = u; T.toast('Certificate logo uploaded', 'success'); });
+  };
+  document.getElementById('certificateAuthoritiesContainer').onchange = function (e) {
+    var f = e.target;
+    if (!f || f.type !== 'file' || !f.dataset.authIndex) return;
+    var file = f.files[0]; if (!file) return;
+    var idx = parseInt(f.dataset.authIndex, 10);
+    T.uploadImage(file, 'tournament/certificates').then(function (u) {
+      authSignatureUrls[idx] = u;
+      var img = document.querySelector('.auth-sig-preview[data-auth-index="' + idx + '"]');
+      if (img) { img.src = u; img.style.display = 'block'; }
+      T.toast('Authority signature uploaded', 'success');
+    }).catch(function (err) { T.toast(err.message || 'Upload failed', 'error'); });
   };
   document.querySelector('#tourForm [name=certSignatureFile]').onchange = function (e) {
     var f = e.target.files[0]; if (!f) return;
@@ -749,7 +778,9 @@
     document.getElementById('tourForm').reset();
     document.querySelector('#tourForm [name=id]').value = '';
     document.querySelector('#tourForm [name=sport]').value = 'Taekwondo';
-    logoUrl = ''; certLogoUrl = ''; certSigUrl = ''; idLogoUrl = '';
+    logoUrl = ''; certLogoUrl = ''; certSigUrl = ''; idLogoUrl = ''; authSignatureUrls = [];
+    var container = document.getElementById('certificateAuthoritiesContainer');
+    container.querySelectorAll('.auth-sig-preview').forEach(function (img) { img.style.display = 'none'; img.src = ''; });
     document.getElementById('tourFormTitle').textContent = 'Create Tournament';
   };
   document.getElementById('tourForm').onsubmit = function (e) {
@@ -760,10 +791,7 @@
       sport: f.sport.value.trim(), date: f.date.value, venue: f.venue.value.trim(),
       city: f.city.value.trim(), status: f.status.value, regClose: f.regClose.value,
       fee: Number(f.fee.value || 0), description: f.description.value.trim(),
-      certificateTemplate: Number(f.certificateTemplate.value || 1),
-      idCardTemplate: Number(f.idCardTemplate.value || 1),
-      certificateAuthority: f.certificateAuthority.value.trim(),
-      certificateDesignation: f.certificateDesignation.value.trim()
+      certificateAuthorities: collectAuthorities()
     };
     if (logoUrl) data.logo = logoUrl;
     if (certLogoUrl) data.certificateLogo = certLogoUrl;
@@ -773,6 +801,88 @@
       T.toast('Tournament saved', 'success');
       document.getElementById('btnTourReset').click();
     }).catch(function (err) { T.toast(err.message, 'error'); });
+  };
+  function collectAuthorities() {
+    var container = document.getElementById('certificateAuthoritiesContainer');
+    var rows = container.querySelectorAll('.t-auth-row');
+    var authorities = [];
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var idx = row.dataset.authIndex;
+      var name = row.querySelector('.auth-name').value.trim();
+      var desig = row.querySelector('.auth-desig').value.trim();
+      var sig = authSignatureUrls[parseInt(idx, 10)] || '';
+      if (name || desig || sig) {
+        authorities.push({ name: name, designation: desig, signature: sig });
+      }
+    }
+    return authorities;
+  }
+  function populateAuthorities(authorities) {
+    var container = document.getElementById('certificateAuthoritiesContainer');
+    container.innerHTML = '';
+    var list = authorities && authorities.length ? authorities : [{ name: '', designation: '', signature: '' }];
+    list.forEach(function (auth, i) {
+      var isFirst = i === 0;
+      var row = document.createElement('div');
+      row.className = 't-auth-row';
+      row.dataset.authIndex = i;
+      row.innerHTML =
+        '<div class="t-g2 t-grid">' +
+          '<div class="t-field"><label>Authority Name <span class="t-req">*</span></label><input class="t-input auth-name" placeholder="e.g. Tournament Director" value="' + E(auth.name || '') + '"></div>' +
+          '<div class="t-field"><label>Designation</label><input class="t-input auth-desig" placeholder="e.g. Head of Physical Education" value="' + E(auth.designation || '') + '"></div>' +
+        '</div>' +
+        '<div class="t-field"><label>Signature Upload</label><input class="t-input" type="file" name="authSignatureFile" data-auth-index="' + i + '" accept="image/*"><img class="t-photo-prev auth-sig-preview" data-auth-index="' + i + '" style="margin-top:8px;display:none" alt="Authority signature"></div>' +
+        '<button type="button" class="t-btn t-btn-danger t-btn-sm t-btn-remove-auth" data-auth-index="' + i + '"' + (isFirst ? ' style="display:none"' : '') + '>Remove</button>';
+      container.appendChild(row);
+      if (auth.signature) {
+        authSignatureUrls[i] = auth.signature;
+        var img = row.querySelector('.auth-sig-preview');
+        img.src = auth.signature;
+        img.style.display = 'block';
+      }
+    });
+    updateAuthCount();
+  }
+  function updateAuthCount() {
+    var container = document.getElementById('certificateAuthoritiesContainer');
+    var count = container.querySelectorAll('.t-auth-row').length;
+    document.getElementById('authCount').textContent = count + ' of 3';
+    document.getElementById('btnAddAuth').disabled = count >= 3;
+    container.querySelectorAll('.t-btn-remove-auth').forEach(function (btn) {
+      btn.style.display = count > 1 ? 'inline-block' : 'none';
+    });
+  }
+  document.getElementById('btnAddAuth').onclick = function () {
+    var container = document.getElementById('certificateAuthoritiesContainer');
+    var existing = container.querySelectorAll('.t-auth-row');
+    if (existing.length >= 3) return;
+    var i = existing.length;
+    var row = document.createElement('div');
+    row.className = 't-auth-row';
+    row.dataset.authIndex = i;
+    row.innerHTML =
+      '<div class="t-g2 t-grid">' +
+        '<div class="t-field"><label>Authority Name <span class="t-req">*</span></label><input class="t-input auth-name" placeholder="e.g. Tournament Director"></div>' +
+        '<div class="t-field"><label>Designation</label><input class="t-input auth-desig" placeholder="e.g. Head of Physical Education"></div>' +
+      '</div>' +
+      '<div class="t-field"><label>Signature Upload</label><input class="t-input" type="file" name="authSignatureFile" data-auth-index="' + i + '" accept="image/*"><img class="t-photo-prev auth-sig-preview" data-auth-index="' + i + '" style="margin-top:8px;display:none" alt="Authority signature"></div>' +
+      '<button type="button" class="t-btn t-btn-danger t-btn-sm t-btn-remove-auth" data-auth-index="' + i + '">Remove</button>';
+    container.appendChild(row);
+    updateAuthCount();
+  };
+  var container = document.getElementById('certificateAuthoritiesContainer');
+  container.onclick = function (e) {
+    var btn = e.target.closest ? e.target.closest('.t-btn-remove-auth') : null;
+    if (!btn) return;
+    var idx = btn.dataset.authIndex;
+    var row = container.querySelector('.t-auth-row[data-auth-index="' + idx + '"]');
+    if (!row) return;
+    var count = container.querySelectorAll('.t-auth-row').length;
+    if (count <= 1) return;
+    row.remove();
+    delete authSignatureUrls[parseInt(idx, 10)];
+    updateAuthCount();
   };
   function renderTourTable() {
     document.getElementById('tourTable').innerHTML = S.tours.length
@@ -792,11 +902,8 @@
         f.date.value = t.date || ''; f.venue.value = t.venue || ''; f.city.value = t.city || '';
         f.status.value = t.status || 'upcoming'; f.regClose.value = t.regClose || '';
         f.fee.value = t.fee || ''; f.description.value = t.description || '';
-        f.certificateTemplate.value = t.certificateTemplate || 1;
-        f.idCardTemplate.value = t.idCardTemplate || 1;
-        f.certificateAuthority.value = t.certificateAuthority || '';
-        f.certificateDesignation.value = t.certificateDesignation || '';
         logoUrl = t.logo || ''; certLogoUrl = t.certificateLogo || ''; certSigUrl = t.certificateSignature || ''; idLogoUrl = t.idCardLogo || '';
+        populateAuthorities(t.certificateAuthorities || t.certificateAuthority ? [{name: t.certificateAuthority || '', designation: t.certificateDesignation || '', signature: t.certificateSignature || ''}] : (t.certificateAuthorities || []));
         document.getElementById('tourFormTitle').textContent = 'Edit — ' + t.name;
       };
     });
@@ -1462,9 +1569,7 @@
     list = list || S.certs || [];
     var box = document.getElementById('certPreview');
     var t = tour();
-    var tplMatch = String(t.certificateTemplate || '').match(/\d/);
-    var tpl = tplMatch ? tplMatch[0] : '1';
-    var title = '<div class="t-cert-preview-title">Certificate Preview — Template ' + tpl + '</div>' +
+    var title = '<div class="t-cert-preview-title">Certificate Preview — Template 6</div>' +
       '<button type="button" id="btnCertDiagToggle" class="t-btn t-btn-ghost t-btn-sm" style="margin-left:10px;font-size:11px;padding:6px 10px">Show data source</button>' +
       '<div id="certDiagPanel" class="t-hide" style="margin-top:8px"></div>';
     var certHtml = (list.length
