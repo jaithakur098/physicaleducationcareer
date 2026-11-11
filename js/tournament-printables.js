@@ -79,16 +79,25 @@
     return '';
   }
   function authorityName(tournament, brand) {
-    var t = tournament || {};
-    if (t.certificateAuthority) return String(t.certificateAuthority);
-    if (brand && brand.certificateAuthority) return String(brand.certificateAuthority);
-    return '';
+    var list = authoritiesList(tournament, brand);
+    return list.length ? String(list[0].name || '') : '';
   }
   function authorityDesignation(tournament, brand) {
+    var list = authoritiesList(tournament, brand);
+    return list.length ? String(list[0].designation || '') : '';
+  }
+  function certificateSignatureUrl(tournament, brand) {
+    var list = authoritiesList(tournament, brand);
+    return list.length ? String(list[0].signature || '') : '';
+  }
+  function authoritiesList(tournament, brand) {
     var t = tournament || {};
-    if (t.certificateDesignation) return String(t.certificateDesignation);
-    if (brand && brand.certificateDesignation) return String(brand.certificateDesignation);
-    return '';
+    var b = brand || {};
+    var arr = t.certificateAuthorities || (b && b.certificateAuthorities) || [];
+    if (arr && arr.length) return arr;
+    var single = t.certificateAuthority || (b && b.certificateAuthority);
+    if (single) return [{ name: String(single), designation: t.certificateDesignation || (b && b.certificateDesignation) || '', signature: t.certificateSignature || (b && b.certificateSignature) || '' }];
+    return [];
   }
   function templateNum(value) {
     if (value == null) return 1;
@@ -265,31 +274,43 @@
     return '<img src="' + esc(sigUrl) + '" alt="Authority signature" class="tcr-sig-img" onerror="this.style.display=\'none\'" />';
   }
 
-  /* Bottom authority / signature block: signature image, then name, then
-     designation underneath. Never rendered at the top of the certificate. */
+  /* Bottom authority / signature block: renders all authorities side by side.
+     Signature image, then name, then designation underneath each. */
   function authorityBlock(tournament, brand) {
-    var name = authorityName(tournament, brand);
-    var desig = authorityDesignation(tournament, brand);
-    var sig = certificateSignatureUrl(tournament, brand);
-    if (!name && !desig && !sig) return '';
-    var html = '<div class="tcr-sig">';
-    if (sig) html += signatureImg(sig);
-    if (name) html += '<div class="tcr-sig-name">' + esc(name) + '</div>';
-    if (desig) html += '<div class="tcr-sig-desig">' + esc(desig) + '</div>';
+    var list = authoritiesList(tournament, brand);
+    if (!list.length) return '';
+    var html = '<div class="tcr-sigs">';
+    list.forEach(function (auth) {
+      var sig = auth.signature || '';
+      var name = auth.name || '';
+      var desig = auth.designation || '';
+      if (!name && !desig && !sig) return;
+      html += '<div class="tcr-sig">';
+      if (sig) html += signatureImg(sig);
+      if (name) html += '<div class="tcr-sig-name">' + esc(name) + '</div>';
+      if (desig) html += '<div class="tcr-sig-desig">' + esc(desig) + '</div>';
+      html += '</div>';
+    });
     html += '</div>';
     return html;
   }
 
   /* ID card bottom authority block (same order: signature, name, designation). */
   function idAuthorityBlock(tournament, brand) {
-    var name = authorityName(tournament, brand);
-    var desig = authorityDesignation(tournament, brand);
-    var sig = certificateSignatureUrl(tournament, brand);
-    if (!name && !desig && !sig) return '';
-    var html = '<div class="tp-pass-bottom-sig">';
-    if (sig) html += '<img src="' + esc(sig) + '" alt="Signature" class="tp-pass-sig-img" onerror="this.style.display=\'none\'" />';
-    if (name) html += '<div class="tp-pass-bottom-name">' + esc(name) + '</div>';
-    if (desig) html += '<div class="tp-pass-bottom-desig">' + esc(desig) + '</div>';
+    var list = authoritiesList(tournament, brand);
+    if (!list.length) return '';
+    var html = '<div class="tp-pass-bottom-sigs">';
+    list.forEach(function (auth) {
+      var sig = auth.signature || '';
+      var name = auth.name || '';
+      var desig = auth.designation || '';
+      if (!name && !desig && !sig) return;
+      html += '<div class="tp-pass-bottom-sig">';
+      if (sig) html += '<img src="' + esc(sig) + '" alt="Signature" class="tp-pass-sig-img" onerror="this.style.display=\'none\'" />';
+      if (name) html += '<div class="tp-pass-bottom-name">' + esc(name) + '</div>';
+      if (desig) html += '<div class="tp-pass-bottom-desig">' + esc(desig) + '</div>';
+      html += '</div>';
+    });
     html += '</div>';
     return html;
   }
@@ -615,9 +636,6 @@
     var eventNameText = eventName(tournament, brand);
     var place = eventVenue(tournament, brand);
     var templateCls = certTemplateClass(tournament, brand);
-    var sigUrl = certificateSignatureUrl(tournament, brand);
-    var authName = authorityName(tournament, brand);
-    var authDesig = authorityDesignation(tournament, brand);
 
     var typeLabel = isParticipation ? 'OF PARTICIPATION' :
       (medalCls === 'tcr-medal-gold' ? 'OF VICTORY' :
@@ -660,13 +678,7 @@
       (medalText ? infoCell('Medal', medalText) : '') +
       infoCell('Date', dateStr);
 
-    var sigHtml = '';
-    if (sigUrl || authName || authDesig) {
-      sigHtml =
-        (sigUrl ? '<img src="' + esc(sigUrl) + '" alt="Authority signature" class="t6-sig-img" onerror="this.style.display=\'none\'" />' : '') +
-        (authName ? '<div class="t6-sig-name">' + esc(authName) + '</div>' : '') +
-        (authDesig ? '<div class="t6-sig-desig">' + esc(authDesig) + '</div>' : '');
-    }
+    var sigHtml = authorityBlock(tournament, brand);
 
     var body =
       '<div class="t6-bg"></div>' +
@@ -811,11 +823,11 @@
       '.tp-cert-template-6 .t6-corner-tr { top: 8mm; right: 8mm; border-width: 3px 3px 0 0; border-radius: 0 2px 0 0; }' +
       '.tp-cert-template-6 .t6-corner-bl { bottom: 8mm; left: 8mm; border-width: 0 0 3px 3px; border-radius: 0 0 0 2px; }' +
       '.tp-cert-template-6 .t6-corner-br { bottom: 8mm; right: 8mm; border-width: 0 3px 3px 0; border-radius: 0 0 2px 0; }' +
-      '.tp-cert-template-6 .t6-content { position: relative; z-index: 4; height: 100%; padding: 14mm 16mm 12mm 16mm; box-sizing: border-box; }' +
+      '.tp-cert-template-6 .t6-content { position: relative; z-index: 4; height: 100%; padding: 14mm 16mm 12mm 16mm; box-sizing: border-box; display: flex; flex-direction: column; }' +
       '.tp-cert-template-6 .t6-header { display: flex; align-items: center; gap: 10mm; margin-bottom: 6mm; border-bottom: 2px solid ' + NAVY + '; padding-bottom: 4mm; }' +
       '.tp-cert-template-6 .t6-logo { width: 26mm; height: 26mm; object-fit: contain; flex-shrink: 0; }' +
-      '.tp-cert-template-6 .t6-title-group { flex: 1; min-width: 0; }' +
-      '.tp-cert-template-6 .t6-tournament-name { font-family: Cinzel, Georgia, serif; font-size: 9mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 1.5mm 0; letter-spacing: 0.03em; line-height: 1.1; word-break: break-word; }' +
+      '.tp-cert-template-6 .t6-title-group { flex: 1; min-width: 0; text-align: center; }' +
+      '.tp-cert-template-6 .t6-tournament-name { font-family: Cinzel, Georgia, serif; font-size: 9mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 1.5mm 0; letter-spacing: 0.03em; line-height: 1.1; word-break: break-word; text-align: center; }' +
       '.tp-cert-template-6 .t6-tournament-sub { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; font-weight: 700; color: #b8941f; margin: 0; letter-spacing: 0.12em; text-transform: uppercase; }' +
       '.tp-cert-template-6 .t6-body { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 3mm; }' +
       '.tp-cert-template-6 .t6-cert-heading { font-family: Cinzel, Georgia, serif; font-size: 11mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 2mm 0; letter-spacing: 0.25em; text-transform: uppercase; }' +
@@ -834,7 +846,7 @@
       '.tp-cert-template-6 .t6-footer-top { display: flex; justify-content: space-between; align-items: flex-end; }' +
       '.tp-cert-template-6 .t6-footer-meta { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; color: #4a5568; }' +
       '.tp-cert-template-6 .t6-footer-meta span { font-weight: 800; color: #b8941f; }' +
-      '.tp-cert-template-6 .t6-authority { text-align: right; }' +
+      '.tp-cert-template-6 .t6-authority { text-align: center; }' +
       '.tp-cert-template-6 .t6-sig-img { width: 40mm; height: auto; max-height: 14mm; display: block; margin: 0 0 2mm 0; object-fit: contain; }' +
       '.tp-cert-template-6 .t6-sig-name { font-family: Cinzel, Georgia, serif; font-size: 4.8mm; font-weight: 800; color: #b91c3a; letter-spacing: 0.04em; line-height: 1.15; }' +
       '.tp-cert-template-6 .t6-sig-desig { font-size: 3.2mm; font-weight: 700; color: #4a5568; line-height: 1.3; letter-spacing: 0.04em; }' +
@@ -929,6 +941,7 @@
       '.tp-pass-bottom-event { font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; flex: 1; line-height: 1.2; font-size: 3.2px; }' +
       '.tp-pass-bottom-meta { font-size: 3.2px; opacity: 0.8; white-space: nowrap; }' +
       '.tp-pass-bottom-sig { text-align: center; flex-shrink: 0; }' +
+      '.tp-pass-bottom-sigs { display: flex; gap: 4mm; align-items: center; justify-content: center; flex-wrap: wrap; }' +
       '.tp-pass-sig-img { width: 12mm; height: auto; margin-bottom: 1mm; object-fit: contain; }' +
       '.tp-pass-bottom-name { font-size: 3.5px; font-weight: 800; letter-spacing: 0.04em; }' +
       '.tp-pass-bottom-desig { font-size: 2.7px; opacity: 0.75; }' +
