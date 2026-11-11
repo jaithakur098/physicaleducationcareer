@@ -153,8 +153,6 @@
             <div class="t-field"><label>Tournament Logo</label><input class="t-input" type="file" name="logoFile" accept="image/*"></div>
             <div class="t-field"><label>Certificate Template</label><select class="t-select" name="certificateTemplate"><option value="1">Template 1</option><option value="2">Template 2</option><option value="3">Template 3</option><option value="4">Template 4</option><option value="5">Template 5</option></select></div>
             <div class="t-field"><label>ID Card Template</label><select class="t-select" name="idCardTemplate"><option value="1">Template 1</option><option value="2">Template 2</option><option value="3">Template 3</option><option value="4">Template 4</option><option value="5">Template 5</option></select></div>
-            <div class="t-field"><label>Certificate Type</label><select class="t-select" name="certificateType"><option>Participation Certificate</option><option>Winner Certificate</option><option>Runner-up Certificate</option><option>Bronze Medal Certificate</option><option>Merit Certificate</option></select></div>
-            <div class="t-field"><label>Brand Color</label><select class="t-select" name="brandColor"><option value="#d4af37">Gold</option><option value="#b91c3a">Crimson</option><option value="#1a56db">Royal Blue</option><option value="#064e3b">Emerald Green</option><option value="#7f1d1d">Deep Red</option></select></div>
             <div class="t-field"><label>Certificate Authority Name</label><input class="t-input" name="certificateAuthority"></div>
             <div class="t-field"><label>Certificate Designation</label><input class="t-input" name="certificateDesignation"></div>
             <div class="t-field"><label>Certificate Logo</label><input class="t-input" type="file" name="certLogoFile" accept="image/*"></div>
@@ -384,13 +382,16 @@
         <h3>Certificates</h3>
         <div class="t-row t-no-print" style="margin-bottom:14px">
           <select id="certCat" class="t-select" style="max-width:320px"><option value="">— Category —</option></select>
-          <button type="button" id="btnGenCerts" class="t-btn t-btn-gold t-btn-sm">Generate Participation + Merit</button>
+          <button type="button" id="btnGenCerts" class="t-btn t-btn-gold t-btn-sm">Generate All Certificates</button>
+          <button type="button" id="btnGenCertsPlayer" class="t-btn t-btn-ghost t-btn-sm">Generate Selected</button>
           <button type="button" id="btnCoachCerts" class="t-btn t-btn-ghost t-btn-sm">Coach Certificates</button>
           <button type="button" id="btnRefCerts" class="t-btn t-btn-ghost t-btn-sm">Referee Certificates</button>
           <button type="button" id="btnPrintCerts" class="t-btn t-btn-ghost t-btn-sm">Print / PDF Certificates</button>
           <button type="button" id="btnCertCsv" class="t-btn t-btn-ghost t-btn-sm">Export List CSV</button>
         </div>
         <div id="certPreview" class="t-cert-preview-host" style="margin-bottom:16px"></div>
+        <div class="t-sub" style="margin-bottom:8px">Player-wise Certificate Management — type assigned automatically from player medal/result</div>
+        <div id="certPlayerTable" class="t-table-wrap"><div class="t-empty">Select a tournament to view players.</div></div>
         <div id="certTable" class="t-table-wrap"><div class="t-empty">No certificates yet.</div></div>
       </div>
     </section>
@@ -658,6 +659,7 @@
     window.__uP = T.watchPlayers({ tournamentId: tid }, function (l) { S.players = l; renderAll(); });
     window.__uR = T.watchResults(tid, function (l) { S.results = l; renderResults(); renderMedals(); });
     T.listCertificates({ tournamentId: tid }).then(function (c) { S.certs = c; renderCerts(); });
+    renderCertPlayers();
     loadPubListSetting();
   }
 
@@ -760,8 +762,6 @@
       fee: Number(f.fee.value || 0), description: f.description.value.trim(),
       certificateTemplate: Number(f.certificateTemplate.value || 1),
       idCardTemplate: Number(f.idCardTemplate.value || 1),
-      certificateType: f.certificateType.value,
-      brandColor: f.brandColor.value,
       certificateAuthority: f.certificateAuthority.value.trim(),
       certificateDesignation: f.certificateDesignation.value.trim()
     };
@@ -794,8 +794,6 @@
         f.fee.value = t.fee || ''; f.description.value = t.description || '';
         f.certificateTemplate.value = t.certificateTemplate || 1;
         f.idCardTemplate.value = t.idCardTemplate || 1;
-        f.certificateType.value = t.certificateType || 'Participation Certificate';
-        f.brandColor.value = t.brandColor || '#d4af37';
         f.certificateAuthority.value = t.certificateAuthority || '';
         f.certificateDesignation.value = t.certificateDesignation || '';
         logoUrl = t.logo || ''; certLogoUrl = t.certificateLogo || ''; certSigUrl = t.certificateSignature || ''; idLogoUrl = t.idCardLogo || '';
@@ -1470,7 +1468,7 @@
       '<button type="button" id="btnCertDiagToggle" class="t-btn t-btn-ghost t-btn-sm" style="margin-left:10px;font-size:11px;padding:6px 10px">Show data source</button>' +
       '<div id="certDiagPanel" class="t-hide" style="margin-top:8px"></div>';
     var certHtml = (list.length
-      ? (list[0].type && list[0].type.indexOf('Merit') >= 0
+      ? (list[0].type && (list[0].type.indexOf('Gold') >= 0 || list[0].type.indexOf('Silver') >= 0 || list[0].type.indexOf('Bronze') >= 0)
           ? TP.meritCertHTML(list[0], t, D)
           : TP.participationCertHTML(list[0], t, D))
       : '<div class="t-sample-banner">SAMPLE — certificate template preview (no certificates generated for this tournament yet)</div>' +
@@ -1495,13 +1493,89 @@
       }));
     };
   }
+
+  /* player-wise certificate table */
+  function renderCertPlayers() {
+    var t = tour();
+    if (!t) { document.getElementById('certPlayerTable').innerHTML = '<div class="t-empty">Select a tournament.</div>'; return; }
+    var players = S.players.filter(function (p) { return p.status === 'approved' && p.tournamentId === t.id; });
+    if (!players.length) { document.getElementById('certPlayerTable').innerHTML = '<div class="t-empty">No approved players for this tournament.</div>'; return; }
+    var rows = players.map(function (p) {
+      var medal = p.medal || '';
+      var certType = medal === 'gold' ? 'Gold Medal Certificate' : medal === 'silver' ? 'Silver Medal Certificate' : medal.indexOf('bronze') === 0 ? 'Bronze Medal Certificate' : 'Participation Certificate';
+      var typeBadge = medal ? ('<span class="t-chip medal-' + (medal === 'gold' ? 'gold' : medal === 'silver' ? 'silver' : 'bronze') + '">' + medal.toUpperCase() + '</span>') : '<span class="t-chip">Pending</span>';
+      return '<tr>' +
+        '<td>' + E(p.name) + '</td>' +
+        '<td>' + E(p.academy || p.academyName || '—') + '</td>' +
+        '<td>' + E(p.weightCategory || '—') + '</td>' +
+        '<td>' + typeBadge + '</td>' +
+        '<td>' + E(certType) + '</td>' +
+        '<td>' +
+        '<button type="button" class="t-btn t-btn-ghost t-btn-sm" data-pc="' + E(p.id) + '">Preview</button> ' +
+        '<button type="button" class="t-btn t-btn-ghost t-btn-sm" data-pp="' + E(p.id) + '">Print</button>' +
+        '</td>' +
+        '</tr>';
+    }).join('');
+    document.getElementById('certPlayerTable').innerHTML =
+      '<table class="t-table"><thead><tr><th>Player</th><th>Academy / Team</th><th>Weight Category</th><th>Medal / Result</th><th>Certificate Type</th><th>Action</th></tr></thead><tbody>' + rows + '</tbody></table>';
+    document.querySelectorAll('[data-pc]').forEach(function (b) {
+      b.onclick = function () {
+        var pid = b.dataset.pc;
+        var p = players.filter(function (x) { return x.id === pid; })[0];
+        if (!p) return;
+        var medal = p.medal || '';
+        var cert = {
+          id: 'preview-' + pid, name: p.name, regNo: p.regNo || '', academy: p.academy || '', school: p.school || '',
+          district: p.district || '', state: p.state || '', gender: p.gender || '', ageCategory: p.ageCategory || '',
+          weightCategory: p.weightCategory || '', category: p.categoryLabel || p.category || '',
+          type: medal === 'gold' ? 'Gold Medal Certificate' : medal === 'silver' ? 'Silver Medal Certificate' : medal.indexOf('bronze') === 0 ? 'Bronze Medal Certificate' : 'Participation Certificate',
+          medal: medal, certNo: p.regNo || '', date: t.date, tournamentName: t.name
+        };
+        var isMedal = cert.type.indexOf('Gold') >= 0 || cert.type.indexOf('Silver') >= 0 || cert.type.indexOf('Bronze') >= 0;
+        var html = '<div class="t-sample-banner">PLAYER PREVIEW — ' + certType + '</div>' +
+          (isMedal ? TP.meritCertHTML(cert, t, D) : TP.participationCertHTML(cert, t, D));
+        document.getElementById('certPreview').innerHTML = html;
+        document.getElementById('certPreview').scrollIntoView({ behavior: 'smooth' });
+      };
+    });
+    document.querySelectorAll('[data-pp]').forEach(function (b) {
+      b.onclick = function () {
+        var pid = b.dataset.pp;
+        var p = players.filter(function (x) { return x.id === pid; })[0];
+        if (!p) return;
+        var medal = p.medal || '';
+        var cert = {
+          id: 'print-' + pid, name: p.name, regNo: p.regNo || '', academy: p.academy || '', school: p.school || '',
+          district: p.district || '', state: p.state || '', gender: p.gender || '', ageCategory: p.ageCategory || '',
+          weightCategory: p.weightCategory || '', category: p.categoryLabel || p.category || '',
+          type: medal === 'gold' ? 'Gold Medal Certificate' : medal === 'silver' ? 'Silver Medal Certificate' : medal.indexOf('bronze') === 0 ? 'Bronze Medal Certificate' : 'Participation Certificate',
+          medal: medal, certNo: p.regNo || '', date: t.date, tournamentName: t.name
+        };
+        var isMedal = cert.type.indexOf('Gold') >= 0 || cert.type.indexOf('Silver') >= 0 || cert.type.indexOf('Bronze') >= 0;
+        var html = (isMedal ? TP.meritCertHTML(cert, t, D) : TP.participationCertHTML(cert, t, D));
+        T.printHTML('Certificate — ' + p.name, html, TP.previewCSS(), true);
+      };
+    });
+  }
+  document.getElementById('btnGenCertsPlayer').onclick = function () {
+    var rows = document.querySelectorAll('#certPlayerTable tbody tr');
+    if (!rows.length) return T.toast('No players to generate', 'error');
+    var count = 0;
+    rows.forEach(function (row) {
+      var btn = row.querySelector('[data-pp]');
+      if (btn) btn.click();
+    });
+    T.toast('Sent ' + rows.length + ' certificates to print', 'success');
+  };
+
   document.getElementById('btnPrintCerts').onclick = function () {
     var list = S.certs || [];
     if (!list.length) return T.toast('No certificates to print', 'error');
     var html = list.map(function (c) {
-      return (c.type && String(c.type).indexOf('Merit') >= 0 ? TP.meritCertHTML : TP.participationCertHTML)(c, tour(), D);
+      var isMedal = c.type && (c.type.indexOf('Gold') >= 0 || c.type.indexOf('Silver') >= 0 || c.type.indexOf('Bronze') >= 0);
+      return (isMedal ? TP.meritCertHTML : TP.participationCertHTML)(c, tour(), D);
     }).join('');
-    T.printHTML('Certificates — ' + (tour().name || 'Tournament'), html, TP.certCSSWithBrand(tour().brandColor || '#d4af37'), true);
+    T.printHTML('Certificates — ' + (tour().name || 'Tournament'), html, TP.certCSS(), true);
   };
   function sampleCertRecord() {
     var t = tour();

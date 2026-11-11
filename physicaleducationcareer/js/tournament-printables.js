@@ -590,7 +590,7 @@
         '</div>' +
       '</footer>';
 
-    return refCertShell('tcr-part ' + templateCls, '', body);
+    return refCertShell('tcr-part ' + templateCls, 'tcr-medal-part', body);
   }
 
   /* ----------------------------- merit certificate ----------------------------- */
@@ -708,7 +708,19 @@
       '.tcr-medal-bronze .tcr-merit-pos { color: #8b5a2b; }' +
       '.tcr-medal-gold .tcr-ribbon { box-shadow: 0 0 12px rgba(255,215,0,0.25); }' +
       '.tcr-medal-silver .tcr-ribbon { border-color: #aab4c4; }' +
-      '.tcr-medal-bronze .tcr-ribbon { border-color: #cd7f32; }';
+      '.tcr-medal-bronze .tcr-ribbon { border-color: #cd7f32; }' +
+      '.tcr-medal-gold .tcr-frame-outer { border-color: #d4af37 !important; }' +
+      '.tcr-medal-gold .tcr-corner { border-color: #d4af37 !important; }' +
+      '.tcr-medal-gold .tcr-ribbon { background: linear-gradient(180deg, #b8860b, #8b6914) !important; border-color: #d4af37 !important; color: #fffdf0 !important; }' +
+      '.tcr-medal-silver .tcr-frame-outer { border-color: #aab4c4 !important; }' +
+      '.tcr-medal-silver .tcr-corner { border-color: #aab4c4 !important; }' +
+      '.tcr-medal-silver .tcr-ribbon { background: linear-gradient(180deg, #7a8494, #4a5568) !important; border-color: #aab4c4 !important; color: #f4f6f8 !important; }' +
+      '.tcr-medal-bronze .tcr-frame-outer { border-color: #cd7f32 !important; }' +
+      '.tcr-medal-bronze .tcr-corner { border-color: #cd7f32 !important; }' +
+      '.tcr-medal-bronze .tcr-ribbon { background: linear-gradient(180deg, #8b5a2b, #6b3f12) !important; border-color: #cd7f32 !important; color: #fffdf0 !important; }' +
+      '.tcr-medal-part .tcr-frame-outer { border-color: #2c5282 !important; }' +
+      '.tcr-medal-part .tcr-corner { border-color: #2c5282 !important; }' +
+      '.tcr-medal-part .tcr-ribbon { background: linear-gradient(180deg, #2c5282, #1a365d) !important; border-color: #2c5282 !important; color: #e2e8f0 !important; }';
   }
 
   function certTemplateCSS() {

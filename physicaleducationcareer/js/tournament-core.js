@@ -597,7 +597,7 @@ function nextRegNo(tournamentId) {
       district: player.district || '',
       state: player.state || '',
       category: player.categoryLabel || '',
-      type: medal ? 'Merit Certificate' : 'Participation Certificate',
+      type: medal ? (medal === 'gold' ? 'Gold Medal Certificate' : medal === 'silver' ? 'Silver Medal Certificate' : medal.indexOf('bronze') === 0 ? 'Bronze Medal Certificate' : 'Participation Certificate') : 'Participation Certificate',
       medal: medal || '',
       certNo: player.regNo || '',
       issuedAt: Date.now(),
@@ -702,7 +702,7 @@ function nextRegNo(tournamentId) {
     playersInCat.forEach(function (p) {
       var m = medalMap[p.id];
       if (m) put('player', { id: p.id, name: p.name, academy: p.academy, school: p.school, district: p.district, state: p.state },
-        'Merit Certificate', m.indexOf('bronze') === 0 ? 'bronze' : m);
+        m === 'gold' ? 'Gold Medal Certificate' : m === 'silver' ? 'Silver Medal Certificate' : m.indexOf('bronze') === 0 ? 'Bronze Medal Certificate' : 'Participation Certificate', m.indexOf('bronze') === 0 ? 'bronze' : m);
       else put('player', { id: p.id, name: p.name, academy: p.academy, school: p.school, district: p.district, state: p.state },
         'Participation Certificate', '');
     });
