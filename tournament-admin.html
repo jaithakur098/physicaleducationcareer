@@ -1400,7 +1400,8 @@
     list = list || S.certs || [];
     var box = document.getElementById('certPreview');
     var t = tour();
-    var tpl = Number(t.certificateTemplate || 1);
+    var tplMatch = String(t.certificateTemplate || '').match(/\d/);
+    var tpl = tplMatch ? tplMatch[0] : '1';
     var title = '<div class="t-cert-preview-title">Certificate Preview — Template ' + tpl + '</div>';
     if (list.length) {
       var sample = list[0];
@@ -1487,7 +1488,7 @@
     var brand = brandFromForm();
     var html = '<div class="t-sample-banner">SAMPLE — certificate template preview</div>' + TP.participationCertHTML(cert, t, brand);
     previewBody.innerHTML = html;
-    document.getElementById('previewModalTitle').textContent = 'Certificate Preview — Template ' + brand.certificateTemplate;
+    document.getElementById('previewModalTitle').textContent = 'Certificate Preview — ' + brand.certificateTemplate;
     document.getElementById('certPreviewModal').classList.add('open');
   };
   document.getElementById('btnPreviewIdCard').onclick = function () {
@@ -1496,7 +1497,7 @@
     var brand = brandFromForm();
     var html = '<div class="t-sample-banner">SAMPLE — ID card template preview</div>' + TP.idCardHTML(p, t, brand);
     previewBody.innerHTML = html;
-    document.getElementById('previewModalTitle').textContent = 'ID Card Preview — Template ' + brand.idCardTemplate;
+    document.getElementById('previewModalTitle').textContent = 'ID Card Preview — ' + brand.idCardTemplate;
     document.getElementById('certPreviewModal').classList.add('open');
   };
   document.getElementById('btnPreviewPrint').onclick = function () {

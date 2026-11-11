@@ -1458,7 +1458,8 @@
     list = list || S.certs || [];
     var box = document.getElementById('certPreview');
     var t = tour();
-    var tpl = Number(t.certificateTemplate || 1);
+    var tplMatch = String(t.certificateTemplate || '').match(/\d/);
+    var tpl = tplMatch ? tplMatch[0] : '1';
     var title = '<div class="t-cert-preview-title">Certificate Preview — Template ' + tpl + '</div>' +
       '<button type="button" id="btnCertDiagToggle" class="t-btn t-btn-ghost t-btn-sm" style="margin-left:10px;font-size:11px;padding:6px 10px">Show data source</button>' +
       '<div id="certDiagPanel" class="t-hide" style="margin-top:8px"></div>';
