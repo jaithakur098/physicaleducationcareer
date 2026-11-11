@@ -67,9 +67,9 @@
     statuses: ['upcoming', 'live', 'completed'],
     coachStatuses: ['pending', 'approved', 'rejected'],
     playerStatuses: ['pending', 'approved', 'rejected'],
-    certificateTemplates: ['Template 1', 'Template 2', 'Template 3', 'Template 4', 'Template 5', 'Template 6'],
+    certificateTemplates: ['Template 6'],
     idCardTemplates: ['Template 1', 'Template 2', 'Template 3', 'Template 4', 'Template 5'],
-    certificateTemplate: 'Template 1',
+    certificateTemplate: 'Template 6',
     idCardTemplate: 'Template 1'
   };
 })(window);
