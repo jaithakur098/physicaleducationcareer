@@ -1,5 +1,5 @@
 /* ============================================================================
- 6th ALWAR CUP TAEKWONDO CHAMPIONSHIP — Core data + logic layer (window.TCore)
+  Core data + logic layer (window.TCore)
  Firebase compat. Reuses the existing app initialised by config/firebase-init.js
  Requires: firebase-app-compat, firebase-auth-compat, firebase-firestore-compat
  (firebase-storage-compat optional — photos fall back to base64)

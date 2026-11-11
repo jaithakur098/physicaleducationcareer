@@ -1,5 +1,5 @@
 /* ============================================================================
- 6th ALWAR CUP TAEKWONDO CHAMPIONSHIP — Tournament Fixture / Bracket Renderer
+  Tournament Fixture / Bracket Renderer
  Khiapp-style horizontal draw sheet. Attaches window.TFixture (ES5 IIFE).
  ============================================================================ */
 (function (root) {
@@ -31,7 +31,7 @@
     if (root.TOURNAMENT_DEFAULTS && root.TOURNAMENT_DEFAULTS.brandLine) {
       return root.TOURNAMENT_DEFAULTS.brandLine;
     }
-    return '6th ALWAR CUP TAEKWONDO CHAMPIONSHIP';
+    return 'Taekwondo Championship';
   }
 
   function brandLinePrint(brand) {

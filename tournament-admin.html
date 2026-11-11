@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,nofollow">
-  <title>Tournament Admin — 6th Alwar Cup</title>
+  <title>Tournament Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="tournament.css">
@@ -66,7 +66,7 @@
     <a href="tournament-admin.html" class="t-brand">
       <div class="t-brand-mark">🥋</div>
       <div>
-        <b>6th ALWAR CUP</b>
+        <b id="tAdminBrand">Tournament</b>
         <small>Tournament Admin</small>
       </div>
     </a>
@@ -138,7 +138,7 @@
           <p class="t-sub">Create a new tournament. All fields below are saved to its own Firestore document.</p>
           <form id="tourForm">
             <input type="hidden" name="id">
-            <div class="t-field"><label>Tournament Name *</label><input class="t-input" name="name" placeholder="e.g. 6th Alwar Cup Taekwondo Championship" required></div>
+            <div class="t-field"><label>Tournament Name *</label><input class="t-input" name="name" placeholder="e.g. 7th ALWAR CUP TAEKWONDO CHAMPIONSHIP 2027" required></div>
             <div class="t-field"><label>Sport / Discipline</label><input class="t-input" name="sport" value="Taekwondo"></div>
             <div class="t-g2 t-grid">
               <div class="t-field"><label>Date *</label><input class="t-input" type="date" name="date" required></div>
@@ -233,7 +233,7 @@
     <section id="tab-import" class="t-panel">
       <div class="t-card">
         <h3>Import Entries from Excel</h3>
-        <p class="t-sub">Upload the 6th Alwar Cup Excel workbook. The <strong>Competitors</strong> sheet will be read to create player entries with automatic category assignment.</p>
+        <p class="t-sub">Upload the Excel workbook. The <strong>Competitors</strong> sheet will be read to create player entries with automatic category assignment.</p>
 
         <div class="t-field" style="margin-top:18px">
           <label>Excel File (.xlsx / .xls)</label>
@@ -557,8 +557,10 @@
     var id = 'tournament-preview-styles';
     if (document.getElementById(id)) return;
     var s = document.createElement('style');
-    s.id = id;
-    s.textContent = (window.TPrint ? window.TPrint.previewCSS() : '');
+    s.id = 'tournament-preview-styles';
+    s.textContent = (window.TPrint ? window.TPrint.previewCSS() : '') +
+      '.t-sample-banner { display: block; margin: 0 0 10px; padding: 6px 10px; background: rgba(201,162,39,0.15); border: 1px solid rgba(201,162,39,0.4); color: #e3c96b; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 4px; }' +
+      '.t-cert-preview-title { font-size: 13px; font-weight: 800; color: #e8c547; margin: 0 0 8px; letter-spacing: 0.1em; }';
     document.head.appendChild(s);
   })();
 
@@ -665,6 +667,8 @@
     var t = S.tours.filter(function (x) { return x.id === tid; })[0];
     if (t && t.hidden) { T.toast('Cannot activate a hidden tournament', 'error'); return; }
     S.tid = tid;
+    var brandEl = document.getElementById('tAdminBrand');
+    if (brandEl) brandEl.textContent = t && t.name ? t.name : 'Tournament';
     document.getElementById('tourChip').textContent = tid ? (tour().status || 'upcoming').toUpperCase() : '—';
     if (window.__uP) window.__uP();
     if (window.__uR) window.__uR();
@@ -782,8 +786,8 @@
       certificateDesignation: f.certificateDesignation.value.trim()
     };
     if (logoUrl) data.logo = logoUrl;
-    if (certLogoUrl) data.certLogo = certLogoUrl;
-    if (certSignatureUrl) data.certSignature = certSignatureUrl;
+    if (certLogoUrl) data.certificateLogo = certLogoUrl;
+    if (certSignatureUrl) data.certificateSignature = certSignatureUrl;
     T.saveTournament(data, f.id.value || null).then(function () {
       T.toast('Tournament saved', 'success');
       document.getElementById('btnTourReset').click();
@@ -820,7 +824,7 @@
         f.idCardTemplate.value = t.idCardTemplate || 'Template 1';
         f.certificateAuthority.value = t.certificateAuthority || '';
         f.certificateDesignation.value = t.certificateDesignation || '';
-        certLogoUrl = t.certLogo || ''; certSignatureUrl = t.certSignature || '';
+        certLogoUrl = t.certificateLogo || t.certLogo || ''; certSignatureUrl = t.certificateSignature || t.certSignature || '';
         var cl = document.getElementById('certLogoPrev'); cl.src = certLogoUrl || ''; cl.style.display = certLogoUrl ? 'block' : 'none';
         var cs = document.getElementById('certSignaturePrev'); cs.src = certSignatureUrl || ''; cs.style.display = certSignatureUrl ? 'block' : 'none';
         document.getElementById('tourFormTitle').textContent = 'Edit — ' + t.name;
@@ -1322,14 +1326,19 @@
     var coaches = participatingCoaches().slice(0, 2);
     var vips = (S.refs || []).filter(function (r) { return r.holderType === 'vip'; }).slice(0, 2);
     var html = '';
+    var showSample = !rows.length && !coaches.length && !vips.length;
     if (rows.length) {
       html += rows.slice(0, 4).map(function (p) { return TP.idCardHTML(p, tour(), D); }).join('');
     }
     coaches.forEach(function (c) { html += TP.coachIdCardHTML(c, tour(), D); });
     vips.forEach(function (v) { html += TP.vipIdCardHTML(v, tour(), D); });
+    if (showSample) {
+      html = '<div class="t-sample-banner">SAMPLE — ID card template preview (no approved players, coaches or VIP guests in this tournament)</div>' +
+        TP.idCardHTML(previewSamplePlayer(), tour(), D);
+    }
     if (!html) {
       html = '<div class="t-empty">No approved players, coaches or VIP guests yet.</div>';
-    } else if (rows.length > 4) {
+    } else if (rows.length > 4 && !showSample) {
       html += '<div class="t-empty">+' + (rows.length - 4) + ' more players — use Print Player ID Cards</div>';
     }
     document.getElementById('idCardPreview').innerHTML = html;
@@ -1389,14 +1398,20 @@
   };
   function renderCerts(list) {
     list = list || S.certs || [];
+    var box = document.getElementById('certPreview');
+    var t = tour();
+    var tpl = Number(t.certificateTemplate || 1);
+    var title = '<div class="t-cert-preview-title">Certificate Preview — Template ' + tpl + '</div>';
     if (list.length) {
       var sample = list[0];
-    var brand = brandFromForm();
-    var t = tourFromForm();
-    document.getElementById('certPreview').innerHTML =
-      (sample.type && sample.type.indexOf('Merit') >= 0
-        ? TP.meritCertHTML(sample, tour(), brand)
-        : TP.participationCertHTML(sample, tour(), brand));
+      box.innerHTML = title +
+        (sample.type && sample.type.indexOf('Merit') >= 0
+          ? TP.meritCertHTML(sample, tour(), brandFromForm())
+          : TP.participationCertHTML(sample, tour(), brandFromForm()));
+    } else {
+      box.innerHTML = title +
+        '<div class="t-sample-banner">SAMPLE — certificate template preview (no certificates generated for this tournament yet)</div>' +
+        TP.participationCertHTML(sampleCertRecord(), tour(), brandFromForm());
     }
     document.getElementById('certTable').innerHTML = list.length
       ? '<table class="t-table"><thead><tr><th>Cert No</th><th>Name</th><th>Type</th><th>Medal</th><th>Category</th></tr></thead><tbody>' +
@@ -1424,8 +1439,8 @@
       idCardTemplate: (f && f.idCardTemplate ? f.idCardTemplate.value : '') || t.idCardTemplate || D.idCardTemplate,
       certificateAuthority: (f && f.certificateAuthority ? f.certificateAuthority.value : '') || t.certificateAuthority || '',
       certificateDesignation: (f && f.certificateDesignation ? f.certificateDesignation.value : '') || t.certificateDesignation || '',
-      certLogo: certLogoUrl || t.certLogo || '',
-      certSignature: certSignatureUrl || t.certSignature || '',
+      certLogo: certLogoUrl || t.certificateLogo || t.certLogo || '',
+      certSignature: certSignatureUrl || t.certificateSignature || t.certSignature || '',
       eventFullName: (f && f.name ? f.name.value.trim() : '') || t.name || D.shortName || 'Tournament',
       eventLocation: (f && f.venue ? f.venue.value : '') || t.venue || '',
       eventSub: (f && f.city ? f.city.value : '') || t.city || ''
@@ -1470,17 +1485,18 @@
     var f = document.getElementById('tourForm'); var t = tourFromForm();
     var cert = sampleCertRecord();
     var brand = brandFromForm();
-    var html = TP.participationCertHTML(cert, t, brand);
+    var html = '<div class="t-sample-banner">SAMPLE — certificate template preview</div>' + TP.participationCertHTML(cert, t, brand);
     previewBody.innerHTML = html;
-    document.getElementById('previewModalTitle').textContent = 'Certificate Preview — ' + brand.certificateTemplate;
+    document.getElementById('previewModalTitle').textContent = 'Certificate Preview — Template ' + brand.certificateTemplate;
     document.getElementById('certPreviewModal').classList.add('open');
   };
   document.getElementById('btnPreviewIdCard').onclick = function () {
     var f = document.getElementById('tourForm'); var t = tourFromForm();
     var p = sampleIdCardPlayer();
     var brand = brandFromForm();
-    previewBody.innerHTML = TP.idCardHTML(p, t, brand);
-    document.getElementById('previewModalTitle').textContent = 'ID Card Preview — ' + brand.idCardTemplate;
+    var html = '<div class="t-sample-banner">SAMPLE — ID card template preview</div>' + TP.idCardHTML(p, t, brand);
+    previewBody.innerHTML = html;
+    document.getElementById('previewModalTitle').textContent = 'ID Card Preview — Template ' + brand.idCardTemplate;
     document.getElementById('certPreviewModal').classList.add('open');
   };
   document.getElementById('btnPreviewPrint').onclick = function () {

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,follow">
-  <title>Coach Dashboard — 6th Alwar Cup</title>
+  <title>Tournament Preview</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="tournament.css">
@@ -28,7 +28,7 @@
     <a href="tournament.html" class="t-brand">
       <div class="t-brand-mark">??</div>
       <div>
-        <b>6th ALWAR CUP</b>
+        <b>Tournament</b>
         <small>Coach Dashboard</small>
       </div>
     </a>
@@ -43,7 +43,7 @@
 
 <!-- LOADING -->
 <div id="loadingView" class="t-section" style="text-align:center;padding:80px 0">
-  <div class="t-loader">Checking authentication…</div>
+  <div class="t-loader">Checking authenticationï¿½</div>
 </div>
 
 <!-- LOGIN / SIGNUP (Email + Password; Google also available) -->
@@ -103,7 +103,7 @@
     <section id="tab-profile" class="t-panel active">
       <div class="t-card">
         <h3>Coach / Academy Profile</h3>
-        <p class="t-sub">Complete this before registering players. Coach ID: <strong id="coachIdLbl">—</strong> <span id="coachStatusChip"></span></p>
+        <p class="t-sub">Complete this before registering players. Coach ID: <strong id="coachIdLbl">ï¿½</strong> <span id="coachStatusChip"></span></p>
         <form id="coachForm" class="t-grid t-g2" style="margin-top:16px">
           <div class="t-field"><label>Coach Name *</label><input class="t-input" name="name" required></div>
           <div class="t-field"><label>Mobile *</label><input class="t-input" name="phone" required></div>
@@ -138,11 +138,11 @@
         <h3>Tournament Players</h3>
         <p class="t-sub">All players registered in the selected tournament. Results update live from the Admin Panel.</p>
         <div class="t-filters t-no-print">
-          <div class="t-field"><label>Search</label><input class="t-input" id="myFilter" placeholder="Name, reg no…"></div>
+          <div class="t-field"><label>Search</label><input class="t-input" id="myFilter" placeholder="Name, reg noï¿½"></div>
           <div class="t-field"><label>Tournament</label><select class="t-select" id="myTourFilter"><option value="">All tournaments</option></select></div>
           <button type="button" id="btnExportMine" class="t-btn t-btn-ghost t-btn-sm">Export CSV</button>
         </div>
-        <div id="myPlayers" class="t-table-wrap"><div class="t-loader">Loading…</div></div>
+        <div id="myPlayers" class="t-table-wrap"><div class="t-loader">Loadingï¿½</div></div>
       </div>
     </section>
 
@@ -153,7 +153,7 @@
         <p class="t-sub">Age &amp; weight categories are calculated automatically from date of birth, gender and weight.</p>
         <form id="playerForm" class="t-grid t-g2" style="margin-top:16px">
           <input type="hidden" name="id">
-          <div class="t-field"><label>Tournament *</label><select class="t-select" name="tournamentId" required><option value="">— Select —</option></select></div>
+          <div class="t-field"><label>Tournament *</label><select class="t-select" name="tournamentId" required><option value="">ï¿½ Select ï¿½</option></select></div>
           <div class="t-field"><label>Player Name *</label><input class="t-input" name="name" required></div>
           <div class="t-field"><label>Father's Name *</label><input class="t-input" name="fatherName" required></div>
           <div class="t-field"><label>Date of Birth *</label><input class="t-input" type="date" name="dob" required></div>
@@ -170,9 +170,9 @@
           <div class="t-field"><label>Blood Group</label><input class="t-input" name="bloodGroup" placeholder="e.g. B+"></div>
           <div class="t-card" style="grid-column:1/-1;background:rgba(212,175,55,.08)">
             <div class="t-g3 t-grid">
-              <div><span class="t-hint">Calculated Age</span><div id="calcAge" style="font-size:18px;font-weight:700;color:var(--t-gold-3)">—</div></div>
-              <div><span class="t-hint">Age Category</span><div id="calcAgeCat" style="font-size:18px;font-weight:700;color:var(--t-gold-3)">—</div></div>
-              <div><span class="t-hint">Weight Category</span><div id="calcWtCat" style="font-size:18px;font-weight:700;color:var(--t-gold-3)">—</div></div>
+              <div><span class="t-hint">Calculated Age</span><div id="calcAge" style="font-size:18px;font-weight:700;color:var(--t-gold-3)">ï¿½</div></div>
+              <div><span class="t-hint">Age Category</span><div id="calcAgeCat" style="font-size:18px;font-weight:700;color:var(--t-gold-3)">ï¿½</div></div>
+              <div><span class="t-hint">Weight Category</span><div id="calcWtCat" style="font-size:18px;font-weight:700;color:var(--t-gold-3)">ï¿½</div></div>
             </div>
           </div>
           <div class="t-row" style="grid-column:1/-1">
@@ -214,7 +214,7 @@
         <div class="t-row t-no-print" style="margin-bottom:14px">
           <button type="button" id="btnPrintCards" class="t-btn t-btn-gold t-btn-sm">Print / Download All</button>
         </div>
-        <div id="cardsBox" class="t-idcard-grid"><div class="t-loader">Loading…</div></div>
+        <div id="cardsBox" class="t-idcard-grid"><div class="t-loader">Loadingï¿½</div></div>
       </div>
     </section>
 
@@ -223,13 +223,13 @@
       <div class="t-card">
         <h3>My Certificates</h3>
         <p class="t-sub">Participation, merit and coach certificates issued by the organiser.</p>
-        <div id="certsBox" class="t-table-wrap"><div class="t-loader">Loading…</div></div>
+        <div id="certsBox" class="t-table-wrap"><div class="t-loader">Loadingï¿½</div></div>
       </div>
     </section>
   </div>
 </div>
 
-<footer class="t-foot t-wrap">6th Alwar Cup Taekwondo Championship · Coach Portal</footer>
+<footer class="t-foot t-wrap">Tournament ï¿½ Coach Portal</footer>
 
 <script>
 (function () {
@@ -268,7 +268,7 @@
     var pw = f.password.value;
     var btn = document.getElementById('btnEmailLogin');
     btn.disabled = true;
-    btn.textContent = 'Signing in…';
+    btn.textContent = 'Signing inï¿½';
     T.emailLogin(em, pw).then(function (user) {
       var ab = document.getElementById('authBox'); if (ab) ab.innerHTML = '';
       T.toast('Signed in', 'success');
@@ -286,7 +286,7 @@
     if (pw !== cpw) { T.toast('Passwords do not match', 'error'); return; }
     var btn = document.getElementById('btnEmailSignup');
     btn.disabled = true;
-    btn.textContent = 'Creating account…';
+    btn.textContent = 'Creating accountï¿½';
     var profile = {
       name: f.name.value.trim(), fullName: f.name.value.trim(),
       email: f.email.value.trim(),
@@ -296,7 +296,7 @@
       phone: '', photo: '', experience: 0
     };
     T.emailSignUp(profile.email, pw, profile).then(function (res) {
-      if (res && res.coach && !res.coach.academy) T.toast('Profile incomplete — complete it in your Coach Portal', 'info');
+      if (res && res.coach && !res.coach.academy) T.toast('Profile incomplete ï¿½ complete it in your Coach Portal', 'info');
       T.toast('Account created and signed in', 'success');
     }).catch(function (err) {
       T.toast(err.message || 'Unable to create account. Please try again.', 'error');
@@ -353,8 +353,8 @@ if (!user) { showLogin(); return; }
           S.tournaments = list.filter(function (t) {
             return t.status !== 'completed' || (S.participatedIds || []).indexOf(t.id) > -1;
           });
-          var opts = S.tournaments.map(function (t) { return '<option value="' + E(t.id) + '">' + E(t.name) + ' — ' + T.fmtDate(t.date) + '</option>'; }).join('');
-          document.querySelector('#playerForm [name=tournamentId]').innerHTML = '<option value="">— Select —</option>' + opts;
+          var opts = S.tournaments.map(function (t) { return '<option value="' + E(t.id) + '">' + E(t.name) + ' ï¿½ ' + T.fmtDate(t.date) + '</option>'; }).join('');
+          document.querySelector('#playerForm [name=tournamentId]').innerHTML = '<option value="">ï¿½ Select ï¿½</option>' + opts;
           document.getElementById('myTourFilter').innerHTML = '<option value="">All tournaments</option>' + opts;
           var qp = new URLSearchParams(location.search).get('t');
           if (qp && S.tournaments.some(function (t) { return t.id === qp; })) {
@@ -376,7 +376,7 @@ if (!user) { showLogin(); return; }
       f.experience.value = (c && c.experience) || '';
       S.photoCoach = (c && c.photo) || '';
       if (S.photoCoach) document.getElementById('coachPhotoPrev').src = S.photoCoach;
-      document.getElementById('coachIdLbl').textContent = (c && c.coachId) || '— (save profile to generate)';
+      document.getElementById('coachIdLbl').textContent = (c && c.coachId) || 'ï¿½ (save profile to generate)';
       var st = T.normalizeCoachStatus(c && c.status);
       var chipCls = st === 'approved' ? 'ok' : (st === 'rejected' ? 'bad' : 'warn');
       document.getElementById('coachStatusChip').innerHTML = ' <span class="t-chip ' + chipCls + '">' + E(st) + '</span>';
@@ -457,7 +457,7 @@ if (!user) { showLogin(); return; }
 document.getElementById('btnPrintCoachIdCard').onclick = function () {
      if (!S.coach || !S.coach.idCardGenerated) return T.toast('Generate the ID card first', 'error');
      var html = TP.coachIdCardHTML(Object.assign({}, S.coach, { holderType: 'coach', status: S.coach.status || 'approved' }), activeTournament(), D);
-    T.printHTML('Coach ID Card — ' + (S.coach.name || ''), html, TP.idCardCSS(), false);
+    T.printHTML('Coach ID Card ï¿½ ' + (S.coach.name || ''), html, TP.idCardCSS(), false);
   };
 
   document.querySelector('#coachForm [name=photoFile]').onchange = function (e) {
@@ -507,10 +507,10 @@ document.getElementById('btnPrintCoachIdCard').onclick = function () {
   function recalc() {
     var f = document.getElementById('playerForm');
     var ac = T.ageCategory(f.dob.value);
-    document.getElementById('calcAge').textContent = ac ? ac.age + ' yrs' : '—';
-    document.getElementById('calcAgeCat').textContent = ac ? ac.name : '—';
+    document.getElementById('calcAge').textContent = ac ? ac.age + ' yrs' : 'ï¿½';
+    document.getElementById('calcAgeCat').textContent = ac ? ac.name : 'ï¿½';
     var wc = ac ? T.weightCategory(f.weight.value, ac.key, f.gender.value) : null;
-    document.getElementById('calcWtCat').textContent = wc ? wc + ' Kg' : '—';
+    document.getElementById('calcWtCat').textContent = wc ? wc + ' Kg' : 'ï¿½';
   }
   ['dob', 'gender', 'weight'].forEach(function (n) {
     document.querySelector('#playerForm [name=' + n + ']').addEventListener('input', recalc);
@@ -558,7 +558,7 @@ document.getElementById('btnPrintCoachIdCard').onclick = function () {
       data.status = old.status === 'rejected' ? 'pending' : old.status;
     }
 T.savePlayer(data, editing || null, t.date).then(function () {
-       T.toast(editing ? 'Player updated' : 'Player registered — pending approval', 'success');
+       T.toast(editing ? 'Player updated' : 'Player registered ï¿½ pending approval', 'success');
       resetPlayerForm();
       goTab('players');
     }).catch(function (err) { T.toast(err.message, 'error'); });
@@ -636,9 +636,9 @@ T.savePlayer(data, editing || null, t.date).then(function () {
           actions += '<button type="button" class="t-btn t-btn-ghost t-btn-sm t-action-sm" data-edit="' + E(p.id) + '">Edit</button> ' +
           '<button type="button" class="t-btn t-btn-danger t-btn-sm t-action-sm" data-del="' + E(p.id) + '">Del</button>';
         }
-        return '<tr><td>' + E(p.regNo || '—') + '</td>' +
+        return '<tr><td>' + E(p.regNo || 'ï¿½') + '</td>' +
           '<td><strong>' + E(p.name) + '</strong><br><small>' + E(p.fatherName || '') + '</small></td>' +
-          '<td>' + E(p.categoryLabel || '—') + '</td><td>' + E(p.weight || '—') + ' kg</td>' +
+          '<td>' + E(p.categoryLabel || 'ï¿½') + '</td><td>' + E(p.weight || 'ï¿½') + ' kg</td>' +
           '<td>' + resultCell + '</td>' +
           '<td>' + statusChip(p.status) + '</td>' +
           '<td class="t-player-actions">' + actions + '</td></tr>';
@@ -687,7 +687,7 @@ T.savePlayer(data, editing || null, t.date).then(function () {
 if (p.status !== 'approved') return T.toast('ID card available for approved players only', 'error');
      var t = tourFor(p) || activeTournament();
     var html = TP.idCardHTML(p, t, D);
-    T.printHTML('ID Card — ' + (p.name || ''), html, TP.idCardCSS(), false);
+    T.printHTML('ID Card ï¿½ ' + (p.name || ''), html, TP.idCardCSS(), false);
   }
 
   function downloadCertificate(id) {
@@ -704,7 +704,7 @@ var cert = T.buildPlayerCert(p, t, medal);
       html = TP.participationCertHTML(cert, t, D);
       css = TP.participationCertCSS();
     }
-    T.printHTML('Certificate — ' + (p.name || ''), html, css, true);
+    T.printHTML('Certificate ï¿½ ' + (p.name || ''), html, css, true);
   }
 
   function editPlayer(id) {
@@ -717,7 +717,7 @@ var cert = T.buildPlayerCert(p, t, medal);
     f.phone.value = p.phone || ''; f.idProof.value = p.idProof || ''; f.bloodGroup.value = p.bloodGroup || '';
     S.photoPlayer = p.photo || '';
     if (p.photo) document.getElementById('playerPhotoPrev').src = p.photo;
-    document.getElementById('addTitle').textContent = 'Edit Player — ' + (p.regNo || p.name);
+    document.getElementById('addTitle').textContent = 'Edit Player ï¿½ ' + (p.regNo || p.name);
     recalc();
     goTab('register');
   }
@@ -783,9 +783,9 @@ var cert = T.buildPlayerCert(p, t, medal);
     box.innerHTML = '<table class="t-table"><thead><tr><th>Reg No</th><th>Player</th><th>Medal</th><th>Category</th><th>Type</th></tr></thead><tbody>' +
       rows.map(function (r) {
         var medalClass = r.medal === 'gold' ? 'gold' : (r.medal === 'silver' ? 'silver' : (r.medal.indexOf('bronze') === 0 ? 'bronze' : ''));
-        return '<tr><td>' + E(r.regNo || '—') + '</td><td>' + E(r.name) + '</td>' +
+        return '<tr><td>' + E(r.regNo || 'ï¿½') + '</td><td>' + E(r.name) + '</td>' +
           '<td>' + (medalClass ? '<span class="t-chip ' + medalClass + '">' + T.medalLabel(r.medal) + '</span>' : E((r.medal || '').toUpperCase())) + '</td>' +
-          '<td>' + E(r.category || '—') + '</td><td>' + E(r.type) + '</td></tr>';
+          '<td>' + E(r.category || 'ï¿½') + '</td><td>' + E(r.type) + '</td></tr>';
       }).join('') + '</tbody></table>';
   }
 
@@ -821,8 +821,8 @@ var cert = T.buildPlayerCert(p, t, medal);
       if (!mine.length) { box.innerHTML = '<div class="t-empty">No certificates issued yet.</div>'; return; }
       box.innerHTML = '<table class="t-table"><thead><tr><th>Cert No</th><th>Name</th><th>Type</th><th>Category</th><th>Tournament</th><th></th></tr></thead><tbody>' +
         mine.map(function (c) {
-          return '<tr><td>' + E(c.certNo) + '</td><td>' + E(c.name) + '</td><td>' + E(c.type) + (c.medal ? ' · ' + E(c.medal.toUpperCase()) : '') + '</td>' +
-            '<td>' + E(c.category || '—') + '</td><td>' + E(c.tournamentName || '—') + '</td>' +
+          return '<tr><td>' + E(c.certNo) + '</td><td>' + E(c.name) + '</td><td>' + E(c.type) + (c.medal ? ' ï¿½ ' + E(c.medal.toUpperCase()) : '') + '</td>' +
+            '<td>' + E(c.category || 'ï¿½') + '</td><td>' + E(c.tournamentName || 'ï¿½') + '</td>' +
             '<td><button type="button" class="t-btn t-btn-ghost t-btn-sm" data-cert="' + E(c.id) + '">Download</button></td></tr>';
         }).join('') + '</tbody></table>';
       box.querySelectorAll('[data-cert]').forEach(function (b) {
@@ -844,7 +844,7 @@ var cert = T.buildPlayerCert(p, t, medal);
     var isMerit = c.type && c.type.indexOf('Merit') >= 0;
     var html = isMerit ? TP.meritCertHTML(c, t, D) : TP.participationCertHTML(c, t, D);
     var css = isMerit ? TP.meritCertCSS() : TP.participationCertCSS();
-    T.printHTML('Certificate — ' + (c.name || ''), html, css, true);
+    T.printHTML('Certificate ï¿½ ' + (c.name || ''), html, css, true);
   }
 })();
   </script>
@@ -858,7 +858,7 @@ var cert = T.buildPlayerCert(p, t, medal);
         <button type="button" id="btnCloseIdModal" class="t-btn t-btn-ghost t-btn-sm">?</button>
       </div>
       <div id="idCardModalBody" class="t-idcard-preview-host" style="overflow:auto;background:#12182b;padding:12px;border-radius:8px">
-        <div class="t-empty">Loading…</div>
+        <div class="t-empty">Loadingï¿½</div>
       </div>
       <div class="t-row" style="margin-top:14px;justify-content:flex-end">
         <button type="button" id="btnDownloadIdFromModal" class="t-btn t-btn-gold t-btn-sm">Download ID Card</button>

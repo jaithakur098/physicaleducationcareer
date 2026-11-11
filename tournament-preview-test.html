@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,nofollow">
-  <title>Certificate &amp; ID Card Preview — 6th Alwar Cup 2026</title>
+  <title>Tournament Preview</title>
   <script src="config/tournament-config.js"></script>
   <script src="js/qrcode-generator.js"></script>
   <script src="js/tournament-qr.js"></script>
@@ -67,33 +67,40 @@
   document.head.appendChild(style);
 
   var tournament = {
-    id: 'TEST2026',
-    name: '6th Alwar Cup Taekwondo Championship',
-    date: '2026-08-22',
-    venue: 'Alwar, Rajasthan'
+    id: 'TEST2027',
+    name: '7th ALWAR CUP TAEKWONDO CHAMPIONSHIP 2027',
+    date: '2026-11-21',
+    venue: 'ALWAR',
+    city: 'ALWAR',
+    certificateAuthority: 'Ram Ji',
+    certificateDesignation: 'Head of World',
+    certificateLogo: '',
+    certificateSignature: '',
+    certificateTemplate: 'Template 1',
+    idCardTemplate: 'Template 1'
   };
 
   var baseCert = {
-    id: 'cert-1', name: 'Rahul Sharma', regNo: 'ACC2026-0001',
+    id: 'cert-1', name: 'Rahul Sharma', regNo: 'ACC2027-0001',
     academy: 'Ultimate TKD Academy', district: 'Alwar', school: 'Govt SR Sec School',
     gender: 'male', ageCategory: 'Senior', weightCategory: '-54',
     category: 'Senior Male -54 Kg', type: 'Participation Certificate',
-    certNo: 'ACC-2026-TEST-00001', date: '2026-08-22', tournamentName: tournament.name
+    certNo: 'ACC-2027-TEST-00001', date: '2026-11-21', tournamentName: tournament.name
   };
 
   var partNoMedal = Object.assign({}, baseCert);
   var partWithGold = Object.assign({}, baseCert, { medal: 'gold', id: 'cert-1g' });
 
   var meritGold = Object.assign({}, baseCert, {
-    id: 'cert-mg', type: 'Merit Certificate', medal: 'gold', certNo: 'ACC-2026-TEST-00002'
+    id: 'cert-mg', type: 'Merit Certificate', medal: 'gold', certNo: 'ACC-2027-TEST-00002'
   });
   var meritSilver = Object.assign({}, baseCert, {
     id: 'cert-ms', name: 'Priya Verma', ageCategory: 'Junior', weightCategory: '-45',
-    academy: 'Warriors Taekwondo', district: 'Jaipur', medal: 'silver', certNo: 'ACC-2026-TEST-00003'
+    academy: 'Warriors Taekwondo', district: 'Jaipur', medal: 'silver', certNo: 'ACC-2027-TEST-00003'
   });
   var meritBronze = Object.assign({}, baseCert, {
     id: 'cert-mb', name: 'Arjun Meena', ageCategory: 'Cadet', weightCategory: '-41',
-    academy: 'Champions Dojang', district: 'Bharatpur', medal: 'bronze2', certNo: 'ACC-2026-TEST-00004'
+    academy: 'Champions Dojang', district: 'Bharatpur', medal: 'bronze2', certNo: 'ACC-2027-TEST-00004'
   });
 
   document.getElementById('partHost').innerHTML = TP.participationCertHTML(partNoMedal, tournament, D);
@@ -112,33 +119,33 @@
   var c = Object.assign({}, baseCert, {
       id: 'cert-age-' + i, name: s.name, ageCategory: s.age, weightCategory: s.weight,
       category: s.category,
-      certNo: 'ACC-2026-AGE-' + String(i + 1).padStart(3, '0')
+      certNo: 'ACC-2027-AGE-' + String(i + 1).padStart(3, '0')
     });
     return '<div style="margin-bottom:8px;font-size:11px;color:#e8c547">' + s.age + ' · ' + s.weight + ' Kg</div>' +
       TP.participationCertHTML(c, tournament, D);
   }).join('');
 
   var athlete = {
-    id: 'p1', name: 'Rahul Sharma', regNo: 'ACC2026-0001',
+    id: 'p1', name: 'Rahul Sharma', regNo: 'ACC2027-0001',
     academy: 'Ultimate TKD Academy', district: 'Alwar', school: 'Govt SR Sec School',
     gender: 'male', ageCategory: 'Senior', weightCategory: '-54',
     coachName: 'Coach Vikram', status: 'approved',
     photo: 'https://i.pravatar.cc/160?img=12'
   };
   var coach = {
-    id: 'coach1', name: 'Vikram Singh', coachId: 'COACH-2026-0007',
+    id: 'coach1', name: 'Vikram Singh', coachId: 'COACH-2027-0007',
     academy: 'Ultimate TKD Academy', district: 'Alwar',
     phone: '+91 98765 43210', email: 'vikram@example.com',
     registeredPlayers: 18, status: 'approved',
     photo: 'https://i.pravatar.cc/160?img=33'
   };
   var referee = {
-    id: 'ref1', name: 'Col. Ramesh Kumar', refereeId: 'REF-2026-0003',
+    id: 'ref1', name: 'Col. Ramesh Kumar', refereeId: 'REF-2027-0003',
     role: 'Technical Delegate', district: 'Alwar', status: 'approved',
     photo: 'https://i.pravatar.cc/160?img=52'
   };
   var vip = {
-    id: 'vip1', name: 'Shri Ashok Gehlot', vipId: 'VIP-2026-001',
+    id: 'vip1', name: 'Shri Ashok Gehlot', vipId: 'VIP-2027-001',
     designation: 'Chief Guest', organization: 'Government of Rajasthan', status: 'approved',
     photo: 'https://i.pravatar.cc/160?img=60'
   };

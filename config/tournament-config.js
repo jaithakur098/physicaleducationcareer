@@ -1,5 +1,5 @@
 /* ============================================================================
- 6th ALWAR CUP TAEKWONDO CHAMPIONSHIP — Tournament Configuration
+  Tournament Configuration — default category rules
  Default AGE + WEIGHT category rules. Admin can override these at runtime;
  overrides are stored in Firestore at tournament_settings/categories
  and merged over these defaults by TCore.loadCategoryRules().
@@ -40,11 +40,13 @@
     edition: '',
     sport: 'Taekwondo',
     brandLine: 'Taekwondo Championship',
-    eventFullName: 'Taekwondo Championship',
+    /* Event name/date/venue/logo come from the selected tournament's own
+       Firestore document — never hardcoded here. Empty until set per tournament. */
+    eventFullName: '',
     eventYear: '',
     eventLocation: '',
     website: 'physicaleducationcareer.in',
-    logoImage: 'ultimate-logo.svg',
+    logoImage: '',
     ageRules: DEFAULT_AGE_RULES,
     weightRules: DEFAULT_WEIGHT_RULES,
     collections: {

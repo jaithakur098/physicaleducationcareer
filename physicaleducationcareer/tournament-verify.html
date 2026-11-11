@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,follow">
-  <title>Verify — 6th Alwar Cup Taekwondo Championship</title>
+  <title>Tournament Preview</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="tournament.css">
@@ -28,7 +28,7 @@
     <a href="tournament.html" class="t-brand">
       <div class="t-brand-mark">??</div>
       <div>
-        <b>6th ALWAR CUP</b>
+        <b>Tournament</b>
         <small>Official Verification</small>
       </div>
     </a>
@@ -70,14 +70,14 @@
   </div>
 </main>
 
-<footer class="t-foot t-wrap">6th Alwar Cup Taekwondo Championship · Verification Service</footer>
+<footer class="t-foot t-wrap">Tournament Â· A module of Physical Education Career</footer>
 
 <script>
 (function () {
   var T = window.TCore, E = T.esc;
 
   function row(k, v) {
-    return '<div class="t-verify-row"><span>' + E(k) + '</span><span>' + E(v || '—') + '</span></div>';
+    return '<div class="t-verify-row"><span>' + E(k) + '</span><span>' + E(v || 'ï¿½') + '</span></div>';
   }
 
   function bad(msg) {
@@ -91,23 +91,23 @@
     var type = document.getElementById('vType').value;
     var id = document.getElementById('vId').value.trim();
     if (!id) return T.toast('Enter an ID', 'error');
-    document.getElementById('vOut').innerHTML = '<div class="t-loader">Verifying…</div>';
+    document.getElementById('vOut').innerHTML = '<div class="t-loader">Verifyingï¿½</div>';
     var p = type === 'certificate' ? T.getCertificate(id) :
       (type === 'referee' ? T.getReferee(id) : T.getPlayer(id));
     p.then(function (d) {
       if (!d) return bad('No official record found for this ID.');
       var html = '<div class="t-verify-result ok"><div class="t-card">' +
-        '<div style="text-align:center;margin-bottom:18px"><span class="t-chip ok" style="font-size:14px;padding:8px 16px">? VERIFIED · GENUINE</span></div>';
+        '<div style="text-align:center;margin-bottom:18px"><span class="t-chip ok" style="font-size:14px;padding:8px 16px">? VERIFIED ï¿½ GENUINE</span></div>';
       if (type === 'certificate') {
         html += row('Certificate No', d.certNo) + row('Holder', d.name) + row('Type', d.type) +
-          row('Medal', (d.medal || '—').toUpperCase()) + row('Category', d.category) +
+          row('Medal', (d.medal || 'ï¿½').toUpperCase()) + row('Category', d.category) +
           row('Academy', d.academy) + row('Tournament', d.tournamentName) + row('Date', T.fmtDate(d.date));
       } else if (type === 'referee') {
         html += row('Referee ID', d.refereeId) + row('Name', d.name) + row('Role', d.role) + row('District', d.district);
       } else {
         if (d.status !== 'approved') return bad('This registration exists but is not approved yet.');
         html += row('Registration No', d.regNo) + row('Player', d.name) + row("Father's Name", d.fatherName) +
-          row('Category', d.categoryLabel) + row('Weight', (d.weight || '—') + ' kg') +
+          row('Category', d.categoryLabel) + row('Weight', (d.weight || 'ï¿½') + ' kg') +
           row('Academy', d.academy) + row('Coach', d.coachName) + row('District', d.district) +
           row('Tournament', d.tournamentName);
       }

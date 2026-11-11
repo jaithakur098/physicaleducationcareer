@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>6th Alwar Cup — Taekwondo Championship Portal</title>
+  <title>Tournament Preview</title>
   <meta name="description" content="Public portal for the Alwar Cup Taekwondo Championship: tournaments, live results, draws, medals and certificate verification.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="https://physicaleducationcareer.in/tournament.html">
@@ -48,9 +48,9 @@
 
 <main>
   <section class="t-hero t-wrap">
-    <span class="t-eyebrow">6th Edition · Taekwondo</span>
+    <span class="t-eyebrow">6th Edition ï¿½ Taekwondo</span>
     <h1>WELCOME TO TAEKWONDO TOURNAMENT MODULE</h1>
-    <p>Complete tournament management — online player registration by coaches, automatic age &amp; weight categorisation, official ID cards, category draws, live results, medal tally and digital certificates.</p>
+    <p>Complete tournament management ï¿½ online player registration by coaches, automatic age &amp; weight categorisation, official ID cards, category draws, live results, medal tally and digital certificates.</p>
     <div class="t-hero-actions t-no-print">
       <a href="tournament-coach.html" class="t-btn t-btn-gold">Coach Login</a>
       <a href="tournament-players.html" class="t-btn t-btn-gold">Player Registration</a>
@@ -70,7 +70,7 @@
         <h2>Tournaments</h2>
         <p>Upcoming, live and completed championships.</p>
       </div>
-      <div id="tourList" class="t-grid t-g2"><div class="t-loader">Loading tournaments…</div></div>
+      <div id="tourList" class="t-grid t-g2"><div class="t-loader">Loading tournamentsï¿½</div></div>
     </div>
   </section>
 
@@ -99,7 +99,7 @@
       </div>
       <div class="t-card">
         <div class="t-row t-no-print" style="margin-bottom:14px">
-          <select id="dCat" class="t-select" style="max-width:360px"><option value="">— Select a published draw —</option></select>
+          <select id="dCat" class="t-select" style="max-width:360px"><option value="">ï¿½ Select a published draw ï¿½</option></select>
           <button type="button" id="dPrint" class="t-btn t-btn-ghost t-btn-sm">Print / PDF</button>
         </div>
         <div id="drawBox" class="t-fixture-host"><div class="t-empty" style="color:#8892b2;padding:40px">Select a tournament above to load published draws.</div></div>
@@ -111,7 +111,7 @@
     <div class="t-wrap">
       <div class="t-sec-head">
         <h2>Medal Tally</h2>
-        <p>Gold 5 pts · Silver 3 pts · Bronze 1 pt.</p>
+        <p>Gold 5 pts ï¿½ Silver 3 pts ï¿½ Bronze 1 pt.</p>
       </div>
       <div class="t-card">
         <div class="t-tabs t-medal-tabs t-no-print">
@@ -133,7 +133,7 @@
       </div>
       <div class="t-card">
         <div class="t-filters t-no-print">
-          <div class="t-field" style="flex:2"><label>Search</label><input id="pSearch" class="t-input" placeholder="Name, reg no, academy…"></div>
+          <div class="t-field" style="flex:2"><label>Search</label><input id="pSearch" class="t-input" placeholder="Name, reg no, academyï¿½"></div>
           <button type="button" id="pSearchBtn" class="t-btn t-btn-gold">Search</button>
         </div>
         <div id="searchBox" class="t-table-wrap"><div class="t-empty">Type a name or registration number.</div></div>
@@ -142,7 +142,7 @@
   </section>
 </main>
 
-<footer class="t-foot t-wrap">6th Alwar Cup Taekwondo Championship · A module of Physical Education Career</footer>
+<footer class="t-foot t-wrap">Tournament Â· A module of Physical Education Career</footer>
 
 <script>
 (function () {
@@ -175,7 +175,7 @@
       return '<div class="t-card">' +
         '<div class="t-row" style="margin-bottom:8px"><span class="t-chip">' + E(t.sport || 'Taekwondo') + '</span>' + statusChip(t.status) + '</div>' +
         '<h3>' + E(t.name || 'Untitled') + '</h3>' +
-        '<p class="t-sub">' + E(t.venue || 'Venue TBA') + ' · ' + T.fmtDate(t.date) + (t.city ? ' · ' + E(t.city) : '') + '</p>' +
+        '<p class="t-sub">' + E(t.venue || 'Venue TBA') + ' ï¿½ ' + T.fmtDate(t.date) + (t.city ? ' ï¿½ ' + E(t.city) : '') + '</p>' +
         '<p style="font-size:13px;color:var(--t-ink-soft);margin:10px 0">' + E(t.description || '') + '</p>' +
         '<div class="t-row t-no-print">' + actions + '</div></div>';
     }).join('');
@@ -189,7 +189,7 @@
   }
 
   function fillTourSelect() {
-    document.getElementById('rTour').innerHTML = '<option value="">— Select tournament —</option>' +
+    document.getElementById('rTour').innerHTML = '<option value="">ï¿½ Select tournament ï¿½</option>' +
       state.tournaments.map(function (t) { return '<option value="' + E(t.id) + '">' + E(t.name || 'Untitled') + '</option>'; }).join('');
   }
 
@@ -201,7 +201,7 @@
   function loadTournamentData(tid) {
     state.tid = tid;
     if (!tid) { document.getElementById('resultBox').innerHTML = '<div class="t-empty">Select a tournament.</div>'; return; }
-    document.getElementById('resultBox').innerHTML = '<div class="t-loader">Loading results…</div>';
+    document.getElementById('resultBox').innerHTML = '<div class="t-loader">Loading resultsï¿½</div>';
     Promise.all([T.listPlayers({ tournamentId: tid }), T.listResults(tid)]).then(function (r) {
       state.players = r[0]; state.results = r[1];
       renderResults(); renderMedals();
@@ -215,7 +215,7 @@
   function fillDrawSelect() {
     var sel = document.getElementById('dCat'), cur = sel.value;
     var list = (state.draws || []).slice().sort(function (a, b) { return String(a.categoryLabel).localeCompare(String(b.categoryLabel)); });
-    sel.innerHTML = '<option value="">— Select a published draw —</option>' + list.map(function (d) {
+    sel.innerHTML = '<option value="">ï¿½ Select a published draw ï¿½</option>' + list.map(function (d) {
       return '<option value="' + E(d.id) + '">' + E(d.categoryLabel || d.id) + ' (' + (d.entries || 0) + ' entries)</option>';
     }).join('');
     if (cur) sel.value = cur;
@@ -258,12 +258,12 @@
       entries: d.entries,
       byes: d.byes
     });
-    T.printHTML('Draw Sheet — ' + (d.categoryLabel || ''), html, TF.printCSS(), true);
+    T.printHTML('Draw Sheet ï¿½ ' + (d.categoryLabel || ''), html, TF.printCSS(), true);
   };
 
   function pname(id) {
     var p = state.players.filter(function (x) { return x.id === id; })[0];
-    return p ? p.name + ' (' + (p.academy || '—') + ')' : '—';
+    return p ? p.name + ' (' + (p.academy || 'ï¿½') + ')' : 'ï¿½';
   }
 
   function renderResults() {
@@ -296,7 +296,7 @@
     var q = document.getElementById('pSearch').value.trim().toLowerCase();
     var box = document.getElementById('searchBox');
     if (!q) { box.innerHTML = '<div class="t-empty">Type a name or registration number.</div>'; return; }
-    box.innerHTML = '<div class="t-loader">Searching…</div>';
+    box.innerHTML = '<div class="t-loader">Searchingï¿½</div>';
     T.listPlayers(state.tid ? { tournamentId: state.tid } : null).then(function (all) {
       var rows = all.filter(function (p) {
         return [p.name, p.regNo, p.academy, p.district, p.state, p.categoryLabel]
@@ -305,7 +305,7 @@
       if (!rows.length) { box.innerHTML = '<div class="t-empty">No approved players matched "' + E(q) + '".</div>'; return; }
       box.innerHTML = '<table class="t-table"><thead><tr><th>Reg No</th><th>Name</th><th>Category</th><th>Academy</th><th>District</th></tr></thead><tbody>' +
         rows.map(function (p) {
-          return '<tr><td>' + E(p.regNo || '—') + '</td><td>' + E(p.name) + '</td><td>' + E(p.categoryLabel || '—') + '</td><td>' + E(p.academy || '—') + '</td><td>' + E(p.district || '—') + '</td></tr>';
+          return '<tr><td>' + E(p.regNo || 'ï¿½') + '</td><td>' + E(p.name) + '</td><td>' + E(p.categoryLabel || 'ï¿½') + '</td><td>' + E(p.academy || 'ï¿½') + '</td><td>' + E(p.district || 'ï¿½') + '</td></tr>';
         }).join('') + '</tbody></table>';
     });
   }
