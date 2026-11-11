@@ -1,5 +1,5 @@
 /* ============================================================================
- 6th ALWAR CUP TAEKWONDO CHAMPIONSHIP — Core data + logic layer (window.TCore)
+  Core data + logic layer (window.TCore)
  Firebase compat. Reuses the existing app initialised by config/firebase-init.js
  Requires: firebase-app-compat, firebase-auth-compat, firebase-firestore-compat
  (firebase-storage-compat optional — photos fall back to base64)
@@ -1291,9 +1291,9 @@ function nextRegNo(tournamentId) {
   function printHTML(title, innerHTML, extraCSS, landscape) {
     var w = window.open('', '_blank', 'width=1000,height=800');
     if (!w) { toast('Allow pop-ups to print / download PDF', 'error'); return; }
-    var pageRule = landscape ? '@page{size:A4 landscape;margin:8mm}' : '@page{size:A4;margin:10mm}';
+    var pageRule = landscape ? '@page{size:A4 landscape;margin:0}' : '@page{size:A4;margin:10mm}';
     w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(title) + '</title><style>' +
-      '*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:#fff;color:#0a1633;padding:16px}' +
+      '*{box-sizing:border-box}body{margin:0;padding:0;font-family:Inter,system-ui,sans-serif;background:#fff;color:#0a1633}' +
       pageRule + (extraCSS || '') + '</style></head><body>' + innerHTML + '</body></html>');
     w.document.close();
     w.focus();

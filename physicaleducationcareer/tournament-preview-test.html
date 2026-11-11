@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,nofollow">
-  <title>Certificate &amp; ID Card Preview — 6th Alwar Cup 2026</title>
+  <title>Tournament Preview — All Templates</title>
   <script src="config/tournament-config.js"></script>
   <script src="js/qrcode-generator.js"></script>
   <script src="js/tournament-qr.js"></script>
@@ -14,49 +14,52 @@
     h2 { padding: 16px 20px 8px; margin: 0; font-size: 15px; color: #e8c547; }
     h3 { padding: 8px 20px; margin: 0; font-size: 12px; color: #9aa5b4; font-weight: 500; }
     .section { margin-bottom: 28px; border-bottom: 1px solid #2a3348; padding-bottom: 20px; }
-    .cert-host { background: #0d1220; padding: 16px; margin: 0 16px; border-radius: 8px; overflow: auto; }
-    .id-host { background: #e8ecf4; padding: 16px; margin: 0 16px; border-radius: 8px; overflow: auto; }
-    .toolbar { padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .cert-host, .id-host { background: #0d1220; padding: 16px; margin: 0 16px 18px 16px; border-radius: 8px; overflow: auto; }
+    .toolbar { padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap; background: #0c1428; border-bottom: 1px solid #2a3348; position: sticky; top: 0; z-index: 5; }
     .toolbar button { padding: 8px 14px; cursor: pointer; border: none; border-radius: 6px; background: #c9a227; color: #071428; font-weight: 700; font-size: 12px; }
+    .toolbar button.secondary { background: #3a4a6b; color: #e8eefb; }
+    .tpl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; padding: 0 16px 24px 16px; }
+    .tpl-card { background: #0d1220; border: 1px solid #2a3348; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+    .tpl-card h4 { margin: 0 0 8px 0; font-size: 12px; color: #e8c547; }
+    .tpl-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .tpl-actions button { padding: 5px 10px; font-size: 11px; cursor: pointer; border: none; border-radius: 4px; background: #3a4a6b; color: #e8eefb; }
+    .tpl-actions button.print { background: #c9a227; color: #071428; font-weight: 700; }
+    .note { padding: 0 16px 18px 16px; font-size: 12px; color: #9aa5b4; max-width: 900px; }
   </style>
 </head>
 <body>
   <div class="toolbar">
-    <button type="button" id="btnPart">Print Participation</button>
-    <button type="button" id="btnMeritG">Print Merit Gold</button>
-    <button type="button" id="btnMeritS">Print Merit Silver</button>
-    <button type="button" id="btnMeritB">Print Merit Bronze</button>
-    <button type="button" id="btnIds">Print All ID Cards</button>
+    <strong style="color:#e8c547;margin-right:10px">TEMPLATE PREVIEW</strong>
+    <button type="button" class="print" id="btnPrintCertAll">Print All Certificates (PDF)</button>
+    <button type="button" class="print" id="btnPrintIdAll">Print All ID Cards (PDF)</button>
+    <div style="flex:1"></div>
+    <button type="button" class="secondary" id="btnPrintCert1">Cert T1</button>
+    <button type="button" class="secondary" id="btnPrintCert2">Cert T2</button>
+    <button type="button" class="secondary" id="btnPrintCert3">Cert T3</button>
+    <button type="button" class="secondary" id="btnPrintCert4">Cert T4</button>
+    <button type="button" class="secondary" id="btnPrintCert5">Cert T5</button>
+    <button type="button" class="secondary" id="btnPrintMerit">Merit Gold T1</button>
+    <button type="button" class="secondary" id="btnPrintId1">ID T1</button>
+    <button type="button" class="secondary" id="btnPrintId2">ID T2</button>
+    <button type="button" class="secondary" id="btnPrintId3">ID T3</button>
+    <button type="button" class="secondary" id="btnPrintId4">ID T4</button>
+    <button type="button" class="secondary" id="btnPrintId5">ID T5</button>
   </div>
 
   <div class="section">
-    <h2>Participation Certificate — A4 Landscape (no medal)</h2>
-    <div id="partHost" class="cert-host"></div>
+    <h2>Participation Certificates — A4 Landscape (Templates 1-5)</h2>
+    <div class="tpl-grid" id="certGrid"></div>
   </div>
 
   <div class="section">
-    <h2>Participation Certificate — with Gold Medal result</h2>
-    <div id="partMedalHost" class="cert-host"></div>
+    <h2>Accreditation ID Cards — Templates 1-5 (Athlete sample)</h2>
+    <div class="tpl-grid" id="idGrid"></div>
   </div>
 
-  <div class="section">
-    <h2>Merit Certificates — Gold / Silver / Bronze</h2>
-    <h3>Gold</h3>
-    <div id="meritGoldHost" class="cert-host"></div>
-    <h3>Silver</h3>
-    <div id="meritSilverHost" class="cert-host"></div>
-    <h3>Bronze (2nd bronze position)</h3>
-    <div id="meritBronzeHost" class="cert-host"></div>
-  </div>
-
-  <div class="section">
-    <h2>Age Categories — Participation preview samples</h2>
-    <div id="ageCatsHost" class="cert-host" style="display:flex;flex-direction:column;gap:24px"></div>
-  </div>
-
-  <div class="section">
-    <h2>Accreditation Passes — Athlete / Coach / Referee / VIP</h2>
-    <div id="idHost" class="id-host"></div>
+  <div class="note">
+    Open this page in a real browser, then use the Print buttons to open the browser print preview and save as PDF.
+    Certificates print at A4 landscape (297mm x 210mm, margin: 0). ID cards print at A4 portrait.
+    Preview HTML and printed PDF use the same certificate / ID card CSS, so layout matches between preview and PDF.
   </div>
 
 <script>
@@ -67,114 +70,125 @@
   document.head.appendChild(style);
 
   var tournament = {
-    id: 'TEST2026',
-    name: '6th Alwar Cup Taekwondo Championship',
-    date: '2026-08-22',
-    venue: 'Alwar, Rajasthan'
+    id: 'TEST2027',
+    name: '7th ALWAR CUP TAEKWONDO CHAMPIONSHIP 2027',
+    date: '2026-11-21',
+    venue: 'ALWAR',
+    city: 'ALWAR',
+    certificateAuthority: 'Ram Ji',
+    certificateDesignation: 'Head of World',
+    certificateLogo: '',
+    certificateSignature: '',
+    certificateTemplate: 'Template 1',
+    idCardTemplate: 'Template 1'
   };
 
   var baseCert = {
-    id: 'cert-1', name: 'Rahul Sharma', regNo: 'ACC2026-0001',
+    id: 'cert-1', name: 'Rahul Sharma', regNo: 'ACC2027-0001',
     academy: 'Ultimate TKD Academy', district: 'Alwar', school: 'Govt SR Sec School',
     gender: 'male', ageCategory: 'Senior', weightCategory: '-54',
     category: 'Senior Male -54 Kg', type: 'Participation Certificate',
-    certNo: 'ACC-2026-TEST-00001', date: '2026-08-22', tournamentName: tournament.name
+    certNo: 'ACC-2027-TEST-00001', date: '2026-11-21', tournamentName: tournament.name
   };
 
-  var partNoMedal = Object.assign({}, baseCert);
-  var partWithGold = Object.assign({}, baseCert, { medal: 'gold', id: 'cert-1g' });
-
   var meritGold = Object.assign({}, baseCert, {
-    id: 'cert-mg', type: 'Merit Certificate', medal: 'gold', certNo: 'ACC-2026-TEST-00002'
-  });
-  var meritSilver = Object.assign({}, baseCert, {
-    id: 'cert-ms', name: 'Priya Verma', ageCategory: 'Junior', weightCategory: '-45',
-    academy: 'Warriors Taekwondo', district: 'Jaipur', medal: 'silver', certNo: 'ACC-2026-TEST-00003'
-  });
-  var meritBronze = Object.assign({}, baseCert, {
-    id: 'cert-mb', name: 'Arjun Meena', ageCategory: 'Cadet', weightCategory: '-41',
-    academy: 'Champions Dojang', district: 'Bharatpur', medal: 'bronze2', certNo: 'ACC-2026-TEST-00004'
+    id: 'cert-mg', type: 'Merit Certificate', medal: 'gold', certNo: 'ACC-2027-TEST-00002'
   });
 
-  document.getElementById('partHost').innerHTML = TP.participationCertHTML(partNoMedal, tournament, D);
-  document.getElementById('partMedalHost').innerHTML = TP.participationCertHTML(partWithGold, tournament, D);
-  document.getElementById('meritGoldHost').innerHTML = TP.meritCertHTML(meritGold, tournament, D);
-  document.getElementById('meritSilverHost').innerHTML = TP.meritCertHTML(meritSilver, tournament, D);
-  document.getElementById('meritBronzeHost').innerHTML = TP.meritCertHTML(meritBronze, tournament, D);
+  var certGrid = document.getElementById('certGrid');
+  for (var n = 1; n <= 5; n++) {
+    var t = Object.assign({}, tournament, { certificateTemplate: n });
+    var c = Object.assign({}, baseCert, { id: 'cert-tpl-' + n, certNo: 'ACC-2027-TPL-' + String(n).padStart(3, '0') });
+    var host = document.createElement('div');
+    host.className = 'tpl-card';
+    host.innerHTML = '<h4>Template ' + n + ' — Participation</h4>' +
+      TP.participationCertHTML(c, t, D) +
+      '<div class="tpl-actions">' +
+      '<button type="button" class="print" data-print-cert="' + n + '">Print / PDF</button>' +
+      '</div>';
+    certGrid.appendChild(host);
+  }
 
-  var ageSamples = [
-    { age: 'Sub Junior', weight: '-23', name: 'Kavya Singh', category: 'Sub Junior Female -23 Kg' },
-    { age: 'Cadet', weight: '-41', name: 'Arjun Meena', category: 'Cadet Male -41 Kg' },
-    { age: 'Junior', weight: '-45', name: 'Priya Verma', category: 'Junior Female -45 Kg' },
-    { age: 'Senior', weight: '-54', name: 'Rahul Sharma', category: 'Senior Male -54 Kg' }
-  ];
-  document.getElementById('ageCatsHost').innerHTML = ageSamples.map(function (s, i) {
-  var c = Object.assign({}, baseCert, {
-      id: 'cert-age-' + i, name: s.name, ageCategory: s.age, weightCategory: s.weight,
-      category: s.category,
-      certNo: 'ACC-2026-AGE-' + String(i + 1).padStart(3, '0')
-    });
-    return '<div style="margin-bottom:8px;font-size:11px;color:#e8c547">' + s.age + ' · ' + s.weight + ' Kg</div>' +
-      TP.participationCertHTML(c, tournament, D);
-  }).join('');
+  var meritHost = document.createElement('div');
+  meritHost.className = 'tpl-card';
+  var t1 = Object.assign({}, tournament, { certificateTemplate: 1 });
+  meritHost.innerHTML = '<h4>Template 1 — Merit (Gold)</h4>' +
+    TP.meritCertHTML(meritGold, t1, D) +
+    '<div class="tpl-actions">' +
+    '<button type="button" class="print" data-print-merit="1">Print / PDF</button>' +
+    '</div>';
+  certGrid.appendChild(meritHost);
 
   var athlete = {
-    id: 'p1', name: 'Rahul Sharma', regNo: 'ACC2026-0001',
+    id: 'p1', name: 'Rahul Sharma', regNo: 'ACC2027-0001',
     academy: 'Ultimate TKD Academy', district: 'Alwar', school: 'Govt SR Sec School',
     gender: 'male', ageCategory: 'Senior', weightCategory: '-54',
     coachName: 'Coach Vikram', status: 'approved',
     photo: 'https://i.pravatar.cc/160?img=12'
   };
-  var coach = {
-    id: 'coach1', name: 'Vikram Singh', coachId: 'COACH-2026-0007',
-    academy: 'Ultimate TKD Academy', district: 'Alwar',
-    phone: '+91 98765 43210', email: 'vikram@example.com',
-    registeredPlayers: 18, status: 'approved',
-    photo: 'https://i.pravatar.cc/160?img=33'
-  };
-  var referee = {
-    id: 'ref1', name: 'Col. Ramesh Kumar', refereeId: 'REF-2026-0003',
-    role: 'Technical Delegate', district: 'Alwar', status: 'approved',
-    photo: 'https://i.pravatar.cc/160?img=52'
-  };
-  var vip = {
-    id: 'vip1', name: 'Shri Ashok Gehlot', vipId: 'VIP-2026-001',
-    designation: 'Chief Guest', organization: 'Government of Rajasthan', status: 'approved',
-    photo: 'https://i.pravatar.cc/160?img=60'
-  };
 
-  document.getElementById('idHost').innerHTML =
-    TP.idCardHTML(athlete, tournament, D) +
-    TP.coachIdCardHTML(coach, tournament, D) +
-    TP.refereeIdCardHTML(referee, tournament, D) +
-    TP.vipIdCardHTML(vip, tournament, D);
+  var idGrid = document.getElementById('idGrid');
+  for (var n = 1; n <= 5; n++) {
+    var t = Object.assign({}, tournament, { idCardTemplate: n });
+    var host = document.createElement('div');
+    host.className = 'tpl-card';
+    host.innerHTML = '<h4>Template ' + n + ' — Athlete ID</h4>' +
+      TP.idCardHTML(athlete, t, D) +
+      '<div class="tpl-actions">' +
+      '<button type="button" class="print" data-print-id="' + n + '">Print / PDF</button>' +
+      '</div>';
+    idGrid.appendChild(host);
+  }
 
   function mockPrint(title, html, css, landscape) {
     var w = window.open('', '_blank');
     if (!w) return alert('Allow pop-ups to preview print');
     var page = landscape ? '@page{size:A4 landscape;margin:0}' : '@page{size:A4 portrait;margin:0}';
-    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>' + page + css + '</style></head><body>' + html + '  
-</body></html>');
+    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>' + page + css + '</style></head><body>' + html + '</body></html>');
     w.document.close();
     w.focus();
-    setTimeout(function () { w.print(); }, 600);
+    setTimeout(function () { w.print(); }, 700);
   }
 
-  document.getElementById('btnPart').onclick = function () {
-    mockPrint('Participation', TP.participationCertHTML(partNoMedal, tournament, D), TP.participationCertCSS(), true);
+  function certTplHtml(n) {
+    var t = Object.assign({}, tournament, { certificateTemplate: n });
+    var c = Object.assign({}, baseCert, { id: 'cert-print-' + n, certNo: 'ACC-2027-PRINT-' + String(n).padStart(3, '0') });
+    return TP.participationCertHTML(c, t, D);
+  }
+  function idTplHtml(n) {
+    var t = Object.assign({}, tournament, { idCardTemplate: n });
+    return TP.idCardHTML(athlete, t, D);
+  }
+
+  document.getElementById('btnPrintCertAll').onclick = function () {
+    var html = [];
+    for (var n = 1; n <= 5; n++) html.push(certTplHtml(n));
+    var t1 = Object.assign({}, tournament, { certificateTemplate: 1 });
+    html.push(TP.meritCertHTML(meritGold, t1, D));
+    mockPrint('Certificates All Templates', html.join(''), TP.participationCertCSS(), true);
   };
-  document.getElementById('btnMeritG').onclick = function () {
-    mockPrint('Merit Gold', TP.meritCertHTML(meritGold, tournament, D), TP.meritCertCSS(), true);
+  document.getElementById('btnPrintIdAll').onclick = function () {
+    var html = [];
+    for (var n = 1; n <= 5; n++) html.push(idTplHtml(n));
+    mockPrint('ID Cards All Templates', html.join(''), TP.idCardCSS(), false);
   };
-  document.getElementById('btnMeritS').onclick = function () {
-    mockPrint('Merit Silver', TP.meritCertHTML(meritSilver, tournament, D), TP.meritCertCSS(), true);
+
+  document.querySelectorAll('[data-print-cert]').forEach(function (b) {
+    b.onclick = function () { mockPrint('Certificate Template ' + b.dataset.printCert, certTplHtml(b.dataset.printCert), TP.participationCertCSS(), true); };
+  });
+  document.getElementById('btnPrintMerit').onclick = function () {
+    var t1 = Object.assign({}, tournament, { certificateTemplate: 1 });
+    mockPrint('Merit Gold Template 1', TP.meritCertHTML(meritGold, t1, D), TP.meritCertCSS(), true);
   };
-  document.getElementById('btnMeritB').onclick = function () {
-    mockPrint('Merit Bronze', TP.meritCertHTML(meritBronze, tournament, D), TP.meritCertCSS(), true);
-  };
-  document.getElementById('btnIds').onclick = function () {
-    mockPrint('ID Cards', document.getElementById('idHost').innerHTML, TP.idCardCSS(), false);
-  };
+  document.querySelectorAll('[data-print-id]').forEach(function (b) {
+    b.onclick = function () { mockPrint('ID Template ' + b.dataset.printId, idTplHtml(b.dataset.printId), TP.idCardCSS(), false); };
+  });
+  ['btnPrintCert1','btnPrintCert2','btnPrintCert3','btnPrintCert4','btnPrintCert5'].forEach(function (id, i) {
+    document.getElementById(id).onclick = function () { mockPrint('Certificate Template ' + (i + 1), certTplHtml(i + 1), TP.participationCertCSS(), true); };
+  });
+  ['btnPrintId1','btnPrintId2','btnPrintId3','btnPrintId4','btnPrintId5'].forEach(function (id, i) {
+    document.getElementById(id).onclick = function () { mockPrint('ID Template ' + (i + 1), idTplHtml(i + 1), TP.idCardCSS(), false); };
+  });
 })();
 </script>
 </body>

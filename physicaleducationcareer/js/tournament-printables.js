@@ -1,6 +1,9 @@
 /* ============================================================================
- 6th ALWAR CUP TAEKWONDO CHAMPIONSHIP 2026 — Tournament Printables
- Premium certificates + international accreditation passes. window.TPrint (ES5).
+  Tournament Printables — dynamic certificates + ID cards (window.TPrint, ES5)
+  Every piece of tournament data (name, date, venue/city, logo, signature,
+  authority name/designation, template selection) is read from the selected
+  tournament's own Firestore document. No hardcoded event names, dates, logos
+  or signatories are used as fallbacks anywhere in this module.
  ============================================================================ */
 (function (root) {
   'use strict';
@@ -10,7 +13,6 @@
   var GOLD = '#b8941f';
   var GOLD2 = '#e4c65a';
   var IVORY = '#faf8f2';
-  var EVENT_DATE = '22 AUGUST 2026';
 
   var ROLE_THEMES = {
     athlete: { key: 'athlete', label: 'ATHLETE', cls: 'tp-pass-athlete' },
@@ -19,120 +21,89 @@
     vip: { key: 'vip', label: 'VIP GUEST', cls: 'tp-pass-vip' }
   };
 
-  var SIGNATORIES = {
-    left: {
-      name: 'G.S. CHAUHAN',
-      lines: [
-        'FOUNDER',
-        'PHYSICALEDUCATIONCAREER.IN',
-        'MASTER OF PHYSICAL EDUCATION',
-        'NIS QUALIFIED COACH'
-      ],
-      sig: 'M8,34 C22,12 48,8 68,18 C88,28 96,42 108,28 C118,16 132,10 142,18 C128,26 110,38 88,40 C62,42 38,36 22,28 C14,24 10,30 8,34 Z M118,32 C126,24 138,20 148,26 C140,22 128,22 118,32 Z'
-    },
-    right: {
-      name: 'TAPESH YADAV',
-      lines: [
-        'TOURNAMENT DIRECTOR',
-        'BACHELOR OF PHYSICAL EDUCATION',
-        'NATIONAL REFEREE'
-      ],
-      sig: 'M6,28 C18,14 34,10 52,16 C70,22 78,34 90,24 C102,14 118,8 132,14 C118,22 100,32 78,36 C54,40 30,34 16,26 C10,22 6,24 6,28 Z M104,26 C112,20 124,18 136,24 C126,20 114,20 104,26 Z'
-    }
-  };
-
   function esc(s) {
     if (root.TCore && root.TCore.esc) return root.TCore.esc(s);
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  function resolveEventName(tournament, brand) {
-    if (tournament && tournament.name) return tournament.name;
-    return eventFullName(brand);
+  /* ----------------------------- data resolution -----------------------------
+     Source of truth: the selected tournament Firestore document. Empty string
+     when a value is not set — no stale tournament data is ever substituted. */
+  function eventName(tournament, brand) {
+    var t = tournament || {};
+    if (t.name) return String(t.name);
+    return brand && brand.eventFullName ? String(brand.eventFullName) : '';
   }
-  function eventFullName(brand) {
-    if (root.TOURNAMENT_DEFAULTS && root.TOURNAMENT_DEFAULTS.eventFullName) {
-      return root.TOURNAMENT_DEFAULTS.eventFullName;
-    }
-    return '6TH ALWAR CUP TAEKWONDO CHAMPIONSHIP 2026';
+  function eventVenue(tournament, brand) {
+    var t = tournament || {};
+    if (t.venue) return String(t.venue);
+    if (t.city) return String(t.city);
+    return brand && brand.eventLocation ? String(brand.eventLocation) : '';
   }
-
-  function eventLocation(brand) {
-    if (brand && brand.eventLocation) return brand.eventLocation;
-    if (root.TOURNAMENT_DEFAULTS && root.TOURNAMENT_DEFAULTS.eventLocation) {
-      return root.TOURNAMENT_DEFAULTS.eventLocation;
-    }
-    return 'ALWAR, RAJASTHAN';
+  function eventDate(tournament) {
+    var t = tournament || {};
+    return t.startDate || t.date || '';
   }
-
   function website(brand) {
-    if (brand && brand.website) return brand.website;
+    if (brand && brand.website) return String(brand.website);
     if (root.TOURNAMENT_DEFAULTS && root.TOURNAMENT_DEFAULTS.website) {
-      return root.TOURNAMENT_DEFAULTS.website;
+      return String(root.TOURNAMENT_DEFAULTS.website);
     }
-    return 'physicaleducationcareer.in';
-  }
-
-  function logoImage(brand) {
-    if (brand && brand.logoImage) return brand.logoImage;
-    if (root.TOURNAMENT_DEFAULTS && root.TOURNAMENT_DEFAULTS.logoImage) {
-      return root.TOURNAMENT_DEFAULTS.logoImage;
-    }
-    return 'ultimate-logo.svg';
-  }
-
-  function pecLogoImage(brand) {
-    if (brand && brand.pecLogoImage) return brand.pecLogoImage;
-    if (root.TOURNAMENT_DEFAULTS && root.TOURNAMENT_DEFAULTS.pecLogoImage) {
-      return root.TOURNAMENT_DEFAULTS.pecLogoImage;
-    }
-    return 'pec-logo.svg';
-  }
-
-  function meritOrdinal(medal) {
-    var m = String(medal || '').toLowerCase();
-    if (m === 'gold') return '1st';
-    if (m === 'silver') return '2nd';
-    if (m.indexOf('bronze') >= 0) return '3rd';
     return '';
   }
-
-  function pronoun(gender) {
-    var s = String(gender || '').toLowerCase();
-    if (s === 'female' || s === 'f') return 'She';
-    return 'He';
+  function certificateLogoUrl(tournament, brand) {
+    var t = tournament || {};
+    if (t.certificateLogo) return String(t.certificateLogo);
+    return '';
   }
-
-  function pronounObj(gender) {
-    return pronoun(gender) === 'She' ? 'her' : 'him';
+  function pecLogoUrl(brand) {
+    if (brand && brand.pecLogoImage) return String(brand.pecLogoImage);
+    return '';
   }
-
-  function ageWeightLine(cert) {
-    var age = cert.ageCategory || cert.ageName || '';
-    var wt = weightLabel(cert.weightCategory || cert.weight);
-    if (age && wt) return age.toUpperCase() + ' — ' + wt;
-    return (age || wt || '').toUpperCase();
+  function idCardLogoUrl(tournament, brand) {
+    var t = tournament || {};
+    if (t.idCardLogo) return String(t.idCardLogo);
+    if (t.logo) return String(t.logo);
+    return '';
   }
-
-  function academySchoolLine(cert) {
-    var parts = [];
-    if (cert.academy) parts.push(cert.academy);
-    if (cert.school) parts.push(cert.school);
-    if (cert.district && parts.length < 2) parts.push(cert.district);
-    return parts.join(' · ');
+  function certificateSignatureUrl(tournament, brand) {
+    var t = tournament || {};
+    if (t.certificateSignature) return String(t.certificateSignature);
+    return '';
+  }
+  function authorityName(tournament, brand) {
+    var t = tournament || {};
+    if (t.certificateAuthority) return String(t.certificateAuthority);
+    return '';
+  }
+  function authorityDesignation(tournament, brand) {
+    var t = tournament || {};
+    if (t.certificateDesignation) return String(t.certificateDesignation);
+    return '';
+  }
+  function templateNum(value) {
+    if (value == null) return 1;
+    var m = String(value).match(/\d/);
+    return m ? Math.min(5, Math.max(1, parseInt(m[0], 10))) : 1;
+  }
+  function certTemplateClass(tournament, brand) {
+    var t = tournament || {};
+    var v = t.certificateTemplate != null ? t.certificateTemplate : (brand && brand.certificateTemplate);
+    return 'tp-cert-template-' + templateNum(v);
+  }
+  function idTemplateClass(tournament, brand) {
+    var t = tournament || {};
+    var v = t.idCardTemplate != null ? t.idCardTemplate : (brand && brand.idCardTemplate);
+    return 'tp-id-template-' + templateNum(v);
   }
 
   function fmtDate(d) {
-    if (!d) return EVENT_DATE;
-    if (root.TCore && root.TCore.fmtDate) return root.TCore.fmtDate(d);
-    try {
-      var dt = new Date(d);
-      if (!isNaN(dt.getTime())) {
-        return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
-      }
-    } catch (e) { /* ignore */ }
-    return String(d).toUpperCase();
+    if (!d) return '';
+    var dt;
+    try { dt = (d && d.toDate) ? d.toDate() : new Date(d); } catch (e) { dt = new Date(d); }
+    if (!dt || isNaN(dt.getTime())) return String(d);
+    return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
   }
 
   function localVerifyUrl(type, id) {
@@ -175,11 +146,6 @@
       return localVerifyUrl('certificate', tournament.id + '__coach__' + holder.id);
     }
     return 'https://' + website({});
-  }
-
-  function isTeamUltimate(holder) {
-    var a = String(holder.academy || holder.academyName || '').toLowerCase();
-    return a.indexOf('ultimate') >= 0 || a.indexOf('team ultimate') >= 0;
   }
 
   function detectCardRole(holder, roleOverride) {
@@ -285,35 +251,75 @@
     '</svg>';
   }
 
-  function sigBlockOne(sig) {
-    var linesHtml = sig.lines.map(function (l) {
-      return '<div class="tp-sig-detail">' + esc(l) + '</div>';
-    }).join('');
-    return '<div class="tp-sig-block">' +
-      digSigSvg(sig.sig, '#1a2a44') +
-      '<div class="tp-sig-line"></div>' +
-      '<div class="tp-sig-name">' + esc(sig.name) + '</div>' +
-      linesHtml +
-    '</div>';
+  /* Signature image (uploaded) — shown ONLY in the bottom authority area. */
+  function signatureImg(sigUrl) {
+    if (!sigUrl) return '';
+    return '<img src="' + esc(sigUrl) + '" alt="Authority signature" class="tcr-sig-img" onerror="this.style.display=\'none\'" />';
   }
 
-  function dualSigBlocks() {
-    return '<div class="tp-dual-sigs">' +
-      sigBlockOne(SIGNATORIES.left) +
-      sigBlockOne(SIGNATORIES.right) +
-    '</div>';
+  /* Bottom authority / signature block: signature image, then name, then
+     designation underneath. Never rendered at the top of the certificate. */
+  function authorityBlock(tournament, brand) {
+    var name = authorityName(tournament, brand);
+    var desig = authorityDesignation(tournament, brand);
+    var sig = certificateSignatureUrl(tournament, brand);
+    if (!name && !desig && !sig) return '';
+    var html = '<div class="tcr-sig">';
+    if (sig) html += signatureImg(sig);
+    if (name) html += '<div class="tcr-sig-name">' + esc(name) + '</div>';
+    if (desig) html += '<div class="tcr-sig-desig">' + esc(desig) + '</div>';
+    html += '</div>';
+    return html;
   }
 
-  function refSigBlockLarge(sig) {
-    var linesHtml = sig.lines.map(function (l) {
-      return '<div class="tcr-sig-line-txt">' + esc(l) + '</div>';
-    }).join('');
-    return '<div class="tcr-sig">' +
-      digSigSvg(sig.sig, '#1a2a44') +
-      '<div class="tcr-sig-name">' + esc(sig.name) + '</div>' +
-      linesHtml +
-    '</div>';
+  /* ID card bottom authority block (same order: signature, name, designation). */
+  function idAuthorityBlock(tournament, brand) {
+    var name = authorityName(tournament, brand);
+    var desig = authorityDesignation(tournament, brand);
+    var sig = certificateSignatureUrl(tournament, brand);
+    if (!name && !desig && !sig) return '';
+    var html = '<div class="tp-pass-bottom-sig">';
+    if (sig) html += '<img src="' + esc(sig) + '" alt="Signature" class="tp-pass-sig-img" onerror="this.style.display=\'none\'" />';
+    if (name) html += '<div class="tp-pass-bottom-name">' + esc(name) + '</div>';
+    if (desig) html += '<div class="tp-pass-bottom-desig">' + esc(desig) + '</div>';
+    html += '</div>';
+    return html;
   }
+
+  function meritOrdinal(medal) {
+    var m = String(medal || '').toLowerCase();
+    if (m === 'gold') return '1st';
+    if (m === 'silver') return '2nd';
+    if (m.indexOf('bronze') >= 0) return '3rd';
+    return '';
+  }
+
+  function pronoun(gender) {
+    var s = String(gender || '').toLowerCase();
+    if (s === 'female' || s === 'f') return 'She';
+    return 'He';
+  }
+
+  function pronounObj(gender) {
+    return pronoun(gender) === 'She' ? 'her' : 'him';
+  }
+
+  function ageWeightLine(cert) {
+    var age = cert.ageCategory || cert.ageName || '';
+    var wt = weightLabel(cert.weightCategory || cert.weight);
+    if (age && wt) return age.toUpperCase() + ' — ' + wt;
+    return (age || wt || '').toUpperCase();
+  }
+
+  function academySchoolLine(cert) {
+    var parts = [];
+    if (cert.academy) parts.push(cert.academy);
+    if (cert.school) parts.push(cert.school);
+    if (cert.district && parts.length < 2) parts.push(cert.district);
+    return parts.join(' · ');
+  }
+
+  /* ----------------------------- certificate parts ----------------------------- */
 
   function refDecorLeftRibbon() {
     return '<svg class="tcr-left-ribbon" viewBox="0 0 90 800" preserveAspectRatio="none" aria-hidden="true">' +
@@ -380,22 +386,24 @@
     '</div>';
   }
 
-  function refCertHeader(brand, tourLogo, pecLogo) {
-    return '<header class="tcr-head">' +
-      '<div class="tcr-head-logo-l">' +
-        '<img src="' + esc(tourLogo) + '" alt="Tournament" class="tcr-seal" onerror="this.style.display=\'none\'" />' +
-      '</div>' +
-      '<div class="tcr-head-center">' +
-        refDecorTrophy() +
-        '<div class="tcr-event-main">6<sup>TH</sup> ALWAR CUP</div>' +
-        '<div class="tcr-event-sub">TAEKWONDO CHAMPIONSHIP 2026</div>' +
-        '<div class="tcr-stars">★ ★ ★</div>' +
-      '</div>' +
-      '<div class="tcr-head-logo-r">' +
-        '<img src="' + esc(pecLogo) + '" alt="Physical Education Career" class="tcr-pec-logo" onerror="this.style.display=\'none\'" />' +
-        '<div class="tcr-pec-site">' + esc(website(brand)) + '</div>' +
-      '</div>' +
-    '</header>';
+  function refCertHeader(tournament, brand, tourLogo, pecLogo) {
+    var ev = eventName(tournament, brand);
+    var sub = brand && brand.eventSub ? String(brand.eventSub) : '';
+    var center = '<div class="tcr-head-center">' +
+      refDecorTrophy() +
+      '<div class="tcr-event-main">' + esc(ev) + '</div>' +
+      (sub ? '<div class="tcr-event-sub">' + esc(sub) + '</div>' : '') +
+      '<div class="tcr-stars">★ ★ ★</div>' +
+    '</div>';
+    var left = tourLogo
+      ? '<div class="tcr-head-logo-l"><img src="' + esc(tourLogo) + '" alt="Tournament logo" class="tcr-seal" onerror="this.style.display=\'none\'" /></div>'
+      : '';
+    var right = pecLogo
+      ? '<div class="tcr-head-logo-r"><img src="' + esc(pecLogo) + '" alt="Organizer logo" class="tcr-pec-logo" onerror="this.style.display=\'none\'" />' +
+        (website(brand) ? '<div class="tcr-pec-site">' + esc(website(brand)) + '</div>' : '') +
+      '</div>'
+      : '';
+    return '<header class="tcr-head">' + left + center + right + '</header>';
   }
 
   function refCertRibbon(subtitle) {
@@ -416,7 +424,7 @@
     '</div>';
   }
 
-  /* ── ID CARD / ACCREDITATION PASS ────────────────────────────────────── */
+  /* ----------------------------- ID card ----------------------------- */
 
   function passFieldsHTML(holder, role) {
     if (role === 'coach') {
@@ -460,19 +468,16 @@
     var role = detectCardRole(holder, roleOverride);
     var theme = ROLE_THEMES[role];
     var verifyUrl = verifyUrlForRole(holder, role, tournament);
-    var tourDate = fmtDate(tournament.startDate || tournament.date);
+    var tourDate = fmtDate(eventDate(tournament));
     var approved = holder.status === 'approved' || holder.status === undefined;
-    var logo = tournament.idCardLogo || tournament.logo || logoImage(brand);
-    var wm = isTeamUltimate(holder)
-      ? '<img src="' + esc(logo) + '" alt="" class="tp-pass-wm-img" onerror="this.style.display=\'none\'" />'
-      : '';
+    var logo = idCardLogoUrl(tournament, brand);
+    var wm = logo ? '<img src="' + esc(logo) + '" alt="" class="tp-pass-wm-img" onerror="this.style.display=\'none\'" />' : '';
     var displayName = holder.name || holder.coachName || '';
 
-    var template = Number(tournament.idCardTemplate || 1);
-    return '<div class="tp-pass ' + theme.cls + ' tp-id-template-' + template + '">' +
+    return '<div class="tp-pass ' + theme.cls + ' ' + idTemplateClass(tournament, brand) + '">' +
       '<div class="tp-pass-wm">' + wm + '</div>' +
       '<div class="tp-pass-topbar">' +
-        '<div class="tp-pass-top-event">' + esc(resolveEventName(tournament, brand)) + '</div>' +
+        '<div class="tp-pass-top-event">' + esc(eventName(tournament, brand)) + '</div>' +
         '<div class="tp-pass-top-site">' + esc(website(brand)) + '</div>' +
       '</div>' +
       '<div class="tp-pass-role-banner">' + esc(theme.label) + '</div>' +
@@ -486,17 +491,13 @@
           (approved ? '<div class="tp-pass-badge">APPROVED</div>' : '') +
           '<div class="tp-pass-qr-wrap">' + qrImg(verifyUrl, 'tp-pass-qr', 120) + '</div>' +
           '<div class="tp-pass-qr-lbl">SCAN TO VERIFY</div>' +
-          '<img src="' + esc(logo) + '" alt="" class="tp-pass-mini-logo" onerror="this.style.display=\'none\'" />' +
+          (logo ? '<img src="' + esc(logo) + '" alt="" class="tp-pass-mini-logo" onerror="this.style.display=\'none\'" />' : '') +
         '</div>' +
       '</div>' +
       '<div class="tp-pass-bottom">' +
-        '<div class="tp-pass-bottom-event">' + esc(resolveEventName(tournament, brand)) + '</div>' +
-        '<div class="tp-pass-bottom-meta">' + esc(tourDate) + ' · ' + esc(eventLocation(brand)) + '</div>' +
-        '<div class="tp-pass-bottom-sig">' +
-          digSigSvg(SIGNATORIES.left.sig, 'rgba(255,255,255,0.75)') +
-          '<div class="tp-pass-bottom-name">' + esc(SIGNATORIES.left.name) + '</div>' +
-          '<div class="tp-pass-bottom-title">Founder, physicaleducationcareer.in</div>' +
-        '</div>' +
+        '<div class="tp-pass-bottom-event">' + esc(eventName(tournament, brand)) + '</div>' +
+        '<div class="tp-pass-bottom-meta">' + esc(tourDate) + ' · ' + esc(eventVenue(tournament, brand)) + '</div>' +
+        idAuthorityBlock(tournament, brand) +
       '</div>' +
     '</div>';
   }
@@ -523,7 +524,7 @@
     return idCardHTML(vip, tournament, brand, 'vip');
   }
 
-  /* ── PARTICIPATION CERTIFICATE (A4 LANDSCAPE) ────────────────────────── */
+  /* ----------------------------- participation certificate ----------------------------- */
 
   function participationCertHTML(cert, tournament, brand) {
     cert = cert || {};
@@ -532,38 +533,41 @@
     var verifyUrl = verifyCertUrl(cert);
     var certId = cert.certNo || cert.certNumber || cert.certId || cert.id || '';
     var playerName = (cert.studentName || cert.name || '').toUpperCase();
-    var dateStr = fmtDate(cert.date || tournament.startDate || tournament.date);
-    var tourLogo = tournament.certificateLogo || tournament.logo || logoImage(brand);
-    var pecLogo = pecLogoImage(brand);
+    var dateStr = fmtDate(cert.date || eventDate(tournament));
+    var tourLogo = certificateLogoUrl(tournament, brand);
+    var pecLogo = pecLogoUrl(brand);
     var academyLine = academySchoolLine(cert);
     var pro = pronoun(cert.gender);
     var proObj = pronounObj(cert.gender);
-    var eventName = resolveEventName(tournament, brand);
-    var authoritySig = tournament.certificateAuthority ? { name: tournament.certificateAuthority, lines: [tournament.certificateDesignation || ''], sig: (SIGNATORIES.left && SIGNATORIES.left.sig) || '' } : SIGNATORIES.left;
+    var eventNameText = eventName(tournament, brand);
+    var place = eventVenue(tournament, brand);
+    var templateCls = certTemplateClass(tournament, brand);
 
     var body =
-      refCertHeader(brand, tourLogo, pecLogo) +
+      refCertHeader(tournament, brand, tourLogo, pecLogo) +
       refCertRibbon('OF PARTICIPATION') +
       '<section class="tcr-body">' +
         '<p class="tcr-certify">THIS IS TO CERTIFY THAT</p>' +
         '<h2 class="tcr-player">' + esc(playerName) + '</h2>' +
         (academyLine ? '<p class="tcr-of">of <strong>' + esc(academyLine) + '</strong></p>' : '') +
-        '<p class="tcr-statement">has participated in the <strong class="tcr-event-red">' + esc(eventName) + '</strong></p>' +
-        '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(eventLocation(brand)) + '.</p>' +
+        '<p class="tcr-statement">has participated in the <strong class="tcr-event-red">' + esc(eventNameText) + '</strong></p>' +
+        '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(place) + '.</p>' +
         '<p class="tcr-wish">We wish ' + proObj + ' great success in all future endeavors.</p>' +
       '</section>' +
       refCertMetaGrid(cert, certId, dateStr) +
       '<footer class="tcr-foot">' +
         refDecorMedal('tcr-medal-part') +
-        '<div class="tcr-sigs">' + (tournament.certificateSignature ? '<div class="tcr-sig"><img src="' + esc(tournament.certificateSignature) + '" alt="" style="max-height:42px;max-width:160px;object-fit:contain;margin-bottom:4px"><div class="tcr-sig-name">' + esc(authoritySig.name) + '</div>' + (authoritySig.lines || []).map(function (l) { return '<div class="tcr-sig-line-txt">' + esc(l) + '</div>'; }).join('') + '</div>' : refSigBlockLarge(authoritySig)) + refSigBlockLarge(SIGNATORIES.right) + '</div>' +
+        '<div class="tcr-sigs">' + authorityBlock(tournament, brand) + '</div>' +
         '<div class="tcr-qr-wrap">' +
           qrImg(verifyUrl, 'tcr-qr', 200) +
           '<div class="tcr-qr-lbl">SCAN TO VERIFY</div>' +
         '</div>' +
       '</footer>';
 
-    return refCertShell('tcr-part tp-cert-template-' + (Number(tournament.certificateTemplate || 1)), '', body);
+    return refCertShell('tcr-part ' + templateCls, '', body);
   }
+
+  /* ----------------------------- merit certificate ----------------------------- */
 
   function meritCertHTML(cert, tournament, brand) {
     cert = cert || {};
@@ -575,25 +579,26 @@
     var medal = cert.medalName || cert.medal || cert.meritType || '';
     var medalCls = medalClass(medal).replace('tp-merit-', 'tcr-medal-');
     var ordinal = meritOrdinal(medal);
-    var dateStr = fmtDate(cert.date || tournament.startDate || tournament.date);
-    var tourLogo = tournament.certificateLogo || tournament.logo || logoImage(brand);
-    var pecLogo = pecLogoImage(brand);
+    var dateStr = fmtDate(cert.date || eventDate(tournament));
+    var tourLogo = certificateLogoUrl(tournament, brand);
+    var pecLogo = pecLogoUrl(brand);
     var academyLine = academySchoolLine(cert);
     var pro = pronoun(cert.gender);
     var proObj = pronounObj(cert.gender);
-    var eventName = resolveEventName(tournament, brand);
+    var eventNameText = eventName(tournament, brand);
+    var place = eventVenue(tournament, brand);
     var catLine = ageWeightLine(cert);
-    var authoritySig = tournament.certificateAuthority ? { name: tournament.certificateAuthority, lines: [tournament.certificateDesignation || ''], sig: (SIGNATORIES.left && SIGNATORIES.left.sig) || '' } : SIGNATORIES.left;
+    var templateCls = certTemplateClass(tournament, brand);
 
     var body =
-      refCertHeader(brand, tourLogo, pecLogo) +
+      refCertHeader(tournament, brand, tourLogo, pecLogo) +
       refCertRibbon('OF MERIT') +
       '<section class="tcr-body">' +
         '<p class="tcr-certify">THIS IS TO CERTIFY THAT</p>' +
         '<h2 class="tcr-player">' + esc(playerName) + '</h2>' +
         (academyLine ? '<p class="tcr-of">of <strong>' + esc(academyLine) + '</strong></p>' : '') +
-        '<p class="tcr-statement">has participated in the <strong class="tcr-event-red">' + esc(eventName) + '</strong></p>' +
-        '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(eventLocation(brand)) + '.</p>' +
+        '<p class="tcr-statement">has participated in the <strong class="tcr-event-red">' + esc(eventNameText) + '</strong></p>' +
+        '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(place) + '.</p>' +
         (ordinal && catLine ?
           '<p class="tcr-merit-line"><span class="tcr-merit-pro">' + pro + '</span> secured <strong class="tcr-merit-pos">' + esc(ordinal.toUpperCase()) + '</strong> position in <strong class="tcr-merit-cat">' + esc(catLine) + '</strong>.</p>' :
           '') +
@@ -602,23 +607,23 @@
       refCertMetaGrid(cert, certId, dateStr) +
       '<footer class="tcr-foot">' +
         refDecorMedal(medalCls) +
-        '<div class="tcr-sigs">' + (tournament.certificateSignature ? '<div class="tcr-sig"><img src="' + esc(tournament.certificateSignature) + '" alt="" style="max-height:42px;max-width:160px;object-fit:contain;margin-bottom:4px"><div class="tcr-sig-name">' + esc(authoritySig.name) + '</div>' + (authoritySig.lines || []).map(function (l) { return '<div class="tcr-sig-line-txt">' + esc(l) + '</div>'; }).join('') + '</div>' : refSigBlockLarge(authoritySig)) + refSigBlockLarge(SIGNATORIES.right) + '</div>' +
+        '<div class="tcr-sigs">' + authorityBlock(tournament, brand) + '</div>' +
         '<div class="tcr-qr-wrap">' +
           qrImg(verifyUrl, 'tcr-qr', 200) +
           '<div class="tcr-qr-lbl">SCAN TO VERIFY</div>' +
         '</div>' +
       '</footer>';
 
-    return refCertShell('tcr-merit tp-cert-template-' + (Number(tournament.certificateTemplate || 1)), medalCls, body);
+    return refCertShell('tcr-merit ' + templateCls, medalCls, body);
   }
 
-  /* ── CSS ─────────────────────────────────────────────────────────────── */
+  /* ----------------------------- CSS ----------------------------- */
 
   function fontImport() {
     return '@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@400;600;700;800&display=swap");';
   }
 
-  function landscapeCertCSS() {
+  function baseCertCSS() {
     return fontImport() +
       '@page { size: A4 landscape; margin: 0; }' +
       '.tcr-cert { width: 297mm; height: 210mm; position: relative; overflow: hidden; page-break-after: always; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
@@ -637,7 +642,7 @@
       '.tcr-wm-stance { right: 12%; top: 30%; width: 18%; height: 40%; background-image: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 180\'%3E%3Cpath d=\'M45,170 L48,110 L42,70 L55,30 L65,35 L58,75 L62,170 Z\' fill=\'%23061428\'/%3E%3C/svg%3E"); }' +
       '.tcr-wm-spar { left: 42%; bottom: 16%; width: 16%; height: 22%; opacity: 0.08; background-image: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 120 80\'%3E%3Cpath d=\'M10,60 L35,20 L50,35 L70,15 L95,55 Z\' fill=\'%23b8941f\'/%3E%3C/svg%3E"); }' +
       '.tcr-content { position: relative; z-index: 4; height: 100%; padding: 8mm 12mm 6mm 26mm; display: grid; grid-template-rows: auto auto minmax(0,1fr) auto auto; gap: 1.5mm; min-height: 0; }' +
-      '.tcr-head { display: grid; grid-template-columns: 24mm 1fr 28mm; gap: 4mm; align-items: start; }' +
+      '.tcr-head { display: grid; grid-template-columns: 22mm 1fr 26mm; gap: 4mm; align-items: start; }' +
       '.tcr-seal, .tcr-pec-logo { width: 22mm; height: 22mm; object-fit: contain; display: block; margin: 0 auto; filter: drop-shadow(0 1px 2px rgba(6,20,40,0.12)); }' +
       '.tcr-head-center { text-align: center; padding-top: 0.5mm; }' +
       '.tcr-trophy { width: 14mm; height: auto; display: block; margin: 0 auto 1mm; }' +
@@ -646,29 +651,29 @@
       '.tcr-event-sub { font-family: "Source Sans 3", sans-serif; font-size: 5.2mm; font-weight: 800; letter-spacing: 0.08em; color: #b91c3a; margin-top: 1mm; }' +
       '.tcr-stars { color: ' + GOLD2 + '; font-size: 4mm; letter-spacing: 3mm; margin-top: 1mm; }' +
       '.tcr-pec-site { font-family: "Source Sans 3", sans-serif; font-size: 2.6mm; font-weight: 700; color: ' + NAVY2 + '; text-align: center; letter-spacing: 0.05em; margin-top: 1mm; text-transform: lowercase; }' +
-      '.tcr-ribbon-wrap { text-align: center; margin: 1mm 0; }' +
+      '.tcr-ribbon-wrap { display: block; text-align: center; margin: 0 0 2.5mm 0; padding: 0; }' +
       '.tcr-ribbon { display: inline-block; position: relative; background: linear-gradient(180deg, ' + NAVY2 + ', ' + NAVY + '); color: ' + GOLD2 + '; padding: 2mm 18mm; border: 1.5px solid ' + GOLD + '; clip-path: polygon(3% 0, 97% 0, 100% 50%, 97% 100%, 3% 100%, 0 50%); }' +
-      '.tcr-ribbon span { font-family: Cinzel, Georgia, serif; font-size: 8mm; font-weight: 800; letter-spacing: 0.18em; }' +
-      '.tcr-ribbon-sub { font-family: Cinzel, Georgia, serif; font-size: 4.5mm; font-weight: 700; letter-spacing: 0.28em; color: ' + NAVY + '; margin-top: 1.5mm; position: relative; }' +
+      '.tcr-ribbon span { font-family: Cinzel, Georgia, serif; font-size: 8mm; font-weight: 800; letter-spacing: 0.18em; display: block; }' +
+      '.tcr-ribbon-sub { display: block; font-family: Cinzel, Georgia, serif; font-size: 4.5mm; font-weight: 700; letter-spacing: 0.28em; color: ' + NAVY + '; margin-top: 1.5mm; position: relative; }' +
       '.tcr-ribbon-sub:before, .tcr-ribbon-sub:after { content: ""; position: absolute; top: 50%; width: 22mm; height: 1px; background: linear-gradient(90deg, transparent, ' + GOLD + ', transparent); }' +
       '.tcr-ribbon-sub:before { right: calc(50% + 16mm); } .tcr-ribbon-sub:after { left: calc(50% + 16mm); }' +
-      '.tcr-body { text-align: center; padding: 0 8mm; display: flex; flex-direction: column; justify-content: center; min-height: 0; }' +
+      '.tcr-body { text-align: center; padding: 0 8mm; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; }' +
       '.tcr-certify { font-family: "Source Sans 3", sans-serif; font-size: 3.8mm; font-weight: 800; letter-spacing: 0.14em; color: ' + NAVY2 + '; margin: 0 0 1.5mm; }' +
-      '.tcr-player { font-family: Cinzel, Georgia, serif; font-size: 11.5mm; font-weight: 800; color: ' + NAVY + '; margin: 0; line-height: 1.05; letter-spacing: 0.04em; word-break: break-word; }' +
-      '.tcr-of { font-family: "Libre Baskerville", Georgia, serif; font-size: 3.8mm; color: #3d4a5c; margin: 1.5mm 0; }' +
+      '.tcr-player { font-family: Cinzel, Georgia, serif; font-size: 11.5mm; font-weight: 800; color: ' + NAVY + '; margin: 2.5mm 0 1mm 0; line-height: 1.05; letter-spacing: 0.04em; word-break: break-word; }' +
+      '.tcr-of { font-family: "Libre Baskerville", Georgia, serif; font-size: 3.8mm; color: #3d4a5c; margin: 1mm 0; }' +
       '.tcr-statement, .tcr-held, .tcr-wish, .tcr-merit-line { font-family: "Libre Baskerville", Georgia, serif; font-size: 4.2mm; line-height: 1.55; color: #2d3748; margin: 1mm 0; }' +
       '.tcr-event-red { color: #b91c3a; font-weight: 700; }' +
       '.tcr-merit-pos { font-family: Cinzel, Georgia, serif; font-size: 5.5mm; color: ' + GOLD + '; letter-spacing: 0.06em; }' +
       '.tcr-merit-cat { color: ' + NAVY + '; }' +
       '.tcr-meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm 5mm; padding: 2.5mm 4mm; background: rgba(6,20,40,0.04); border: 1px solid rgba(184,148,31,0.35); border-radius: 2mm; }' +
-      '.tcr-foot { display: grid; grid-template-columns: 22mm 1fr 24mm; gap: 3mm; align-items: end; padding-top: 1mm; }' +
+      '.tcr-foot { display: grid; grid-template-columns: 20mm 1fr 26mm; gap: 3mm; align-items: end; padding-top: 1mm; }' +
       '.tcr-medal-seal { width: 20mm; justify-self: start; } .tcr-medal-seal svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 2px 4px rgba(6,20,40,0.15)); }' +
       '.tcr-medal-gold svg circle:first-of-type { filter: drop-shadow(0 0 4px rgba(255,215,0,0.4)); }' +
       '.tcr-sigs { display: flex; justify-content: center; gap: 10mm; align-items: flex-end; }' +
-      '.tcr-sig { text-align: center; min-width: 58mm; max-width: 68mm; }' +
-      '.tcr-sig .tp-dig-sig { width: 54mm; height: 14mm; margin: 0 auto 1mm; }' +
+      '.tcr-sig { text-align: center; min-width: 55mm; max-width: 72mm; }' +
+      '.tcr-sig-img { width: 42mm; height: auto; max-height: 17mm; display: block; margin: 0 auto 2mm; object-fit: contain; }' +
       '.tcr-sig-name { font-family: Cinzel, Georgia, serif; font-size: 4.2mm; font-weight: 800; color: #b91c3a; letter-spacing: 0.05em; line-height: 1.15; }' +
-      '.tcr-sig-line-txt { font-size: 2.5mm; font-weight: 700; color: #4a5568; line-height: 1.35; letter-spacing: 0.04em; margin-top: 0.4mm; }' +
+      '.tcr-sig-desig { font-size: 2.6mm; font-weight: 700; color: #4a5568; line-height: 1.35; letter-spacing: 0.04em; margin-top: 0.4mm; }' +
       '.tcr-qr-wrap { text-align: center; justify-self: end; }' +
       '.tcr-qr { width: 22mm; height: 22mm; display: block; margin: 0 auto; background: #fff; border: 1px solid #dde4ef; padding: 1.2mm; }' +
       '.tcr-qr-lbl { font-size: 2.2mm; font-weight: 800; color: #718096; letter-spacing: 0.08em; margin-top: 0.5mm; }' +
@@ -679,12 +684,65 @@
       '.tcr-medal-bronze .tcr-ribbon { border-color: #cd7f32; }';
   }
 
+  function certTemplateCSS() {
+    return baseCertCSS() +
+      /* Template 2 — left-aligned formal */
+      '.tp-cert-template-2 .tcr-head { grid-template-columns: 18mm 1fr; align-items: start; }' +
+      '.tp-cert-template-2 .tcr-head-logo-r { display: none; }' +
+      '.tp-cert-template-2 .tcr-head-center { text-align: left; padding-left: 3mm; padding-top: 0; }' +
+      '.tp-cert-template-2 .tcr-event-main { font-size: 12mm; }' +
+      '.tp-cert-template-2 .tcr-ribbon-wrap { text-align: left; margin: 0; }' +
+      '.tp-cert-template-2 .tcr-ribbon { clip-path: none; border-radius: 2mm; border: none; padding: 2mm 6mm; background: ' + NAVY + '; }' +
+      '.tp-cert-template-2 .tcr-ribbon-sub { text-align: left; margin-top: 1mm; }' +
+      '.tp-cert-template-2 .tcr-ribbon-sub:before, .tp-cert-template-2 .tcr-ribbon-sub:after { display: none; }' +
+      '.tp-cert-template-2 .tcr-body { text-align: left; justify-content: flex-start; padding: 2mm 8mm 0 8mm; }' +
+      '.tp-cert-template-2 .tcr-foot { grid-template-columns: 1fr 26mm; }' +
+      '.tp-cert-template-2 .tcr-sigs { justify-content: flex-end; }' +
+      '.tp-cert-template-2 .tcr-qr-wrap { justify-self: end; }' +
+
+      /* Template 3 — minimal */
+      '.tp-cert-template-3 .tcr-left-ribbon { display: none; }' +
+      '.tp-cert-template-3 .tcr-corner { border-color: #b91c3a; opacity: 0.6; }' +
+      '.tp-cert-template-3 .tcr-frame-outer { border-style: solid; border-width: 1px; border-color: rgba(6,20,40,0.35); }' +
+      '.tp-cert-template-3 .tcr-head { grid-template-columns: 1fr; gap: 2mm; }' +
+      '.tp-cert-template-3 .tcr-head-logo-l, .tp-cert-template-3 .tcr-head-logo-r { display: none; }' +
+      '.tp-cert-template-3 .tcr-head-center { text-align: center; }' +
+      '.tp-cert-template-3 .tcr-event-main { font-size: 10mm; letter-spacing: 0.12em; }' +
+      '.tp-cert-template-3 .tcr-stars { display: none; }' +
+      '.tp-cert-template-3 .tcr-ribbon { background: transparent; color: ' + NAVY + '; border: 2px solid ' + NAVY + '; clip-path: none; border-radius: 0; padding: 1.5mm 8mm; }' +
+      '.tp-cert-template-3 .tcr-foot { grid-template-columns: 1fr; gap: 4mm; }' +
+      '.tp-cert-template-3 .tcr-sigs { justify-content: center; border-top: 1px solid rgba(6,20,40,0.2); padding-top: 3mm; }' +
+      '.tp-cert-template-3 .tcr-qr-wrap { justify-self: center; margin-top: 3mm; }' +
+
+      /* Template 4 — dark header band */
+      '.tp-cert-template-4 .tcr-head-center { background: ' + NAVY + '; color: #fff; padding: 4mm; border-radius: 2mm; }' +
+      '.tp-cert-template-4 .tcr-event-main { color: #fff; }' +
+      '.tp-cert-template-4 .tcr-event-sub { color: ' + GOLD2 + '; }' +
+      '.tp-cert-template-4 .tcr-stars { color: ' + GOLD + '; }' +
+      '.tp-cert-template-4 .tcr-ribbon { background: ' + GOLD + '; color: ' + NAVY + '; border: none; }' +
+      '.tp-cert-template-4 .tcr-body { text-align: left; justify-content: flex-start; }' +
+      '.tp-cert-template-4 .tcr-sigs { justify-content: flex-start; }' +
+
+      /* Template 5 — heritage left band */
+      '.tp-cert-template-5 .tcr-content { padding-left: 48mm; }' +
+      '.tp-cert-template-5 .tcr-head { grid-template-columns: 44mm 1fr 0; }' +
+      '.tp-cert-template-5 .tcr-head-logo-r { display: none; }' +
+      '.tp-cert-template-5 .tcr-head-logo-l { width: 44mm; }' +
+      '.tp-cert-template-5 .tcr-seal { width: 30mm; height: 30mm; margin: 0 0 3mm 0; }' +
+      '.tp-cert-template-5 .tcr-head-center { text-align: left; padding-left: 5mm; border-left: 3px solid ' + GOLD + '; }' +
+      '.tp-cert-template-5 .tcr-event-main { font-size: 10mm; }' +
+      '.tp-cert-template-5 .tcr-ribbon-wrap { text-align: left; }' +
+      '.tp-cert-template-5 .tcr-body { text-align: left; justify-content: flex-start; }' +
+      '.tp-cert-template-5 .tcr-sigs { justify-content: flex-start; }' +
+      '.tp-cert-template-5 .tcr-qr-wrap { justify-self: start; }';
+  }
+
   function participationCertCSS() {
-    return landscapeCertCSS();
+    return sharedCertCSS() + certTemplateCSS();
   }
 
   function meritCertCSS() {
-    return landscapeCertCSS();
+    return sharedCertCSS() + certTemplateCSS();
   }
 
   function sharedCertCSS() {
@@ -699,10 +757,10 @@
   }
 
   function certCSS() {
-    return sharedCertCSS() + participationCertCSS() + meritCertCSS();
+    return sharedCertCSS() + certTemplateCSS();
   }
 
-  function idCardCSS() {
+  function baseIdCardCSS() {
     return fontImport() +
       '@page { size: A4 portrait; margin: 8mm; }' +
       '* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
@@ -737,9 +795,9 @@
       '.tp-pass-bottom-event { font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; flex: 1; line-height: 1.2; font-size: 3.2px; }' +
       '.tp-pass-bottom-meta { font-size: 3.2px; opacity: 0.8; white-space: nowrap; }' +
       '.tp-pass-bottom-sig { text-align: center; flex-shrink: 0; }' +
-      '.tp-pass-bottom-sig .tp-dig-sig { width: 14mm; height: 4mm; }' +
+      '.tp-pass-sig-img { width: 12mm; height: auto; margin-bottom: 1mm; object-fit: contain; }' +
       '.tp-pass-bottom-name { font-size: 3.5px; font-weight: 800; letter-spacing: 0.04em; }' +
-      '.tp-pass-bottom-title { font-size: 2.8px; opacity: 0.75; }' +
+      '.tp-pass-bottom-desig { font-size: 2.7px; opacity: 0.75; }' +
       '.tp-pass-athlete .tp-pass-topbar, .tp-pass-athlete .tp-pass-bottom { background: linear-gradient(135deg, ' + NAVY + ', ' + NAVY2 + '); }' +
       '.tp-pass-athlete .tp-pass-role-banner { background: linear-gradient(90deg, #0f2d5c, #1a56db 50%, #0f2d5c); }' +
       '.tp-pass-athlete .tp-pass-body { background: linear-gradient(135deg, #0a2248 0%, #1a4a8a 100%); }' +
@@ -755,12 +813,82 @@
       '.tp-pass-vip .tp-pass-badge { background: ' + GOLD + '; color: #0a0a0a; }';
   }
 
+  function idTemplateCSS() {
+    return baseIdCardCSS() +
+      /* Template 2 — stacked: photo on top, info below, signature column at bottom */
+      '.tp-id-template-2 .tp-pass-body { flex-direction: column; }' +
+      '.tp-id-template-2 .tp-pass-col-photo { width: 100%; }' +
+      '.tp-id-template-2 .tp-photo-frame { width: 40mm; height: 28mm; margin: 0 auto 1mm auto; }' +
+      '.tp-id-template-2 .tp-pass-col-info { align-items: center; text-align: center; }' +
+      '.tp-id-template-2 .tp-pass-fields .tp-info-cell { flex-direction: row; justify-content: center; }' +
+      '.tp-id-template-2 .tp-pass-col-qr { width: auto; margin-top: 2mm; }' +
+      '.tp-id-template-2 .tp-pass-bottom { flex-direction: column; align-items: flex-start; gap: 1mm; }' +
+      '.tp-id-template-2 .tp-pass-bottom-meta { white-space: normal; }' +
+
+      /* Template 3 — reversed: QR left, info right, signature right-aligned */
+      '.tp-id-template-3 .tp-pass-body { flex-direction: row-reverse; }' +
+      '.tp-id-template-3 .tp-pass-col-info { text-align: right; }' +
+      '.tp-id-template-3 .tp-pass-fields .tp-info-cell { flex-direction: row-reverse; justify-content: flex-end; }' +
+      '.tp-id-template-3 .tp-pass-col-qr { order: -1; }' +
+      '.tp-id-template-3 .tp-pass-bottom { flex-direction: row-reverse; }' +
+      '.tp-id-template-3 .tp-pass-bottom-sig { text-align: right; }' +
+
+      /* Template 4 — split topbar, reversed body, signature left */
+      '.tp-id-template-4 .tp-pass-topbar { flex-direction: column; align-items: flex-start; gap: 1mm; }' +
+      '.tp-id-template-4 .tp-pass-top-site { margin-left: 0; margin-top: 1mm; }' +
+      '.tp-id-template-4 .tp-pass-body { flex-direction: row-reverse; }' +
+      '.tp-id-template-4 .tp-pass-col-info { text-align: right; }' +
+      '.tp-id-template-4 .tp-pass-fields .tp-info-cell { flex-direction: row-reverse; justify-content: flex-end; }' +
+      '.tp-id-template-4 .tp-pass-bottom { flex-direction: row-reverse; }' +
+      '.tp-id-template-4 .tp-pass-bottom-sig { text-align: left; }' +
+
+      /* Template 5 — framed: bigger photo frame, gold border emphasis */
+      '.tp-id-template-5 .tp-pass { border: 2px solid ' + GOLD + '; border-radius: 1mm; }' +
+      '.tp-id-template-5 .tp-pass-topbar { border-bottom: 3px solid ' + GOLD + '; }' +
+      '.tp-id-template-5 .tp-pass-col-photo { flex: 1; }' +
+      '.tp-id-template-5 .tp-photo-frame { width: 28mm; height: 32mm; border-color: ' + GOLD + '; margin: 0 auto; }' +
+      '.tp-id-template-5 .tp-pass-col-qr { width: 26mm; }' +
+      '.tp-id-template-5 .tp-pass-sig-img { width: 15mm; }';
+  }
+
+  function idCardCSS() {
+    return baseIdCardCSS() + idTemplateCSS();
+  }
+
   function previewCSS() {
     return idCardCSS() + certCSS() +
       '.t-cert-preview-host, .cert-host { overflow: auto; background: #12182b; padding: 16px; border-radius: 8px; }' +
       '.t-cert-preview-host .tcr-cert, .cert-host .tcr-cert { transform: scale(0.38); transform-origin: top left; margin-bottom: -128mm; }' +
       '.t-idcard-preview-host, .id-host { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; }' +
       '.t-idcard-preview-host .tp-pass, .id-host .tp-pass { transform: scale(1.6); transform-origin: top center; margin-bottom: 28mm; }';
+  }
+
+  /* Diagnostic report: exact tournament-field values used to render a certificate.
+     Intended for the admin preview so an admin can confirm which Firestore fields
+     supply the logo, signature image, authority name and designation. */
+  function certDiagnostics(tournament, brand) {
+    var t = tournament || {};
+    var b = brand || {};
+    var rows = [
+      ['Tournament ID', t.id || ''],
+      ['Tournament Name', t.name || ''],
+      ['Certificate Template', t.certificateTemplate != null ? t.certificateTemplate : (b && b.certificateTemplate != null ? b.certificateTemplate : '')],
+      ['Certificate Authority Name', t.certificateAuthority || ''],
+      ['Certificate Designation', t.certificateDesignation || ''],
+      ['Certificate Signature URL', t.certificateSignature || ''],
+      ['Certificate Logo URL', t.certificateLogo || ''],
+      ['Tournament Logo URL', t.logo || ''],
+      ['ID Card Logo URL', t.idCardLogo || '']
+    ];
+    var html = '<div class="t-cert-diag"><div class="t-cert-diag-title">Certificate data source (tournament document)</div><table class="t-cert-diag-tbl">';
+    for (var i = 0; i < rows.length; i++) {
+      var val = rows[i][1];
+      var disp = val ? esc(val) : '<span class="t-cert-diag-empty">(not set)</span>';
+      html += '<tr><td class="t-cert-diag-k">' + esc(rows[i][0]) + '</td><td class="t-cert-diag-v" title="' + esc(String(val)) + '">' + disp + '</td></tr>';
+    }
+    html += '</table></div>';
+    var style = '<style>.t-cert-diag{margin:10px 0 0 0;padding:8px 10px;border:1px solid rgba(201,162,39,0.35);background:rgba(201,162,39,0.06);border-radius:4px;font-family:system-ui,Segoe UI,Arial,sans-serif;}.t-cert-diag-title{font-size:11px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#e3c96b;margin-bottom:6px;}.t-cert-diag-tbl{width:100%;border-collapse:collapse;font-size:11.5px;}.t-cert-diag-tbl td{border-bottom:1px solid rgba(201,162,39,0.18);padding:4px 6px;vertical-align:top;}.t-cert-diag-k{color:#9aa5b4;width:42%;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;}.t-cert-diag-v{color:#e8eefb;word-break:break-all;}.t-cert-diag-empty{color:#6b7794;font-style:italic;}</style>';
+    return style + html;
   }
 
   root.TPrint = {
@@ -772,9 +900,10 @@
     participationCertHTML: participationCertHTML,
     meritCertHTML: meritCertHTML,
     certCSS: certCSS,
-    participationCertCSS: function () { return sharedCertCSS() + participationCertCSS(); },
-    meritCertCSS: function () { return sharedCertCSS() + meritCertCSS(); },
+    participationCertCSS: function () { return sharedCertCSS() + certTemplateCSS(); },
+    meritCertCSS: function () { return sharedCertCSS() + certTemplateCSS(); },
     idCardCSS: idCardCSS,
-    previewCSS: previewCSS
+    previewCSS: previewCSS,
+    certDiagnostics: certDiagnostics
   };
 })(window);

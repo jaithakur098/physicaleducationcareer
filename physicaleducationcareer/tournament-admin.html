@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,nofollow">
-  <title>Tournament Admin — 6th Alwar Cup</title>
+  <title>Tournament Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="tournament.css">
@@ -66,7 +66,7 @@
     <a href="tournament-admin.html" class="t-brand">
       <div class="t-brand-mark">🥋</div>
       <div>
-        <b>6th ALWAR CUP</b>
+        <b id="tAdminBrand">Tournament</b>
         <small>Tournament Admin</small>
       </div>
     </a>
@@ -135,10 +135,10 @@
       <div class="t-grid t-g2">
         <div class="t-card">
           <h3 id="tourFormTitle">Create Tournament</h3>
-          <p class="t-sub">Default: 6th Alwar Cup Taekwondo Championship</p>
+          <p class="t-sub">All certificate, ID card, logo, signature, authority and template settings are saved to the selected tournament's own Firestore document.</p>
           <form id="tourForm">
             <input type="hidden" name="id">
-            <div class="t-field"><label>Tournament Name *</label><input class="t-input" name="name" placeholder="6th Alwar Cup Taekwondo Championship" required></div>
+            <div class="t-field"><label>Tournament Name *</label><input class="t-input" name="name" placeholder="e.g. 7th ALWAR CUP TAEKWONDO CHAMPIONSHIP 2027" required></div>
             <div class="t-field"><label>Sport / Discipline</label><input class="t-input" name="sport" value="Taekwondo"></div>
             <div class="t-g2 t-grid">
               <div class="t-field"><label>Date *</label><input class="t-input" type="date" name="date" required></div>
@@ -218,7 +218,7 @@
     <section id="tab-import" class="t-panel">
       <div class="t-card">
         <h3>Import Entries from Excel</h3>
-        <p class="t-sub">Upload the 6th Alwar Cup Excel workbook. The <strong>Competitors</strong> sheet will be read to create player entries with automatic category assignment.</p>
+        <p class="t-sub">Upload the Excel workbook. The <strong>Competitors</strong> sheet will be read to create player entries with automatic category assignment.</p>
 
         <div class="t-field" style="margin-top:18px">
           <label>Excel File (.xlsx / .xls)</label>
@@ -385,6 +385,7 @@
           <button type="button" id="btnGenCerts" class="t-btn t-btn-gold t-btn-sm">Generate Participation + Merit</button>
           <button type="button" id="btnCoachCerts" class="t-btn t-btn-ghost t-btn-sm">Coach Certificates</button>
           <button type="button" id="btnRefCerts" class="t-btn t-btn-ghost t-btn-sm">Referee Certificates</button>
+          <button type="button" id="btnPrintCerts" class="t-btn t-btn-ghost t-btn-sm">Print / PDF Certificates</button>
           <button type="button" id="btnCertCsv" class="t-btn t-btn-ghost t-btn-sm">Export List CSV</button>
         </div>
         <div id="certPreview" class="t-cert-preview-host" style="margin-bottom:16px"></div>
@@ -526,7 +527,7 @@
   </div>
 </div>
 
-<footer class="t-foot t-wrap-wide t-no-print">6th Alwar Cup Taekwondo Championship · Admin Panel</footer>
+<footer class="t-foot t-wrap-wide t-no-print">Tournament Admin · Admin Panel</footer>
 </div>
 
 <script>
@@ -540,8 +541,10 @@
     var id = 'tournament-preview-styles';
     if (document.getElementById(id)) return;
     var s = document.createElement('style');
-    s.id = id;
-    s.textContent = (window.TPrint ? window.TPrint.previewCSS() : '');
+    s.id = 'tournament-preview-styles';
+    s.textContent = (window.TPrint ? window.TPrint.previewCSS() : '') +
+      '.t-sample-banner { display: block; margin: 0 0 10px; padding: 6px 10px; background: rgba(201,162,39,0.15); border: 1px solid rgba(201,162,39,0.4); color: #e3c96b; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 4px; }' +
+      '.t-cert-preview-title { font-size: 13px; font-weight: 800; color: #e8c547; margin: 0 0 8px; letter-spacing: 0.1em; }';
     document.head.appendChild(s);
   })();
 
@@ -643,7 +646,10 @@
 
   function setTour(tid) {
     S.tid = tid;
-    document.getElementById('tourChip').textContent = tid ? (tour().status || 'upcoming').toUpperCase() : '—';
+    var t = tour();
+    var brandEl = document.getElementById('tAdminBrand');
+    if (brandEl) brandEl.textContent = t && t.name ? t.name : 'Tournament';
+    document.getElementById('tourChip').textContent = tid ? (t.status || 'upcoming').toUpperCase() : '—';
     if (window.__uP) window.__uP();
     if (window.__uR) window.__uR();
     if (!tid) { S.players = []; S.results = []; renderAll(); loadPubListSetting(); return; }
@@ -1371,17 +1377,29 @@
     var coaches = participatingCoaches().slice(0, 2);
     var vips = (S.refs || []).filter(function (r) { return r.holderType === 'vip'; }).slice(0, 2);
     var html = '';
+    var showSample = !rows.length && !coaches.length && !vips.length;
     if (rows.length) {
       html += rows.slice(0, 4).map(function (p) { return TP.idCardHTML(p, tour(), D); }).join('');
     }
     coaches.forEach(function (c) { html += TP.coachIdCardHTML(c, tour(), D); });
     vips.forEach(function (v) { html += TP.vipIdCardHTML(v, tour(), D); });
+    if (showSample) {
+      html = '<div class="t-sample-banner">SAMPLE — ID card template preview (no approved players, coaches or VIP guests in this tournament)</div>' +
+        TP.idCardHTML(samplePlayer(), tour(), D);
+    }
     if (!html) {
       html = '<div class="t-empty">No approved players, coaches or VIP guests yet.</div>';
-    } else if (rows.length > 4) {
+    } else if (rows.length > 4 && !showSample) {
       html += '<div class="t-empty">+' + (rows.length - 4) + ' more players — use Print Player ID Cards</div>';
     }
     document.getElementById('idCardPreview').innerHTML = html;
+  }
+  function samplePlayer() {
+    return {
+      id: 'sample-player', name: 'SAMPLE ATHLETE', regNo: 'SAMPLE-0001',
+      academy: 'Sample Academy', school: 'Sample School', district: 'ALWAR',
+      gender: 'male', ageCategory: 'Junior', weightCategory: '-50 kg', coachName: 'Sample Coach', status: 'approved'
+    };
   }
   document.getElementById('btnRenderCards').onclick = renderIdCards;
   document.getElementById('btnPrintCards').onclick = function () {
@@ -1438,13 +1456,26 @@
   };
   function renderCerts(list) {
     list = list || S.certs || [];
-    if (list.length) {
-      var sample = list[0];
-      document.getElementById('certPreview').innerHTML =
-        (sample.type && sample.type.indexOf('Merit') >= 0
-          ? TP.meritCertHTML(sample, tour(), D)
-          : TP.participationCertHTML(sample, tour(), D));
-    }
+    var box = document.getElementById('certPreview');
+    var t = tour();
+    var tpl = Number(t.certificateTemplate || 1);
+    var title = '<div class="t-cert-preview-title">Certificate Preview — Template ' + tpl + '</div>' +
+      '<button type="button" id="btnCertDiagToggle" class="t-btn t-btn-ghost t-btn-sm" style="margin-left:10px;font-size:11px;padding:6px 10px">Show data source</button>' +
+      '<div id="certDiagPanel" class="t-hide" style="margin-top:8px"></div>';
+    var certHtml = (list.length
+      ? (list[0].type && list[0].type.indexOf('Merit') >= 0
+          ? TP.meritCertHTML(list[0], t, D)
+          : TP.participationCertHTML(list[0], t, D))
+      : '<div class="t-sample-banner">SAMPLE — certificate template preview (no certificates generated for this tournament yet)</div>' +
+        TP.participationCertHTML(sampleCertRecord(), t, D));
+    box.innerHTML = title + certHtml + TP.certDiagnostics(t, D);
+    document.getElementById('certDiagPanel').innerHTML = TP.certDiagnostics(t, D);
+    document.getElementById('btnCertDiagToggle').onclick = function () {
+      var p = document.getElementById('certDiagPanel');
+      var b = document.getElementById('btnCertDiagToggle');
+      if (p.classList.contains('t-hide')) { p.classList.remove('t-hide'); b.textContent = 'Hide data source'; }
+      else { p.classList.add('t-hide'); b.textContent = 'Show data source'; }
+    };
     document.getElementById('certTable').innerHTML = list.length
       ? '<table class="t-table"><thead><tr><th>Cert No</th><th>Name</th><th>Type</th><th>Medal</th><th>Category</th></tr></thead><tbody>' +
         list.map(function (c) {
@@ -1455,6 +1486,24 @@
       T.exportCSV('certificates', list.map(function (c) {
         return { CertNo: c.certNo, Name: c.name, Type: c.type, Medal: c.medal, Category: c.category, Tournament: c.tournamentName };
       }));
+    };
+  }
+  document.getElementById('btnPrintCerts').onclick = function () {
+    var list = S.certs || [];
+    if (!list.length) return T.toast('No certificates to print', 'error');
+    var html = list.map(function (c) {
+      return (c.type && String(c.type).indexOf('Merit') >= 0 ? TP.meritCertHTML : TP.participationCertHTML)(c, tour(), D);
+    }).join('');
+    T.printHTML('Certificates — ' + (tour().name || 'Tournament'), html, TP.certCSS(), true);
+  };
+  function sampleCertRecord() {
+    var t = tour();
+    return {
+      id: 'sample-cert', name: 'SAMPLE ATHLETE', regNo: 'SAMPLE-0001',
+      academy: 'Sample Academy', school: 'Sample School', district: 'ALWAR',
+      gender: 'male', ageCategory: 'Junior', weightCategory: '-50 kg',
+      category: 'Junior Male -50 Kg', type: 'Participation Certificate', medal: '',
+      certNo: 'SAMPLE-0001', date: t.date || '', tournamentName: t.name || ''
     };
   }
 
