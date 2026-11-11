@@ -152,13 +152,10 @@
             </div>
             <div class="t-field"><label>Logo</label><input class="t-input" type="file" name="logoFile" accept="image/*"></div>
             <div class="t-field"><label>Description</label><textarea class="t-textarea" name="description"></textarea></div>
-            <fieldset class="t-cert-section">
-              <legend>Certificate &amp; ID Card Settings</legend>
-              <div class="t-g2 t-grid">
-                <div class="t-field"><label>Certificate Template</label><select class="t-select" name="certificateTemplate"><option>Template 1</option><option>Template 2</option><option>Template 3</option><option>Template 4</option><option>Template 5</option></select></div>
+              <fieldset class="t-cert-section">
+                <legend>Certificate &amp; ID Card Settings</legend>
                 <div class="t-field"><label>ID Card Template</label><select class="t-select" name="idCardTemplate"><option>Template 1</option><option>Template 2</option><option>Template 3</option><option>Template 4</option><option>Template 5</option></select></div>
-              </div>
-              <div class="t-field"><label>Certificate Authority Name</label><input class="t-input" name="certificateAuthority" placeholder="e.g. Tournament Director"></div>
+                <div class="t-field"><label>Certificate Authority Name</label><input class="t-input" name="certificateAuthority" placeholder="e.g. Tournament Director"></div>
               <div class="t-field"><label>Certificate Designation</label><input class="t-input" name="certificateDesignation" placeholder="e.g. Head of Physical Education"></div>
               <div class="t-field"><label>Certificate Logo Upload</label><input class="t-input" type="file" name="certLogoFile" accept="image/*"><img id="certLogoPrev" class="t-photo-prev" style="margin-top:8px;display:none" alt="Certificate logo"></div>
               <div class="t-field"><label>Certificate Signature Upload</label><input class="t-input" type="file" name="certSignatureFile" accept="image/*"><img id="certSignaturePrev" class="t-photo-prev" style="margin-top:8px;display:none" alt="Certificate signature"></div>
@@ -784,7 +781,6 @@
       sport: f.sport.value.trim(), date: f.date.value, venue: f.venue.value.trim(),
       city: f.city.value.trim(), status: f.status.value, regClose: f.regClose.value,
       fee: Number(f.fee.value || 0), description: f.description.value.trim(),
-      certificateTemplate: f.certificateTemplate.value,
       idCardTemplate: f.idCardTemplate.value,
       certificateAuthority: f.certificateAuthority.value.trim(),
       certificateDesignation: f.certificateDesignation.value.trim()
@@ -824,7 +820,6 @@
         f.date.value = t.date || ''; f.venue.value = t.venue || ''; f.city.value = t.city || '';
         f.status.value = t.status || 'upcoming'; f.regClose.value = t.regClose || '';
         f.fee.value = t.fee || ''; f.description.value = t.description || '';
-        f.certificateTemplate.value = t.certificateTemplate || 'Template 1';
         f.idCardTemplate.value = t.idCardTemplate || 'Template 1';
         f.certificateAuthority.value = t.certificateAuthority || '';
         f.certificateDesignation.value = t.certificateDesignation || '';
@@ -1403,10 +1398,7 @@
   function renderCerts(list) {
     list = list || S.certs || [];
     var box = document.getElementById('certPreview');
-    var t = tour();
-    var tplMatch = String(t.certificateTemplate || '').match(/\d/);
-    var tpl = tplMatch ? tplMatch[0] : '1';
-    var title = '<div class="t-cert-preview-title">Certificate Preview — Template ' + tpl + '</div>';
+    var title = '<div class="t-cert-preview-title">Certificate Preview — Template 6</div>';
     if (list.length) {
       var sample = list[0];
       var isMedal = sample.type && (sample.type.indexOf('Gold') >= 0 || sample.type.indexOf('Silver') >= 0 || sample.type.indexOf('Bronze') >= 0);
@@ -1518,7 +1510,6 @@
     var f = document.getElementById('tourForm');
     var t = tour();
     return Object.assign({}, D, {
-      certificateTemplate: (f && f.certificateTemplate ? f.certificateTemplate.value : '') || t.certificateTemplate || D.certificateTemplate,
       idCardTemplate: (f && f.idCardTemplate ? f.idCardTemplate.value : '') || t.idCardTemplate || D.idCardTemplate,
       certificateAuthority: (f && f.certificateAuthority ? f.certificateAuthority.value : '') || t.certificateAuthority || '',
       certificateDesignation: (f && f.certificateDesignation ? f.certificateDesignation.value : '') || t.certificateDesignation || '',
@@ -1572,7 +1563,7 @@
     var brand = brandFromForm();
     var html = '<div class="t-sample-banner">SAMPLE — certificate template preview</div>' + TP.participationCertHTML(cert, t, brand);
     previewBody.innerHTML = html;
-    document.getElementById('previewModalTitle').textContent = 'Certificate Preview — ' + brand.certificateTemplate;
+    document.getElementById('previewModalTitle').textContent = 'Certificate Preview — Template 6';
     document.getElementById('certPreviewModal').classList.add('open');
   };
   document.getElementById('btnPreviewIdCard').onclick = function () {

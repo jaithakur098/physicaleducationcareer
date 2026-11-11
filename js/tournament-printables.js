@@ -93,7 +93,7 @@
   function templateNum(value) {
     if (value == null) return 1;
     var m = String(value).match(/\d/);
-    return m ? Math.min(5, Math.max(1, parseInt(m[0], 10))) : 1;
+    return m ? Math.min(6, Math.max(1, parseInt(m[0], 10))) : 1;
   }
   function certTemplateClass(tournament, brand) {
     var t = tournament || {};
@@ -558,41 +558,7 @@
     cert = cert || {};
     tournament = tournament || {};
     brand = brand || {};
-    var verifyUrl = verifyCertUrl(cert);
-    var certId = cert.certNo || cert.certNumber || cert.certId || cert.id || '';
-    var playerName = (cert.studentName || cert.name || '').toUpperCase();
-    var dateStr = fmtDate(cert.date || eventDate(tournament));
-    var tourLogo = certificateLogoUrl(tournament, brand);
-    var pecLogo = pecLogoUrl(brand);
-    var academyLine = academySchoolLine(cert);
-    var pro = pronoun(cert.gender);
-    var proObj = pronounObj(cert.gender);
-    var eventNameText = eventName(tournament, brand);
-    var place = eventVenue(tournament, brand);
-    var templateCls = certTemplateClass(tournament, brand);
-
-    var body =
-      refCertHeader(tournament, brand, tourLogo, pecLogo) +
-      refCertRibbon(certificateTypeLabel(cert.type)) +
-      '<section class="tcr-body">' +
-        '<p class="tcr-certify">THIS IS TO CERTIFY THAT</p>' +
-        '<h2 class="tcr-player">' + esc(playerName) + '</h2>' +
-        (academyLine ? '<p class="tcr-of">of <strong>' + esc(academyLine) + '</strong></p>' : '') +
-        '<p class="tcr-statement">' + esc(certificateTypeStatement(cert.type)) + ' <strong class="tcr-event-red">' + esc(eventNameText) + '</strong></p>' +
-        '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(place) + '.</p>' +
-        '<p class="tcr-wish">We wish ' + proObj + ' great success in all future endeavors.</p>' +
-      '</section>' +
-      refCertMetaGrid(cert, certId, dateStr) +
-      '<footer class="tcr-foot">' +
-        refDecorMedal('tcr-medal-part') +
-        '<div class="tcr-sigs">' + authorityBlock(tournament, brand) + '</div>' +
-        '<div class="tcr-qr-wrap">' +
-          qrImg(verifyUrl, 'tcr-qr', 200) +
-          '<div class="tcr-qr-lbl">SCAN TO VERIFY</div>' +
-        '</div>' +
-      '</footer>';
-
-    return refCertShell('tcr-part ' + templateCls, 'tcr-medal-part', body);
+    return template6CertHTML(cert, tournament, brand);
   }
 
   /* ----------------------------- merit certificate ----------------------------- */
@@ -601,48 +567,154 @@
     cert = cert || {};
     tournament = tournament || {};
     brand = brand || {};
+    return template6CertHTML(cert, tournament, brand);
+  }
+
+  /* ----------------------------- medal graphics (Template 6) ----------------------------- */
+
+  function t6MedalSvg(medalCls) {
+    var fill = '#e4c65a';
+    var rim = '#8b6914';
+    var shine = 'rgba(255,255,255,0.5)';
+    if (medalCls === 'tcr-medal-silver') { fill = '#c7d2e0'; rim = '#5a6b84'; shine = 'rgba(255,255,255,0.6)'; }
+    if (medalCls === 'tcr-medal-bronze') { fill = '#cd7f32'; rim = '#6b3f12'; shine = 'rgba(255,255,255,0.4)'; }
+    if (medalCls === 'tcr-medal-part') { fill = '#e8edf5'; rim = '#4a5568'; shine = 'rgba(255,255,255,0.5)'; }
+    return '<svg viewBox="0 0 100 100" aria-hidden="true" class="t6-medal-svg">' +
+      '<defs>' +
+      '<radialGradient id="t6MedalGrad" cx="40%" cy="40%" r="50%">' +
+      '<stop offset="0%" stop-color="rgba(255,255,255,0.7)"/>' +
+      '<stop offset="100%" stop-color="' + fill + '"/>' +
+      '</radialGradient>' +
+      '</defs>' +
+      '<circle cx="50" cy="50" r="36" fill="url(#t6MedalGrad)" stroke="' + rim + '" stroke-width="4"/>' +
+      '<circle cx="50" cy="50" r="30" fill="none" stroke="' + shine + '" stroke-width="1.5"/>' +
+      '<path d="M35,50 Q42,38 50,42 Q58,38 65,50 Q58,62 50,58 Q42,62 35,50 Z" fill="none" stroke="' + rim + '" stroke-width="2.5" stroke-linecap="round"/>' +
+      '<text x="50" y="54" font-family="Cinzel, Georgia, serif" font-size="13" font-weight="800" fill="' + rim + '" text-anchor="middle">' +
+        (medalCls === 'tcr-medal-gold' ? 'GOLD' : medalCls === 'tcr-medal-silver' ? 'SILVER' : medalCls === 'tcr-medal-bronze' ? 'BRONZE' : 'PART') +
+      '</text>' +
+    '</svg>';
+  }
+
+  /* ----------------------------- Template 6 certificate (new design from scratch) ----------------------------- */
+
+  function template6CertHTML(cert, tournament, brand) {
+    cert = cert || {};
+    tournament = tournament || {};
+    brand = brand || {};
     var verifyUrl = verifyCertUrl(cert);
     var certId = cert.certNo || cert.certNumber || cert.certId || cert.id || '';
     var playerName = (cert.studentName || cert.name || '').toUpperCase();
     var medal = cert.medalName || cert.medal || cert.meritType || '';
     var medalCls = medalClass(medal).replace('tp-merit-', 'tcr-medal-');
-    var ordinal = meritOrdinal(medal);
+    var isParticipation = !medal || medalCls === 'tcr-medal-part';
     var dateStr = fmtDate(cert.date || eventDate(tournament));
     var tourLogo = certificateLogoUrl(tournament, brand);
-    var pecLogo = pecLogoUrl(brand);
     var academyLine = academySchoolLine(cert);
     var pro = pronoun(cert.gender);
     var proObj = pronounObj(cert.gender);
     var eventNameText = eventName(tournament, brand);
     var place = eventVenue(tournament, brand);
-    var catLine = ageWeightLine(cert);
     var templateCls = certTemplateClass(tournament, brand);
+    var sigUrl = certificateSignatureUrl(tournament, brand);
+    var authName = authorityName(tournament, brand);
+    var authDesig = authorityDesignation(tournament, brand);
+
+    var typeLabel = isParticipation ? 'OF PARTICIPATION' :
+      (medalCls === 'tcr-medal-gold' ? 'OF VICTORY' :
+       medalCls === 'tcr-medal-silver' ? 'OF ACHIEVEMENT' :
+       medalCls === 'tcr-medal-bronze' ? 'OF MERIT' : 'OF PARTICIPATION');
+    var typeStatement = certificateTypeStatement(cert.type);
+    var medalText = medalLabel(cert.medal || cert.medalName || cert.meritType || '');
+    var position = medalPosition(cert.medal || cert.medalName || cert.meritType || '');
+    var catLine = ageWeightLine(cert);
+
+    var statementHtml;
+    if (isParticipation) {
+      statementHtml =
+        '<p class="t6-statement">' +
+        esc(typeStatement) + ' <strong class="t6-event-name">' + esc(eventNameText) + '</strong>' +
+        ', held on <strong>' + esc(dateStr) + '</strong> at ' + esc(place) + '.' +
+        '</p>' +
+        '<p class="t6-statement">We wish ' + proObj + ' great success in all future endeavors.</p>';
+    } else {
+      statementHtml =
+        '<p class="t6-statement">' +
+        esc(pro) + ' secured <strong class="t6-event-name">' + esc(position) + '</strong>' +
+        ' in the <strong class="t6-event-name">' + esc(eventNameText) + '</strong>' +
+        ', held on <strong>' + esc(dateStr) + '</strong> at ' + esc(place) + '.' +
+        '</p>' +
+        '<p class="t6-statement">We wish ' + proObj + ' great success in all future endeavors.</p>';
+    }
+
+    var medalGraphic = isParticipation ? '' : t6MedalSvg(medalCls);
+
+    var detailCells =
+      infoCell('Certificate ID', certId) +
+      infoCell('Academy / Team', cert.academy || '') +
+      infoCell('School', cert.school || '') +
+      infoCell('District', cert.district || '') +
+      infoCell('Gender', genderLabel(cert.gender)) +
+      infoCell('Age Category', (cert.ageCategory || cert.ageName || '').toUpperCase()) +
+      infoCell('Weight Category', weightLabel(cert.weightCategory || cert.weight)) +
+      (position ? infoCell('Position', position) : '') +
+      (medalText ? infoCell('Medal', medalText) : '') +
+      infoCell('Date', dateStr);
+
+    var sigHtml = '';
+    if (sigUrl || authName || authDesig) {
+      sigHtml =
+        (sigUrl ? '<img src="' + esc(sigUrl) + '" alt="Authority signature" class="t6-sig-img" onerror="this.style.display=\'none\'" />' : '') +
+        (authName ? '<div class="t6-sig-name">' + esc(authName) + '</div>' : '') +
+        (authDesig ? '<div class="t6-sig-desig">' + esc(authDesig) + '</div>' : '');
+    }
 
     var body =
-      refCertHeader(tournament, brand, tourLogo, pecLogo) +
-      refCertRibbon(certificateTypeLabel(cert.type)) +
-      '<section class="tcr-body">' +
-        '<p class="tcr-certify">THIS IS TO CERTIFY THAT</p>' +
-        '<h2 class="tcr-player">' + esc(playerName) + '</h2>' +
-        (academyLine ? '<p class="tcr-of">of <strong>' + esc(academyLine) + '</strong></p>' : '') +
-        '<p class="tcr-statement">' + esc(certificateTypeStatement(cert.type)) + ' <strong class="tcr-event-red">' + esc(eventNameText) + '</strong></p>' +
-        '<p class="tcr-held">held on <strong>' + esc(dateStr) + '</strong> at ' + esc(place) + '.</p>' +
-        (ordinal && catLine ?
-          '<p class="tcr-merit-line"><span class="tcr-merit-pro">' + pro + '</span> secured <strong class="tcr-merit-pos">' + esc(ordinal.toUpperCase()) + '</strong> position in <strong class="tcr-merit-cat">' + esc(catLine) + '</strong>.</p>' :
-          '') +
-        '<p class="tcr-wish">We wish ' + proObj + ' great success in all future endeavors.</p>' +
-      '</section>' +
-      refCertMetaGrid(cert, certId, dateStr) +
-      '<footer class="tcr-foot">' +
-        refDecorMedal(medalCls) +
-        '<div class="tcr-sigs">' + authorityBlock(tournament, brand) + '</div>' +
-        '<div class="tcr-qr-wrap">' +
-          qrImg(verifyUrl, 'tcr-qr', 200) +
-          '<div class="tcr-qr-lbl">SCAN TO VERIFY</div>' +
-        '</div>' +
-      '</footer>';
+      '<div class="t6-bg"></div>' +
+      '<div class="t6-frame"></div>' +
+      '<div class="t6-frame-inner"></div>' +
+      '<div class="t6-corner t6-corner-tl"></div>' +
+      '<div class="t6-corner t6-corner-tr"></div>' +
+      '<div class="t6-corner t6-corner-bl"></div>' +
+      '<div class="t6-corner t6-corner-br"></div>' +
 
-    return refCertShell('tcr-merit ' + templateCls, medalCls, body);
+      '<div class="t6-content">' +
+      '<div class="t6-header">' +
+        (tourLogo ? '<img src="' + esc(tourLogo) + '" alt="Tournament logo" class="t6-logo" onerror="this.style.display=\'none\'" />' : '<div class="t6-logo"></div>') +
+        '<div class="t6-title-group">' +
+          '<div class="t6-tournament-name">' + esc(eventNameText) + '</div>' +
+          (place ? '<div class="t6-tournament-sub">' + esc(place) + '</div>' : '') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="t6-body">' +
+        '<div class="t6-cert-heading">CERTIFICATE</div>' +
+        '<div class="t6-cert-type">' + esc(typeLabel) + '</div>' +
+        '<div class="t6-certify">THIS IS TO CERTIFY THAT</div>' +
+        '<div class="t6-player-name">' + esc(playerName) + '</div>' +
+        statementHtml +
+        (academyLine ? '<div class="t6-statement">of <strong>' + esc(academyLine) + '</strong></div>' : '') +
+        medalGraphic +
+      '</div>' +
+
+      '<div class="t6-details">' +
+        '<div class="t6-details-grid">' + detailCells + '</div>' +
+      '</div>' +
+
+      '<div class="t6-footer">' +
+        '<div class="t6-footer-top">' +
+          '<div class="t6-footer-meta">' +
+            '<span>Date:</span> ' + esc(dateStr) + ' &nbsp;|&nbsp; ' +
+            '<span>Venue:</span> ' + esc(place) +
+          '</div>' +
+          '<div class="t6-authority">' + sigHtml + '</div>' +
+          '<div class="t6-qr">' +
+            qrImg(verifyUrl, 't6-qr-img', 200) +
+            '<div class="t6-qr-label">SCAN TO VERIFY</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '</div>';
+    return refCertShell('tcr-participation ' + templateCls + ' ' + medalCls, medalCls, body);
   }
 
   /* ----------------------------- CSS ----------------------------- */
@@ -728,55 +800,65 @@
 
   function certTemplateCSS() {
     return baseCertCSS() +
-      /* Template 2 — left-aligned formal */
-      '.tp-cert-template-2 .tcr-head { grid-template-columns: 18mm 1fr; align-items: start; }' +
-      '.tp-cert-template-2 .tcr-head-logo-r { display: none; }' +
-      '.tp-cert-template-2 .tcr-head-center { text-align: left; padding-left: 3mm; padding-top: 0; }' +
-      '.tp-cert-template-2 .tcr-event-main { font-size: 12mm; }' +
-      '.tp-cert-template-2 .tcr-ribbon-wrap { text-align: left; margin: 0; }' +
-      '.tp-cert-template-2 .tcr-ribbon { clip-path: none; border-radius: 2mm; border: none; padding: 2mm 6mm; background: ' + NAVY + '; }' +
-      '.tp-cert-template-2 .tcr-ribbon-sub { text-align: left; margin-top: 1mm; }' +
-      '.tp-cert-template-2 .tcr-ribbon-sub:before, .tp-cert-template-2 .tcr-ribbon-sub:after { display: none; }' +
-      '.tp-cert-template-2 .tcr-body { text-align: left; justify-content: flex-start; padding: 2mm 8mm 0 8mm; }' +
-      '.tp-cert-template-2 .tcr-foot { grid-template-columns: 1fr 26mm; }' +
-      '.tp-cert-template-2 .tcr-sigs { justify-content: flex-end; }' +
-      '.tp-cert-template-2 .tcr-qr-wrap { justify-self: end; }' +
+      /* Template 6 — championship A4 landscape, single master design */
+      '.tp-cert-template-6 .tcr-cert { width: 297mm; height: 210mm; position: relative; overflow: hidden; page-break-after: always; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }' +
+      '.tp-cert-template-6 .tcr-cert:last-child { page-break-after: auto; }' +
+      '.tp-cert-template-6 .t6-bg { position: absolute; inset: 0; background: radial-gradient(circle at 50% 30%, rgba(255,247,237,0.6), transparent 60%), linear-gradient(180deg, #ffffff 0%, #faf7f0 35%, #f3e9d2 100%); z-index: 0; }' +
+      '.tp-cert-template-6 .t6-frame { position: absolute; top: 6mm; left: 6mm; right: 6mm; bottom: 6mm; border: 3px double ' + GOLD + '; z-index: 1; pointer-events: none; }' +
+      '.tp-cert-template-6 .t6-frame-inner { position: absolute; top: 9mm; left: 9mm; right: 9mm; bottom: 9mm; border: 1px solid rgba(6,20,40,0.15); z-index: 1; pointer-events: none; }' +
+      '.tp-cert-template-6 .t6-corner { position: absolute; width: 16mm; height: 16mm; z-index: 2; pointer-events: none; border-color: ' + GOLD + '; border-style: solid; opacity: 0.9; }' +
+      '.tp-cert-template-6 .t6-corner-tl { top: 8mm; left: 8mm; border-width: 3px 0 0 3px; border-radius: 2px 0 0 0; }' +
+      '.tp-cert-template-6 .t6-corner-tr { top: 8mm; right: 8mm; border-width: 3px 3px 0 0; border-radius: 0 2px 0 0; }' +
+      '.tp-cert-template-6 .t6-corner-bl { bottom: 8mm; left: 8mm; border-width: 0 0 3px 3px; border-radius: 0 0 0 2px; }' +
+      '.tp-cert-template-6 .t6-corner-br { bottom: 8mm; right: 8mm; border-width: 0 3px 3px 0; border-radius: 0 0 2px 0; }' +
+      '.tp-cert-template-6 .t6-content { position: relative; z-index: 4; height: 100%; padding: 14mm 16mm 12mm 16mm; box-sizing: border-box; }' +
+      '.tp-cert-template-6 .t6-header { display: flex; align-items: center; gap: 10mm; margin-bottom: 6mm; border-bottom: 2px solid ' + NAVY + '; padding-bottom: 4mm; }' +
+      '.tp-cert-template-6 .t6-logo { width: 26mm; height: 26mm; object-fit: contain; flex-shrink: 0; }' +
+      '.tp-cert-template-6 .t6-title-group { flex: 1; min-width: 0; }' +
+      '.tp-cert-template-6 .t6-tournament-name { font-family: Cinzel, Georgia, serif; font-size: 9mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 1.5mm 0; letter-spacing: 0.03em; line-height: 1.1; word-break: break-word; }' +
+      '.tp-cert-template-6 .t6-tournament-sub { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; font-weight: 700; color: #b8941f; margin: 0; letter-spacing: 0.12em; text-transform: uppercase; }' +
+      '.tp-cert-template-6 .t6-body { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 3mm; }' +
+      '.tp-cert-template-6 .t6-cert-heading { font-family: Cinzel, Georgia, serif; font-size: 11mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 2mm 0; letter-spacing: 0.25em; text-transform: uppercase; }' +
+      '.tp-cert-template-6 .t6-cert-type { font-family: "Source Sans 3", sans-serif; font-size: 4.5mm; font-weight: 800; color: #b8941f; margin: 0 0 8mm 0; letter-spacing: 0.15em; text-transform: uppercase; }' +
+      '.tp-cert-template-6 .t6-certify { font-family: "Libre Baskerville", Georgia, serif; font-size: 4.2mm; font-weight: 700; color: #4a5568; margin: 0 0 3mm 0; letter-spacing: 0.08em; }' +
+      '.tp-cert-template-6 .t6-player-name { font-family: Cinzel, Georgia, serif; font-size: 14mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 2mm 0; letter-spacing: 0.02em; line-height: 1.15; word-break: break-word; }' +
+      '.tp-cert-template-6 .t6-statement { font-family: "Libre Baskerville", Georgia, serif; font-size: 4.6mm; line-height: 1.7; color: #2d3748; margin: 0 0 4mm 0; max-width: 220mm; }' +
+      '.tp-cert-template-6 .t6-event-name { color: ' + NAVY + '; font-weight: 800; }' +
+      '.tp-cert-template-6 .t6-medal-seal { width: 24mm; height: 24mm; margin: 4mm 0 6mm 0; }' +
+      '.tp-cert-template-6 .t6-details { width: 100%; margin-top: 6mm; border-top: 1px solid rgba(184,148,31,0.35); padding-top: 4mm; }' +
+      '.tp-cert-template-6 .t6-details-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm 6mm; }' +
+      '.tp-cert-template-6 .t6-detail-cell { display: flex; flex-direction: column; gap: 1mm; }' +
+      '.tp-cert-template-6 .t6-detail-label { font-family: "Source Sans 3", sans-serif; font-size: 2.8mm; font-weight: 800; color: #8a94a6; text-transform: uppercase; letter-spacing: 0.1em; }' +
+      '.tp-cert-template-6 .t6-detail-value { font-family: "Source Sans 3", sans-serif; font-size: 3.8mm; font-weight: 800; color: ' + NAVY + '; word-break: break-word; }' +
+      '.tp-cert-template-6 .t6-footer { width: 100%; margin-top: auto; padding-top: 5mm; border-top: 2px solid ' + NAVY + '; display: flex; flex-direction: column; gap: 4mm; }' +
+      '.tp-cert-template-6 .t6-footer-top { display: flex; justify-content: space-between; align-items: flex-end; }' +
+      '.tp-cert-template-6 .t6-footer-meta { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; color: #4a5568; }' +
+      '.tp-cert-template-6 .t6-footer-meta span { font-weight: 800; color: #b8941f; }' +
+      '.tp-cert-template-6 .t6-authority { text-align: right; }' +
+      '.tp-cert-template-6 .t6-sig-img { width: 40mm; height: auto; max-height: 14mm; display: block; margin: 0 0 2mm 0; object-fit: contain; }' +
+      '.tp-cert-template-6 .t6-sig-name { font-family: Cinzel, Georgia, serif; font-size: 4.8mm; font-weight: 800; color: #b91c3a; letter-spacing: 0.04em; line-height: 1.15; }' +
+      '.tp-cert-template-6 .t6-sig-desig { font-size: 3.2mm; font-weight: 700; color: #4a5568; line-height: 1.3; letter-spacing: 0.04em; }' +
+      '.tp-cert-template-6 .t6-qr { text-align: center; }' +
+      '.tp-cert-template-6 .t6-qr-img { width: 20mm; height: 20mm; display: block; margin: 0 auto; background: #fff; border: 1px solid #dde4ef; padding: 1mm; }' +
+      '.tp-cert-template-6 .t6-qr-label { font-size: 2.6mm; font-weight: 800; color: #718096; letter-spacing: 0.08em; margin-top: 1mm; text-transform: uppercase; }' +
 
-      /* Template 3 — minimal */
-      '.tp-cert-template-3 .tcr-left-ribbon { display: none; }' +
-      '.tp-cert-template-3 .tcr-corner { border-color: #b91c3a; opacity: 0.6; }' +
-      '.tp-cert-template-3 .tcr-frame-outer { border-style: solid; border-width: 1px; border-color: rgba(6,20,40,0.35); }' +
-      '.tp-cert-template-3 .tcr-head { grid-template-columns: 1fr; gap: 2mm; }' +
-      '.tp-cert-template-3 .tcr-head-logo-l, .tp-cert-template-3 .tcr-head-logo-r { display: none; }' +
-      '.tp-cert-template-3 .tcr-head-center { text-align: center; }' +
-      '.tp-cert-template-3 .tcr-event-main { font-size: 10mm; letter-spacing: 0.12em; }' +
-      '.tp-cert-template-3 .tcr-stars { display: none; }' +
-      '.tp-cert-template-3 .tcr-ribbon { background: transparent; color: ' + NAVY + '; border: 2px solid ' + NAVY + '; clip-path: none; border-radius: 0; padding: 1.5mm 8mm; }' +
-      '.tp-cert-template-3 .tcr-foot { grid-template-columns: 1fr; gap: 4mm; }' +
-      '.tp-cert-template-3 .tcr-sigs { justify-content: center; border-top: 1px solid rgba(6,20,40,0.2); padding-top: 3mm; }' +
-      '.tp-cert-template-3 .tcr-qr-wrap { justify-self: center; margin-top: 3mm; }' +
-
-      /* Template 4 — dark header band */
-      '.tp-cert-template-4 .tcr-head-center { background: ' + NAVY + '; color: #fff; padding: 4mm; border-radius: 2mm; }' +
-      '.tp-cert-template-4 .tcr-event-main { color: #fff; }' +
-      '.tp-cert-template-4 .tcr-event-sub { color: ' + GOLD2 + '; }' +
-      '.tp-cert-template-4 .tcr-stars { color: ' + GOLD + '; }' +
-      '.tp-cert-template-4 .tcr-ribbon { background: ' + GOLD + '; color: ' + NAVY + '; border: none; }' +
-      '.tp-cert-template-4 .tcr-body { text-align: left; justify-content: flex-start; }' +
-      '.tp-cert-template-4 .tcr-sigs { justify-content: flex-start; }' +
-
-      /* Template 5 — heritage left band */
-      '.tp-cert-template-5 .tcr-content { padding-left: 48mm; }' +
-      '.tp-cert-template-5 .tcr-head { grid-template-columns: 44mm 1fr 0; }' +
-      '.tp-cert-template-5 .tcr-head-logo-r { display: none; }' +
-      '.tp-cert-template-5 .tcr-head-logo-l { width: 44mm; }' +
-      '.tp-cert-template-5 .tcr-seal { width: 30mm; height: 30mm; margin: 0 0 3mm 0; }' +
-      '.tp-cert-template-5 .tcr-head-center { text-align: left; padding-left: 5mm; border-left: 3px solid ' + GOLD + '; }' +
-      '.tp-cert-template-5 .tcr-event-main { font-size: 10mm; }' +
-      '.tp-cert-template-5 .tcr-ribbon-wrap { text-align: left; }' +
-      '.tp-cert-template-5 .tcr-body { text-align: left; justify-content: flex-start; }' +
-      '.tp-cert-template-5 .tcr-sigs { justify-content: flex-start; }' +
-      '.tp-cert-template-5 .tcr-qr-wrap { justify-self: start; }';
+      /* Medal variants for Template 6 */
+      '.tp-cert-template-6.tcr-medal-gold .t6-cert-type { color: #b8860b; }' +
+      '.tp-cert-template-6.tcr-medal-gold .t6-statement .t6-event-name { color: #b8860b; }' +
+      '.tp-cert-template-6.tcr-medal-gold .t6-frame { border-color: #d4af37; }' +
+      '.tp-cert-template-6.tcr-medal-gold .t6-corner { border-color: #d4af37; }' +
+      '.tp-cert-template-6.tcr-medal-silver .t6-cert-type { color: #7a8494; }' +
+      '.tp-cert-template-6.tcr-medal-silver .t6-statement .t6-event-name { color: #7a8494; }' +
+      '.tp-cert-template-6.tcr-medal-silver .t6-frame { border-color: #aab4c4; }' +
+      '.tp-cert-template-6.tcr-medal-silver .t6-corner { border-color: #aab4c4; }' +
+      '.tp-cert-template-6.tcr-medal-bronze .t6-cert-type { color: #cd7f32; }' +
+      '.tp-cert-template-6.tcr-medal-bronze .t6-statement .t6-event-name { color: #cd7f32; }' +
+      '.tp-cert-template-6.tcr-medal-bronze .t6-frame { border-color: #cd7f32; }' +
+      '.tp-cert-template-6.tcr-medal-bronze .t6-corner { border-color: #cd7f32; }' +
+      '.tp-cert-template-6.tcr-medal-part .t6-cert-type { color: #2c5282; }' +
+      '.tp-cert-template-6.tcr-medal-part .t6-statement .t6-event-name { color: #2c5282; }' +
+      '.tp-cert-template-6.tcr-medal-part .t6-frame { border-color: #2c5282; }' +
+      '.tp-cert-template-6.tcr-medal-part .t6-corner { border-color: #2c5282; }';
   }
 
   function participationCertCSS() {
