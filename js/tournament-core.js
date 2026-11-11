@@ -1251,10 +1251,10 @@
   function printHTML(title, innerHTML, extraCSS, landscape) {
     var w = window.open('', '_blank', 'width=1000,height=800');
     if (!w) { toast('Allow pop-ups to print / download PDF', 'error'); return; }
-    var pageRule = landscape ? '@page{size:A4 landscape;margin:8mm}' : '@page{size:A4;margin:10mm}';
+    var pageRule = landscape ? '@page{size:A4 landscape;margin:0}' : '@page{size:A4;margin:10mm}';
+    var bodyStyle = landscape ? 'body{margin:0;padding:0;background:#fff;font-family:Inter,system-ui,sans-serif;color:#0a1633}' : 'body{margin:0;font-family:Inter,system-ui,sans-serif;background:#fff;color:#0a1633;padding:16px}';
     w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(title) + '</title><style>' +
-      '*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:#fff;color:#0a1633;padding:16px}' +
-      pageRule + (extraCSS || '') + '</style></head><body>' + innerHTML + '</body></html>');
+      '*{box-sizing:border-box}' + bodyStyle + pageRule + (extraCSS || '') + '</style></head><body>' + innerHTML + '</body></html>');
     w.document.close();
     w.focus();
     setTimeout(function () { w.print(); }, 700);

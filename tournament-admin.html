@@ -796,17 +796,20 @@
   document.getElementById('tourForm').onsubmit = function (e) {
     e.preventDefault();
     var f = e.target;
+    var authorities = collectAuthorities();
     var data = {
       name: f.name.value.trim() || D.shortName || 'Tournament',
       sport: f.sport.value.trim(), date: f.date.value, venue: f.venue.value.trim(),
       city: f.city.value.trim(), status: f.status.value, regClose: f.regClose.value,
       fee: Number(f.fee.value || 0), description: f.description.value.trim(),
-      certificateAuthorities: collectAuthorities()
+      certificateAuthorities: authorities
     };
     if (logoUrl) data.logo = logoUrl;
     if (certLogoUrl) data.certificateLogo = certLogoUrl;
     if (certSignatureUrl) data.certificateSignature = certSignatureUrl;
-    T.saveTournament(data, f.id.value || null).then(function () {
+    console.log('[CERT-AUTH] Saving tournament with certificateAuthorities:', JSON.stringify(authorities));
+    T.saveTournament(data, f.id.value || null).then(function (savedId) {
+      console.log('[CERT-AUTH] Tournament saved, id=' + savedId + ' authorities=' + authorities.length);
       T.toast('Tournament saved', 'success');
       document.getElementById('btnTourReset').click();
     }).catch(function (err) { T.toast(err.message, 'error'); });
@@ -831,6 +834,7 @@
     var container = document.getElementById('certificateAuthoritiesContainer');
     container.innerHTML = '';
     var list = authorities && authorities.length ? authorities : [{ name: '', designation: '', signature: '' }];
+    authSignatureUrls = [];
     list.forEach(function (auth, i) {
       var isFirst = i === 0;
       var row = document.createElement('div');
@@ -925,7 +929,12 @@
         f.fee.value = t.fee || ''; f.description.value = t.description || '';
         certLogoUrl = t.certificateLogo || t.certLogo || ''; certSignatureUrl = t.certificateSignature || t.certSignature || '';
         var cl = document.getElementById('certLogoPrev'); cl.src = certLogoUrl || ''; cl.style.display = certLogoUrl ? 'block' : 'none';
-        populateAuthorities(t.certificateAuthorities || t.certificateAuthority ? [{name: t.certificateAuthority || '', designation: t.certificateDesignation || '', signature: t.certificateSignature || ''}] : (t.certificateAuthorities || []));
+        var auths = (t.certificateAuthorities && t.certificateAuthorities.length)
+          ? t.certificateAuthorities
+          : (t.certificateAuthority
+            ? [{name: t.certificateAuthority || '', designation: t.certificateDesignation || '', signature: t.certificateSignature || ''}]
+            : []);
+        populateAuthorities(auths);
         document.getElementById('tourFormTitle').textContent = 'Edit — ' + t.name;
       };
     });
@@ -1609,10 +1618,13 @@
   function brandFromForm() {
     var f = document.getElementById('tourForm');
     var t = tour();
+    var auths = collectAuthorities();
+    try { console.log('[CERT-AUTH] brandFromForm authorities count=' + auths.length, auths); } catch (e) {}
     return Object.assign({}, D, {
-      certificateAuthorities: collectAuthorities(),
+      certificateAuthorities: auths,
       certLogo: certLogoUrl || t.certificateLogo || t.certLogo || '',
       certSignature: certSignatureUrl || t.certificateSignature || t.certSignature || '',
+      organizerName: (f && f.organizerName ? f.organizerName.value.trim() : '') || t.organizerName || D.organizerName || '',
       eventFullName: (f && f.name ? f.name.value.trim() : '') || t.name || D.shortName || 'Tournament',
       eventLocation: (f && f.venue ? f.venue.value : '') || t.venue || '',
       eventSub: (f && f.city ? f.city.value : '') || t.city || ''

@@ -269,33 +269,36 @@
   }
 
   /* Signature image (uploaded) — shown ONLY in the bottom authority area. */
-  function signatureImg(sigUrl) {
+  function signatureImg(sigUrl, cls) {
     if (!sigUrl) return '';
-    return '<img src="' + esc(sigUrl) + '" alt="Authority signature" class="tcr-sig-img" onerror="this.style.display=\'none\'" />';
+    return '<img src="' + esc(sigUrl) + '" alt="Authority signature" class="' + (cls || 'tcr-sig-img') + '" onerror="this.style.display=\'none\'" />';
   }
 
   /* Bottom authority / signature block: renders all authorities side by side.
-     Signature image, then name, then designation underneath each. */
-  function authorityBlock(tournament, brand) {
+     Signature image, then name, then designation underneath each.
+     prefix controls the CSS class prefix (tcr for base cert, t6 for Template 6). */
+  function authorityBlock(tournament, brand, prefix) {
+    prefix = prefix || 'tcr';
     var list = authoritiesList(tournament, brand);
     if (!list.length) return '';
-    var html = '<div class="tcr-sigs">';
+    var html = '<div class="' + prefix + '-sigs">';
     list.forEach(function (auth) {
       var sig = auth.signature || '';
       var name = auth.name || '';
       var desig = auth.designation || '';
       if (!name && !desig && !sig) return;
-      html += '<div class="tcr-sig">';
-      if (sig) html += signatureImg(sig);
-      if (name) html += '<div class="tcr-sig-name">' + esc(name) + '</div>';
-      if (desig) html += '<div class="tcr-sig-desig">' + esc(desig) + '</div>';
+      html += '<div class="' + prefix + '-sig">';
+      if (sig) html += signatureImg(sig, prefix + '-sig-img');
+      if (name) html += '<div class="' + prefix + '-sig-name">' + esc(name) + '</div>';
+      if (desig) html += '<div class="' + prefix + '-sig-desig">' + esc(desig) + '</div>';
       html += '</div>';
     });
     html += '</div>';
     return html;
   }
 
-  /* ID card bottom authority block (same order: signature, name, designation). */
+  /* ID card bottom authority block (same order: signature, name, designation).
+     Uses tp-pass-* classes consistent with the ID card template. */
   function idAuthorityBlock(tournament, brand) {
     var list = authoritiesList(tournament, brand);
     if (!list.length) return '';
@@ -678,7 +681,11 @@
       (medalText ? infoCell('Medal', medalText) : '') +
       infoCell('Date', dateStr);
 
-    var sigHtml = authorityBlock(tournament, brand);
+    var sigHtml = authorityBlock(tournament, brand, 't6');
+    var authList = authoritiesList(tournament, brand);
+    try { console.log('[CERT-AUTH] template6CertHTML authorities count=' + authList.length, authList.map(function (a) { return { name: a.name, desig: a.designation, sig: a.signature ? 'YES' : 'NO' }; })); } catch (e) {}
+    var orgName = (brand && (brand.organizerName || brand.organizationName || brand.orgName)) || '';
+    if (!orgName) orgName = (tournament && (tournament.organizerName || tournament.organizationName || tournament.academyName)) || '';
 
     var body =
       '<div class="t6-bg"></div>' +
@@ -724,6 +731,7 @@
             '<div class="t6-qr-label">SCAN TO VERIFY</div>' +
           '</div>' +
         '</div>' +
+        (orgName ? '<div class="t6-org-name">' + esc(orgName) + '</div>' : '') +
       '</div>' +
       '</div>';
     return refCertShell('tcr-participation ' + templateCls + ' ' + medalCls, medalCls, body);
@@ -738,8 +746,8 @@
   function baseCertCSS() {
     return fontImport() +
       '@page { size: A4 landscape; margin: 0; }' +
-      '.tcr-cert { width: 297mm; height: 210mm; position: relative; overflow: hidden; page-break-after: always; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
-      '.tcr-cert:last-child { page-break-after: auto; }' +
+      '* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
+      '.tcr-cert { width: 297mm; height: 210mm; position: relative; overflow: hidden; page-break-after: auto; page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
       '.tcr-paper { position: absolute; inset: 0; background: radial-gradient(ellipse at 55% 20%, rgba(228,198,90,0.08), transparent 55%), linear-gradient(180deg, #fffefb 0%, ' + IVORY + ' 45%, #f3ede2 100%); z-index: 0; }' +
       '.tcr-frame-outer { position: absolute; top: 5mm; left: 5mm; right: 5mm; bottom: 5mm; border: 2.5px double ' + GOLD + '; z-index: 1; pointer-events: none; }' +
       '.tcr-frame-inner { position: absolute; top: 7mm; left: 7mm; right: 7mm; bottom: 7mm; border: 1px solid rgba(6,20,40,0.18); z-index: 1; pointer-events: none; }' +
@@ -755,6 +763,9 @@
       '.tcr-wm-stance { right: 12%; top: 30%; width: 18%; height: 40%; background-image: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 180\'%3E%3Cpath d=\'M45,170 L48,110 L42,70 L55,30 L65,35 L58,75 L62,170 Z\' fill=\'%23061428\'/%3E%3C/svg%3E"); }' +
       '.tcr-wm-spar { left: 42%; bottom: 16%; width: 16%; height: 22%; opacity: 0.08; background-image: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 120 80\'%3E%3Cpath d=\'M10,60 L35,20 L50,35 L70,15 L95,55 Z\' fill=\'%23b8941f\'/%3E%3C/svg%3E"); }' +
       '.tcr-content { position: relative; z-index: 4; height: 100%; padding: 8mm 12mm 6mm 26mm; display: grid; grid-template-rows: auto auto minmax(0,1fr) auto auto; gap: 1.5mm; min-height: 0; }' +
+      '.t6-content { position: relative; z-index: 4; height: 100%; padding: 0; display: flex; flex-direction: column; min-height: 0; }' +
+      '.tcr-cert.t6-cert-override .tcr-content { display: block; padding: 0; }' +
+      '.tp-cert-template-6 .tcr-cert .tcr-content { display: block; padding: 0; }' +
       '.tcr-head { display: grid; grid-template-columns: 22mm 1fr 26mm; gap: 4mm; align-items: start; }' +
       '.tcr-seal, .tcr-pec-logo { width: 22mm; height: 22mm; object-fit: contain; display: block; margin: 0 auto; filter: drop-shadow(0 1px 2px rgba(6,20,40,0.12)); }' +
       '.tcr-head-center { text-align: center; padding-top: 0.5mm; }' +
@@ -813,7 +824,7 @@
   function certTemplateCSS() {
     return baseCertCSS() +
       /* Template 6 — championship A4 landscape, single master design */
-      '.tp-cert-template-6 .tcr-cert { width: 297mm; height: 210mm; position: relative; overflow: hidden; page-break-after: always; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }' +
+      '.tp-cert-template-6 .tcr-cert { width: 297mm; height: 210mm; position: relative; overflow: hidden; page-break-after: auto; page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }' +
       '.tp-cert-template-6 .tcr-cert:last-child { page-break-after: auto; }' +
       '.tp-cert-template-6 .t6-bg { position: absolute; inset: 0; background: radial-gradient(circle at 50% 30%, rgba(255,247,237,0.6), transparent 60%), linear-gradient(180deg, #ffffff 0%, #faf7f0 35%, #f3e9d2 100%); z-index: 0; }' +
       '.tp-cert-template-6 .t6-frame { position: absolute; top: 6mm; left: 6mm; right: 6mm; bottom: 6mm; border: 3px double ' + GOLD + '; z-index: 1; pointer-events: none; }' +
@@ -823,14 +834,14 @@
       '.tp-cert-template-6 .t6-corner-tr { top: 8mm; right: 8mm; border-width: 3px 3px 0 0; border-radius: 0 2px 0 0; }' +
       '.tp-cert-template-6 .t6-corner-bl { bottom: 8mm; left: 8mm; border-width: 0 0 3px 3px; border-radius: 0 0 0 2px; }' +
       '.tp-cert-template-6 .t6-corner-br { bottom: 8mm; right: 8mm; border-width: 0 3px 3px 0; border-radius: 0 0 2px 0; }' +
-      '.tp-cert-template-6 .t6-content { position: relative; z-index: 4; height: 100%; padding: 14mm 16mm 12mm 16mm; box-sizing: border-box; display: flex; flex-direction: column; }' +
+      '.tp-cert-template-6 .t6-content { position: relative; z-index: 4; height: 100%; padding: 0; display: flex; flex-direction: column; min-height: 0; }' +
       '.tp-cert-template-6 .t6-header { display: flex; align-items: center; gap: 10mm; margin-bottom: 6mm; border-bottom: 2px solid ' + NAVY + '; padding-bottom: 4mm; }' +
       '.tp-cert-template-6 .t6-logo { width: 26mm; height: 26mm; object-fit: contain; flex-shrink: 0; }' +
       '.tp-cert-template-6 .t6-title-group { flex: 1; min-width: 0; text-align: center; }' +
-      '.tp-cert-template-6 .t6-tournament-name { font-family: Cinzel, Georgia, serif; font-size: 9mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 1.5mm 0; letter-spacing: 0.03em; line-height: 1.1; word-break: break-word; text-align: center; }' +
-      '.tp-cert-template-6 .t6-tournament-sub { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; font-weight: 700; color: #b8941f; margin: 0; letter-spacing: 0.12em; text-transform: uppercase; }' +
+'.tp-cert-template-6 .t6-tournament-name { font-family: Cinzel, Georgia, serif; font-size: 12mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 1.5mm 0; letter-spacing: 0.03em; line-height: 1.1; word-break: break-word; text-align: center; white-space: nowrap; }' +
+      '.tp-cert-template-6 .t6-tournament-sub { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; font-weight: 700; color: #b8941f; margin: 0; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; }' +
+      '.tp-cert-template-6 .t6-cert-heading { font-family: Cinzel, Georgia, serif; font-size: 14mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 3mm 0; letter-spacing: 0.25em; text-transform: uppercase; text-align: center; }' +
       '.tp-cert-template-6 .t6-body { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 3mm; }' +
-      '.tp-cert-template-6 .t6-cert-heading { font-family: Cinzel, Georgia, serif; font-size: 11mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 2mm 0; letter-spacing: 0.25em; text-transform: uppercase; }' +
       '.tp-cert-template-6 .t6-cert-type { font-family: "Source Sans 3", sans-serif; font-size: 4.5mm; font-weight: 800; color: #b8941f; margin: 0 0 8mm 0; letter-spacing: 0.15em; text-transform: uppercase; }' +
       '.tp-cert-template-6 .t6-certify { font-family: "Libre Baskerville", Georgia, serif; font-size: 4.2mm; font-weight: 700; color: #4a5568; margin: 0 0 3mm 0; letter-spacing: 0.08em; }' +
       '.tp-cert-template-6 .t6-player-name { font-family: Cinzel, Georgia, serif; font-size: 14mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 2mm 0; letter-spacing: 0.02em; line-height: 1.15; word-break: break-word; }' +
@@ -847,12 +858,15 @@
       '.tp-cert-template-6 .t6-footer-meta { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; color: #4a5568; }' +
       '.tp-cert-template-6 .t6-footer-meta span { font-weight: 800; color: #b8941f; }' +
       '.tp-cert-template-6 .t6-authority { text-align: center; }' +
-      '.tp-cert-template-6 .t6-sig-img { width: 40mm; height: auto; max-height: 14mm; display: block; margin: 0 0 2mm 0; object-fit: contain; }' +
+      '.tp-cert-template-6 .t6-sigs { display: flex; justify-content: center; gap: 12mm; align-items: flex-end; flex-wrap: nowrap; }' +
+      '.tp-cert-template-6 .t6-sig { text-align: center; min-width: 55mm; max-width: 72mm; }' +
+      '.tp-cert-template-6 .t6-sig-img { width: 40mm; height: auto; max-height: 14mm; display: block; margin: 0 auto 2mm; object-fit: contain; }' +
       '.tp-cert-template-6 .t6-sig-name { font-family: Cinzel, Georgia, serif; font-size: 4.8mm; font-weight: 800; color: #b91c3a; letter-spacing: 0.04em; line-height: 1.15; }' +
       '.tp-cert-template-6 .t6-sig-desig { font-size: 3.2mm; font-weight: 700; color: #4a5568; line-height: 1.3; letter-spacing: 0.04em; }' +
-      '.tp-cert-template-6 .t6-qr { text-align: center; }' +
+      '.tp-cert-template-6 .t6-qr { text-align: center; align-self: center; }' +
       '.tp-cert-template-6 .t6-qr-img { width: 20mm; height: 20mm; display: block; margin: 0 auto; background: #fff; border: 1px solid #dde4ef; padding: 1mm; }' +
       '.tp-cert-template-6 .t6-qr-label { font-size: 2.6mm; font-weight: 800; color: #718096; letter-spacing: 0.08em; margin-top: 1mm; text-transform: uppercase; }' +
+      '.tp-cert-template-6 .t6-org-name { text-align: center; font-family: "Source Sans 3", sans-serif; font-size: 3.2mm; font-weight: 800; color: ' + NAVY + '; margin-top: 2mm; letter-spacing: 0.06em; }' +
 
       /* Medal variants for Template 6 */
       '.tp-cert-template-6.tcr-medal-gold .t6-cert-type { color: #b8860b; }' +
@@ -884,7 +898,7 @@
   function sharedCertCSS() {
     return '* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
       'body { margin: 0; padding: 0; font-family: "Source Sans 3", Segoe UI, Arial, sans-serif; background: #fff; }' +
-      '@media print { body * { visibility: visible; } }' +
+      '@media print { body * { visibility: visible; } .tcr-cert { page-break-after: auto !important; page-break-inside: avoid !important; } }' +
       '.tcr-cert:last-child { page-break-after: auto; }' +
       '.tp-info-cell { display: flex; flex-direction: column; gap: 0.6mm; min-width: 0; }' +
       '.tp-info-lbl { font-size: 2.4mm; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #718096; }' +
