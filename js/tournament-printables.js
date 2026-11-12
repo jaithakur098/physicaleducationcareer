@@ -100,19 +100,13 @@
     return [];
   }
   function templateNum(value) {
-    if (value == null) return 1;
-    var m = String(value).match(/\d/);
-    return m ? Math.min(6, Math.max(1, parseInt(m[0], 10))) : 1;
+    return 1;
   }
   function certTemplateClass(tournament, brand) {
-    var t = tournament || {};
-    var v = t.certificateTemplate != null ? t.certificateTemplate : (brand && brand.certificateTemplate);
-    return 'tp-cert-template-' + templateNum(v);
+    return 'tp-cert-template-6';
   }
   function idTemplateClass(tournament, brand) {
-    var t = tournament || {};
-    var v = t.idCardTemplate != null ? t.idCardTemplate : (brand && brand.idCardTemplate);
-    return 'tp-id-template-' + templateNum(v);
+    return 'tp-id-template-1';
   }
 
   function fmtDate(d) {
@@ -280,7 +274,6 @@
   function authorityBlock(tournament, brand, prefix) {
     prefix = prefix || 'tcr';
     var list = authoritiesList(tournament, brand);
-    if (!list.length) return '';
     var html = '<div class="' + prefix + '-sigs">';
     list.forEach(function (auth) {
       var sig = auth.signature || '';
@@ -975,41 +968,7 @@
   }
 
   function idTemplateCSS() {
-    return baseIdCardCSS() +
-      /* Template 2 — stacked: photo on top, info below, signature column at bottom */
-      '.tp-id-template-2 .tp-pass-body { flex-direction: column; }' +
-      '.tp-id-template-2 .tp-pass-col-photo { width: 100%; }' +
-      '.tp-id-template-2 .tp-photo-frame { width: 40mm; height: 28mm; margin: 0 auto 1mm auto; }' +
-      '.tp-id-template-2 .tp-pass-col-info { align-items: center; text-align: center; }' +
-      '.tp-id-template-2 .tp-pass-fields .tp-info-cell { flex-direction: row; justify-content: center; }' +
-      '.tp-id-template-2 .tp-pass-col-qr { width: auto; margin-top: 2mm; }' +
-      '.tp-id-template-2 .tp-pass-bottom { flex-direction: column; align-items: flex-start; gap: 1mm; }' +
-      '.tp-id-template-2 .tp-pass-bottom-meta { white-space: normal; }' +
-
-      /* Template 3 — reversed: QR left, info right, signature right-aligned */
-      '.tp-id-template-3 .tp-pass-body { flex-direction: row-reverse; }' +
-      '.tp-id-template-3 .tp-pass-col-info { text-align: right; }' +
-      '.tp-id-template-3 .tp-pass-fields .tp-info-cell { flex-direction: row; justify-content: flex-end; text-align: right; }' +
-      '.tp-id-template-3 .tp-pass-col-qr { order: -1; }' +
-      '.tp-id-template-3 .tp-pass-bottom { flex-direction: row-reverse; }' +
-      '.tp-id-template-3 .tp-pass-bottom-sig { text-align: right; }' +
-
-      /* Template 4 — split topbar, reversed body, signature left */
-      '.tp-id-template-4 .tp-pass-topbar { flex-direction: column; align-items: flex-start; gap: 1mm; }' +
-      '.tp-id-template-4 .tp-pass-top-site { margin-left: 0; margin-top: 1mm; }' +
-      '.tp-id-template-4 .tp-pass-body { flex-direction: row-reverse; }' +
-      '.tp-id-template-4 .tp-pass-col-info { text-align: right; }' +
-      '.tp-id-template-4 .tp-pass-fields .tp-info-cell { flex-direction: row; justify-content: flex-end; text-align: right; }' +
-      '.tp-id-template-4 .tp-pass-bottom { flex-direction: row-reverse; }' +
-      '.tp-id-template-4 .tp-pass-bottom-sig { text-align: left; }' +
-
-      /* Template 5 — framed: bigger photo frame, gold border emphasis */
-      '.tp-id-template-5 .tp-pass { border: 2px solid ' + GOLD + '; border-radius: 1mm; }' +
-      '.tp-id-template-5 .tp-pass-topbar { border-bottom: 3px solid ' + GOLD + '; }' +
-      '.tp-id-template-5 .tp-pass-col-photo { flex: 1; }' +
-      '.tp-id-template-5 .tp-photo-frame { width: 28mm; height: 32mm; border-color: ' + GOLD + '; margin: 0 auto; }' +
-      '.tp-id-template-5 .tp-pass-col-qr { width: 26mm; }' +
-      '.tp-id-template-5 .tp-pass-sig-img { width: 15mm; }';
+    return baseIdCardCSS();
   }
 
   function idCardCSS() {

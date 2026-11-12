@@ -652,7 +652,6 @@
         category: (result && result.categoryLabel) || '',
         type: type,
         medal: medal || '',
-        certificateTemplate: tournament.certificateTemplate || D.certificateTemplate || '',
         certNo: certNumber(tournament.id, seq),
         issuedAt: Date.now(),
         venue: tournament.venue || '',

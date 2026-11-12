@@ -1507,7 +1507,7 @@
   function renderCerts(list) {
     list = list || S.certs || [];
     var box = document.getElementById('certPreview');
-    var title = '<div class="t-cert-preview-title">Certificate Preview — Template 6</div>';
+    var title = '<div class="t-cert-preview-title">Certificate Preview</div>';
     if (list.length) {
       var sample = list[0];
       var isMedal = sample.type && (sample.type.indexOf('Gold') >= 0 || sample.type.indexOf('Silver') >= 0 || sample.type.indexOf('Bronze') >= 0);
@@ -1673,7 +1673,7 @@
     var brand = brandFromForm();
     var html = '<div class="t-sample-banner">SAMPLE — certificate template preview</div>' + TP.participationCertHTML(cert, t, brand);
     previewBody.innerHTML = html;
-    document.getElementById('previewModalTitle').textContent = 'Certificate Preview — Template 6';
+    document.getElementById('previewModalTitle').textContent = 'Certificate Preview';
     document.getElementById('certPreviewModal').classList.add('open');
   };
   document.getElementById('btnPreviewIdCard').onclick = function () {
@@ -1682,7 +1682,7 @@
     var brand = brandFromForm();
     var html = '<div class="t-sample-banner">SAMPLE — ID card template preview</div>' + TP.idCardHTML(p, t, brand);
     previewBody.innerHTML = html;
-    document.getElementById('previewModalTitle').textContent = 'ID Card Preview — Template 1';
+    document.getElementById('previewModalTitle').textContent = 'ID Card Preview';
     document.getElementById('certPreviewModal').classList.add('open');
   };
   document.getElementById('btnPreviewPrint').onclick = function () {
