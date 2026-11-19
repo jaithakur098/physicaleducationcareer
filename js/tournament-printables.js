@@ -713,17 +713,13 @@
       '</div>' +
 
       '<div class="t6-footer">' +
-        '<div class="t6-footer-top">' +
-          '<div class="t6-footer-meta">' +
-            '<span>Date:</span> ' + esc(dateStr) + ' &nbsp;|&nbsp; ' +
-            '<span>Venue:</span> ' + esc(place) +
-          '</div>' +
+        '<div class="t6-footer-row">' +
           '<div class="t6-qr">' +
             qrImg(verifyUrl, 't6-qr-img', 200) +
             '<div class="t6-qr-label">SCAN TO VERIFY</div>' +
           '</div>' +
+          '<div class="t6-authority">' + sigHtml + '</div>' +
         '</div>' +
-        '<div class="t6-authority">' + sigHtml + '</div>' +
         (orgName ? '<div class="t6-org-name">' + esc(orgName) + '</div>' : '') +
       '</div>' +
       '</div>';
@@ -738,7 +734,6 @@
 
   function baseCertCSS() {
     return fontImport() +
-      '@page { size: A4 landscape; margin: 0; }' +
       '* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
       '.tcr-cert { width: 297mm; height: 210mm; position: relative; overflow: hidden; page-break-after: auto; page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
       '.tcr-paper { position: absolute; inset: 0; background: radial-gradient(ellipse at 55% 20%, rgba(228,198,90,0.08), transparent 55%), linear-gradient(180deg, #fffefb 0%, ' + IVORY + ' 45%, #f3ede2 100%); z-index: 0; }' +
@@ -831,9 +826,9 @@
 '.tp-cert-template-6 .t6-header { position: relative; display: flex; align-items: center; justify-content: center; gap: 10mm; margin-bottom: 4mm; border-bottom: 2px solid ' + NAVY + '; padding-bottom: 3mm; }' +
 '.tp-cert-template-6 .t6-logo { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 26mm; height: 26mm; object-fit: contain; flex-shrink: 0; }' +
 '.tp-cert-template-6 .t6-title-group { flex: 0 1 auto; min-width: 0; text-align: center; max-width: 100%; padding: 0 30mm; }' +
-'.tp-cert-template-6 .t6-tournament-name { font-family: Cinzel, Georgia, serif; font-size: 12mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 1.5mm 0; letter-spacing: 0.03em; line-height: 1.1; word-break: break-word; text-align: center; text-transform: uppercase; white-space: normal; }' +
+'.tp-cert-template-6 .t6-tournament-name { font-family: Cinzel, Georgia, serif; font-size: 10mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 1mm 0; letter-spacing: 0.02em; line-height: 1.1; word-break: break-word; text-align: center; text-transform: uppercase; white-space: normal; max-height: 24mm; overflow: hidden; }' +
       '.tp-cert-template-6 .t6-tournament-sub { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; font-weight: 700; color: #b8941f; margin: 0; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; }' +
-      '.tp-cert-template-6 .t6-cert-heading { font-family: Cinzel, Georgia, serif; font-size: 14mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 3mm 0; letter-spacing: 0.25em; text-transform: uppercase; text-align: center; }' +
+      '.tp-cert-template-6 .t6-cert-heading { font-family: Cinzel, Georgia, serif; font-size: 12mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 2mm 0; letter-spacing: 0.2em; text-transform: uppercase; text-align: center; }' +
       '.tp-cert-template-6 .t6-body { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 3mm; }' +
       '.tp-cert-template-6 .t6-cert-type { font-family: "Source Sans 3", sans-serif; font-size: 4.5mm; font-weight: 800; color: #b8941f; margin: 0 0 5mm 0; letter-spacing: 0.15em; text-transform: uppercase; }' +
       '.tp-cert-template-6 .t6-certify { font-family: "Libre Baskerville", Georgia, serif; font-size: 4.2mm; font-weight: 700; color: #4a5568; margin: 0 0 3mm 0; letter-spacing: 0.08em; }' +
@@ -846,18 +841,17 @@
       '.tp-cert-template-6 .t6-detail-cell { display: flex; flex-direction: column; gap: 1mm; }' +
       '.tp-cert-template-6 .t6-detail-label { font-family: "Source Sans 3", sans-serif; font-size: 2.8mm; font-weight: 800; color: #8a94a6; text-transform: uppercase; letter-spacing: 0.1em; }' +
       '.tp-cert-template-6 .t6-detail-value { font-family: "Source Sans 3", sans-serif; font-size: 3.8mm; font-weight: 800; color: ' + NAVY + '; word-break: break-word; }' +
-      '.tp-cert-template-6 .t6-footer { width: 100%; margin-top: auto; padding-top: 3mm; border-top: 2px solid ' + NAVY + '; display: flex; flex-direction: column; gap: 3mm; }' +
-      '.tp-cert-template-6 .t6-footer-top { display: flex; justify-content: space-between; align-items: flex-end; }' +
-      '.tp-cert-template-6 .t6-footer-meta { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; color: #4a5568; }' +
-      '.tp-cert-template-6 .t6-footer-meta span { font-weight: 800; color: #b8941f; }' +
-      '.tp-cert-template-6 .t6-authority { text-align: center; }' +
-      '.tp-cert-template-6 .t6-sigs { display: flex; justify-content: center; gap: 12mm; align-items: flex-end; flex-wrap: nowrap; }' +
-      '.tp-cert-template-6 .t6-sig { text-align: center; min-width: 55mm; max-width: 72mm; }' +
+'.tp-cert-template-6 .t6-footer { width: 100%; margin-top: auto; padding-top: 2mm; border-top: 2px solid ' + NAVY + '; display: flex; flex-direction: column; gap: 2mm; }' +
+'.tp-cert-template-6 .t6-footer-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; }' +
+'.tp-cert-template-6 .t6-footer-meta { display: none; }' +
+'.tp-cert-template-6 .t6-authority { text-align: center; flex: 1; }' +
+'.tp-cert-template-6 .t6-sigs { display: flex; justify-content: center; gap: 8mm; align-items: flex-end; flex-wrap: nowrap; }' +
+'.tp-cert-template-6 .t6-sig { text-align: center; min-width: 48mm; max-width: 65mm; }' +
       '.tp-cert-template-6 .t6-sig-img { width: 40mm; height: auto; max-height: 14mm; display: block; margin: 0 auto 2mm; object-fit: contain; }' +
       '.tp-cert-template-6 .t6-sig-name { font-family: Cinzel, Georgia, serif; font-size: 4.8mm; font-weight: 800; color: #b91c3a; letter-spacing: 0.04em; line-height: 1.15; }' +
       '.tp-cert-template-6 .t6-sig-desig { font-size: 3.2mm; font-weight: 700; color: #4a5568; line-height: 1.3; letter-spacing: 0.04em; }' +
       '.tp-cert-template-6 .t6-qr { text-align: center; align-self: center; }' +
-      '.tp-cert-template-6 .t6-qr-img { width: 20mm; height: 20mm; display: block; margin: 0 auto; background: #fff; border: 1px solid #dde4ef; padding: 1mm; }' +
+      '.tp-cert-template-6 .t6-qr-img { width: 18mm; height: 18mm; display: block; margin: 0 auto; background: #fff; border: 1px solid #dde4ef; padding: 1mm; }' +
       '.tp-cert-template-6 .t6-qr-label { font-size: 2.6mm; font-weight: 800; color: #718096; letter-spacing: 0.08em; margin-top: 1mm; text-transform: uppercase; }' +
       '.tp-cert-template-6 .t6-org-name { text-align: center; font-family: "Source Sans 3", sans-serif; font-size: 3.2mm; font-weight: 800; color: ' + NAVY + '; margin-top: 2mm; letter-spacing: 0.06em; }' +
 
@@ -915,7 +909,6 @@
 
   function baseIdCardCSS() {
     return fontImport() +
-      '@page { size: A4 portrait; margin: 8mm; }' +
       '* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
       'body { margin: 0; padding: 0; font-family: "Source Sans 3", Segoe UI, Arial, sans-serif; background: #e8ecf4; }' +
       '.tp-passes-sheet { display: flex; flex-direction: column; gap: 6mm; padding: 4mm; align-items: center; }' +
@@ -977,7 +970,6 @@
 
   function previewCSS(brandColor) {
     return idCardCSS() + certCSSWithBrand(brandColor) +
-      '@page { size: A4 landscape; margin: 0; }' +
       '.t-cert-preview-host, .cert-host { overflow: auto; background: #12182b; padding: 16px; border-radius: 8px; }' +
       '.t-cert-preview-host .tcr-cert, .cert-host .tcr-cert { transform: scale(0.38); transform-origin: top left; margin-bottom: -128mm; }' +
       '.t-idcard-preview-host, .id-host { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; }' +
