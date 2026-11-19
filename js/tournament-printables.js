@@ -827,26 +827,26 @@
       '.tp-cert-template-6 .t6-corner-tr { top: 8mm; right: 8mm; border-width: 3px 3px 0 0; border-radius: 0 2px 0 0; }' +
       '.tp-cert-template-6 .t6-corner-bl { bottom: 8mm; left: 8mm; border-width: 0 0 3px 3px; border-radius: 0 0 0 2px; }' +
       '.tp-cert-template-6 .t6-corner-br { bottom: 8mm; right: 8mm; border-width: 0 3px 3px 0; border-radius: 0 0 2px 0; }' +
-      '.tp-cert-template-6 .t6-content { position: relative; z-index: 4; height: 100%; padding: 10mm 14mm 8mm 14mm; display: flex; flex-direction: column; min-height: 0; }' +
-'.tp-cert-template-6 .t6-header { position: relative; display: flex; align-items: center; justify-content: center; gap: 10mm; margin-bottom: 6mm; border-bottom: 2px solid ' + NAVY + '; padding-bottom: 4mm; }' +
+      '.tp-cert-template-6 .t6-content { position: relative; z-index: 4; height: 100%; padding: 8mm 14mm 6mm 14mm; display: flex; flex-direction: column; min-height: 0; }' +
+'.tp-cert-template-6 .t6-header { position: relative; display: flex; align-items: center; justify-content: center; gap: 10mm; margin-bottom: 4mm; border-bottom: 2px solid ' + NAVY + '; padding-bottom: 3mm; }' +
 '.tp-cert-template-6 .t6-logo { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 26mm; height: 26mm; object-fit: contain; flex-shrink: 0; }' +
 '.tp-cert-template-6 .t6-title-group { flex: 0 1 auto; min-width: 0; text-align: center; max-width: 100%; padding: 0 30mm; }' +
 '.tp-cert-template-6 .t6-tournament-name { font-family: Cinzel, Georgia, serif; font-size: 12mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 1.5mm 0; letter-spacing: 0.03em; line-height: 1.1; word-break: break-word; text-align: center; text-transform: uppercase; white-space: normal; }' +
       '.tp-cert-template-6 .t6-tournament-sub { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; font-weight: 700; color: #b8941f; margin: 0; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; }' +
       '.tp-cert-template-6 .t6-cert-heading { font-family: Cinzel, Georgia, serif; font-size: 14mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 3mm 0; letter-spacing: 0.25em; text-transform: uppercase; text-align: center; }' +
       '.tp-cert-template-6 .t6-body { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 3mm; }' +
-      '.tp-cert-template-6 .t6-cert-type { font-family: "Source Sans 3", sans-serif; font-size: 4.5mm; font-weight: 800; color: #b8941f; margin: 0 0 8mm 0; letter-spacing: 0.15em; text-transform: uppercase; }' +
+      '.tp-cert-template-6 .t6-cert-type { font-family: "Source Sans 3", sans-serif; font-size: 4.5mm; font-weight: 800; color: #b8941f; margin: 0 0 5mm 0; letter-spacing: 0.15em; text-transform: uppercase; }' +
       '.tp-cert-template-6 .t6-certify { font-family: "Libre Baskerville", Georgia, serif; font-size: 4.2mm; font-weight: 700; color: #4a5568; margin: 0 0 3mm 0; letter-spacing: 0.08em; }' +
       '.tp-cert-template-6 .t6-player-name { font-family: Cinzel, Georgia, serif; font-size: 14mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 2mm 0; letter-spacing: 0.02em; line-height: 1.15; word-break: break-word; }' +
       '.tp-cert-template-6 .t6-statement { font-family: "Libre Baskerville", Georgia, serif; font-size: 4.6mm; line-height: 1.7; color: #2d3748; margin: 0 0 4mm 0; max-width: 220mm; }' +
       '.tp-cert-template-6 .t6-event-name { color: ' + NAVY + '; font-weight: 800; }' +
       '.tp-cert-template-6 .t6-medal-seal { width: 24mm; height: 24mm; margin: 4mm 0 6mm 0; }' +
-      '.tp-cert-template-6 .t6-details { width: 100%; margin-top: 6mm; border-top: 1px solid rgba(184,148,31,0.35); padding-top: 4mm; }' +
+      '.tp-cert-template-6 .t6-details { width: 100%; margin-top: 4mm; border-top: 1px solid rgba(184,148,31,0.35); padding-top: 3mm; }' +
       '.tp-cert-template-6 .t6-details-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm 6mm; }' +
       '.tp-cert-template-6 .t6-detail-cell { display: flex; flex-direction: column; gap: 1mm; }' +
       '.tp-cert-template-6 .t6-detail-label { font-family: "Source Sans 3", sans-serif; font-size: 2.8mm; font-weight: 800; color: #8a94a6; text-transform: uppercase; letter-spacing: 0.1em; }' +
       '.tp-cert-template-6 .t6-detail-value { font-family: "Source Sans 3", sans-serif; font-size: 3.8mm; font-weight: 800; color: ' + NAVY + '; word-break: break-word; }' +
-      '.tp-cert-template-6 .t6-footer { width: 100%; margin-top: auto; padding-top: 5mm; border-top: 2px solid ' + NAVY + '; display: flex; flex-direction: column; gap: 4mm; }' +
+      '.tp-cert-template-6 .t6-footer { width: 100%; margin-top: auto; padding-top: 3mm; border-top: 2px solid ' + NAVY + '; display: flex; flex-direction: column; gap: 3mm; }' +
       '.tp-cert-template-6 .t6-footer-top { display: flex; justify-content: space-between; align-items: flex-end; }' +
       '.tp-cert-template-6 .t6-footer-meta { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; color: #4a5568; }' +
       '.tp-cert-template-6 .t6-footer-meta span { font-weight: 800; color: #b8941f; }' +
@@ -977,10 +977,12 @@
 
   function previewCSS(brandColor) {
     return idCardCSS() + certCSSWithBrand(brandColor) +
+      '@page { size: A4 landscape; margin: 0; }' +
       '.t-cert-preview-host, .cert-host { overflow: auto; background: #12182b; padding: 16px; border-radius: 8px; }' +
       '.t-cert-preview-host .tcr-cert, .cert-host .tcr-cert { transform: scale(0.38); transform-origin: top left; margin-bottom: -128mm; }' +
       '.t-idcard-preview-host, .id-host { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; }' +
-      '.t-idcard-preview-host .tp-pass, .id-host .tp-pass { transform: scale(1.6); transform-origin: top center; margin-bottom: 28mm; }';
+      '.t-idcard-preview-host .tp-pass, .id-host .tp-pass { transform: scale(1.6); transform-origin: top center; margin-bottom: 28mm; }' +
+      '@media print { .t-cert-preview-host .tcr-cert, .cert-host .tcr-cert { transform: none !important; margin-bottom: 0 !important; } .t-cert-preview-host, .cert-host { background: #fff; padding: 0; overflow: visible; } }';
   }
 
   root.TPrint = {
