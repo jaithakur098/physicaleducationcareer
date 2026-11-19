@@ -718,12 +718,12 @@
             '<span>Date:</span> ' + esc(dateStr) + ' &nbsp;|&nbsp; ' +
             '<span>Venue:</span> ' + esc(place) +
           '</div>' +
-          '<div class="t6-authority">' + sigHtml + '</div>' +
           '<div class="t6-qr">' +
             qrImg(verifyUrl, 't6-qr-img', 200) +
             '<div class="t6-qr-label">SCAN TO VERIFY</div>' +
           '</div>' +
         '</div>' +
+        '<div class="t6-authority">' + sigHtml + '</div>' +
         (orgName ? '<div class="t6-org-name">' + esc(orgName) + '</div>' : '') +
       '</div>' +
       '</div>';
@@ -827,11 +827,11 @@
       '.tp-cert-template-6 .t6-corner-tr { top: 8mm; right: 8mm; border-width: 3px 3px 0 0; border-radius: 0 2px 0 0; }' +
       '.tp-cert-template-6 .t6-corner-bl { bottom: 8mm; left: 8mm; border-width: 0 0 3px 3px; border-radius: 0 0 0 2px; }' +
       '.tp-cert-template-6 .t6-corner-br { bottom: 8mm; right: 8mm; border-width: 0 3px 3px 0; border-radius: 0 0 2px 0; }' +
-      '.tp-cert-template-6 .t6-content { position: relative; z-index: 4; height: 100%; padding: 0; display: flex; flex-direction: column; min-height: 0; }' +
-      '.tp-cert-template-6 .t6-header { display: flex; align-items: center; gap: 10mm; margin-bottom: 6mm; border-bottom: 2px solid ' + NAVY + '; padding-bottom: 4mm; }' +
-      '.tp-cert-template-6 .t6-logo { width: 26mm; height: 26mm; object-fit: contain; flex-shrink: 0; }' +
-      '.tp-cert-template-6 .t6-title-group { flex: 1; min-width: 0; text-align: center; }' +
-'.tp-cert-template-6 .t6-tournament-name { font-family: Cinzel, Georgia, serif; font-size: 12mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 1.5mm 0; letter-spacing: 0.03em; line-height: 1.1; word-break: break-word; text-align: center; white-space: nowrap; }' +
+      '.tp-cert-template-6 .t6-content { position: relative; z-index: 4; height: 100%; padding: 10mm 14mm 8mm 14mm; display: flex; flex-direction: column; min-height: 0; }' +
+'.tp-cert-template-6 .t6-header { position: relative; display: flex; align-items: center; justify-content: center; gap: 10mm; margin-bottom: 6mm; border-bottom: 2px solid ' + NAVY + '; padding-bottom: 4mm; }' +
+'.tp-cert-template-6 .t6-logo { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 26mm; height: 26mm; object-fit: contain; flex-shrink: 0; }' +
+'.tp-cert-template-6 .t6-title-group { flex: 0 1 auto; min-width: 0; text-align: center; max-width: 100%; padding: 0 30mm; }' +
+'.tp-cert-template-6 .t6-tournament-name { font-family: Cinzel, Georgia, serif; font-size: 12mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 1.5mm 0; letter-spacing: 0.03em; line-height: 1.1; word-break: break-word; text-align: center; text-transform: uppercase; white-space: normal; }' +
       '.tp-cert-template-6 .t6-tournament-sub { font-family: "Source Sans 3", sans-serif; font-size: 3.6mm; font-weight: 700; color: #b8941f; margin: 0; letter-spacing: 0.12em; text-transform: uppercase; text-align: center; }' +
       '.tp-cert-template-6 .t6-cert-heading { font-family: Cinzel, Georgia, serif; font-size: 14mm; font-weight: 800; color: ' + NAVY + '; margin: 0 0 3mm 0; letter-spacing: 0.25em; text-transform: uppercase; text-align: center; }' +
       '.tp-cert-template-6 .t6-body { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 3mm; }' +
